@@ -34,7 +34,7 @@ def main(argv):
     myEmail = email.message_from_string(data)
     payload = find_html_depth_first(myEmail)
 
-    p = Popen(['wkhtmltopdf', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore', '-', outputFile], stdin=PIPE)
+    p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore', '-', outputFile], stdin=PIPE)
     output = p.communicate(input = payload)
 
 def find_html_depth_first(message):
