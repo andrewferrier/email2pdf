@@ -10,6 +10,8 @@ import os
 import os.path
 import sys
 
+HEADERS = ('Subject', 'From', 'To', 'Date')
+
 def main(argv):
     inputFile = ''
     outputFile = ''
@@ -40,6 +42,13 @@ def main(argv):
             data = inputHandle.read()
 
     myEmail = email.message_from_string(data)
+
+    headerInfo = ''
+    for header in HEADERS:
+        headerInfo = headerInfo + '<b>' + header + '</b>: ' + myEmail[header] + '<br/>'
+
+    headerInfo = headerInfo + '<br/>'
+
     payload = find_depth_first(myEmail, "text/html")
     if payload == False:
         payload = find_depth_first(myEmail, "text/plain")
@@ -47,6 +56,8 @@ def main(argv):
             print("ERROR: Cannot find an appropriate payload in email.", file=sys.stderr)
         else:
             payload = "<html><body><pre>\n" + payload + "\n</pre></body></html>"
+
+    payload = headerInfo + payload
 
     p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore', '-', outputFile], stdin=PIPE)
     output = p.communicate(input = payload)
