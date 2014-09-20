@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
-from subprocess import Popen, PIPE
+from __future__ import print_function
+
 from datetime import datetime
+from subprocess import Popen, PIPE
 import email
 import getopt
 import os
+import os.path
 import sys
 
 def main(argv):
@@ -13,7 +16,7 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "i:o:d:t", ["inputFile=","outputFile=", "outputDirectory=", "timedOutputFile"])
     except getopt.GetoptError:
-        print 'email2pdf.py -i <inputFile> -o <outputFile> [-t]'
+        print('email2pdf.py -i <inputFile> -o <outputFile> [-t]')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-i", "--inputFile"):
@@ -23,7 +26,10 @@ def main(argv):
         elif opt in ("-d", "--outputDirectory"):
             outputDirectory = arg
         elif opt in ("-t", "--timedOutputFile"):
-            outputFile = outputDirectory.rstrip("/") + "/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f") + ".pdf"
+            outputFile = outputDirectory.rstrip("/") + "/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".pdf"
+
+    if os.path.isfile(outputFile):
+        print("ERROR: Output file " + outputFile + " already exists. Aborting.", file=sys.stderr)
 
     if inputFile.strip() == "-":
         data = ""
