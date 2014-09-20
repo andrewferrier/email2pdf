@@ -26,7 +26,7 @@ def main(argv):
         elif opt in ("-d", "--outputDirectory"):
             outputDirectory = arg
         elif opt in ("-t", "--timedOutputFile"):
-            outputFile = outputDirectory.rstrip("/") + "/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".pdf"
+            outputFile = outputDirectory.rstrip("/") + "/" + datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"
 
     if os.path.isfile(outputFile):
         print("ERROR: Output file " + outputFile + " already exists. Aborting.", file=sys.stderr)
