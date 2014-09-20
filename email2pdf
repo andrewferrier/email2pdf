@@ -11,7 +11,7 @@ def main(argv):
     inputFile = ''
     outputFile = ''
     try:
-        opts, args = getopt.getopt(argv, "i:o:t", ["inputFile=","outputFile=", "timedOutputFile"])
+        opts, args = getopt.getopt(argv, "i:o:d:t", ["inputFile=","outputFile=", "outputDirectory=", "timedOutputFile"])
     except getopt.GetoptError:
         print 'email2pdf.py -i <inputFile> -o <outputFile> [-t]'
         sys.exit(2)
@@ -20,8 +20,10 @@ def main(argv):
             inputFile = arg
         elif opt in ("-o", "--outputFile"):
             outputFile = arg
+        elif opt in ("-d", "--outputDirectory"):
+            outputDirectory = arg
         elif opt in ("-t", "--timedOutputFile"):
-            outputFile = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f") + ".pdf"
+            outputFile = outputDirectory.rstrip("/") + "/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f") + ".pdf"
 
     if inputFile.strip() == "-":
         data = ""
