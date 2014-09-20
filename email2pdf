@@ -40,18 +40,24 @@ def main(argv):
             data = inputHandle.read()
 
     myEmail = email.message_from_string(data)
-    payload = find_html_depth_first(myEmail)
+    payload = find_depth_first(myEmail, "text/html")
+    if payload == False:
+        payload = find_depth_first(myEmail, "text/plain")
+        if payload == False:
+            print("ERROR: Cannot find an appropriate payload in email.", file=sys.stderr)
+        else:
+            payload = "<html><body><pre>\n" + payload + "\n</pre></body></html>"
 
     p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore', '-', outputFile], stdin=PIPE)
     output = p.communicate(input = payload)
 
-def find_html_depth_first(message):
+def find_depth_first(message, content_type):
     if message.is_multipart():
         for part in message.get_payload():
-            value = find_html_depth_first(part)
+            value = find_depth_first(part, content_type)
             if value != False:
                 return value
-    elif message.get_content_type() == 'text/html':
+    elif message.get_content_type() == content_type:
         return message.get_payload(decode = True)
     else:
         return False
