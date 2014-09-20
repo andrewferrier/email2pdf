@@ -1,0 +1,13 @@
+[retriever]
+type = SimpleIMAPRetriever
+server = mail.example.com
+username = pdf@example.com
+password = mypassword
+
+[options]
+delete = true
+
+[destination]
+type = MDA_external
+path = /where/I/installed/email2pdf
+arguments = ("-i-", "-d", "/where/I/want/PDFs/to/go", "-t")
