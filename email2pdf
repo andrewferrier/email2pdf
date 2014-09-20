@@ -23,8 +23,13 @@ def main(argv):
         elif opt in ("-t", "--timedOutputFile"):
             outputFile = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f") + ".pdf"
 
-    with open(inputFile, "r") as inputHandle:
-        data = inputHandle.read()
+    if inputFile.strip() == "-":
+        data = ""
+        for line in sys.stdin:
+            data += line
+    else:
+        with open(inputFile, "r") as inputHandle:
+            data = inputHandle.read()
 
     myEmail = email.message_from_string(data)
     payload = find_html_depth_first(myEmail)
