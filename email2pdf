@@ -50,7 +50,8 @@ def main():
 
     header_info = ''
     for header in HEADERS:
-        header_info = header_info + '<b>' + header + '</b>: ' + my_email[header] + '<br/>'
+        if(my_email[header]):
+            header_info = header_info + '<b>' + header + '</b>: ' + my_email[header] + '<br/>'
 
     header_info = header_info + '<br/>'
 

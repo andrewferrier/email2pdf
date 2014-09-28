@@ -7,11 +7,18 @@ from subprocess import Popen, PIPE
 import unittest
 import sys
 
-def createBasicMessage(frm, to, subject):
+def createBasicMessage(frm = None, to = None, subject = None):
     msg = MIMEMultipart()
-    msg['Subject'] = subject
-    msg['From'] = frm
-    msg['To'] = to
+
+    if(subject):
+        msg['Subject'] = subject
+
+    if(frm):
+        msg['From'] = frm
+
+    if(to):
+        msg['To'] = to
+
     msg['Date'] = formatdate()
     return msg
 
@@ -25,6 +32,10 @@ def invokeEmail2PDF(message):
 class TestText(unittest.TestCase):
     def test_basic(self):
         msg = createBasicMessage("From", "To", "Subject")
+        self.assertEqual(invokeEmail2PDF(msg), 0)
+
+    def test_nosubject(self):
+        msg = createBasicMessage("From", "To")
         self.assertEqual(invokeEmail2PDF(msg), 0)
 
 if __name__ == '__main__':
