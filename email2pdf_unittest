@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from email.mime.multipart import MIMEMultipart
 from email.message import Message
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from email.utils import formatdate
 from subprocess import Popen, PIPE
 
@@ -34,6 +35,12 @@ def setPlainContent(message, content):
     message.set_default_type("text/plain")
     message.set_payload(content)
 
+def attachHTML(message, content):
+    message.attach(MIMEText(content, 'html'))
+
+def attachText(message, content):
+    message.attach(MIMEText(content, 'plain'))
+
 class TestBasic(unittest.TestCase):
     def setUp(self):
         self.msg = Message()
@@ -64,6 +71,22 @@ class TestMIME(unittest.TestCase):
 
     def test_nosubject(self):
         addHeaders(self.msg, "From", "To")
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+
+    def test_plain(self):
+        addHeaders(self.msg, "From", "To", "Subject")
+        attachText(self.msg, "Some basic textual content")
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+
+    def test_html(self):
+        addHeaders(self.msg, "From", "To", "Subject")
+        attachHTML(self.msg, "<p>Some basic textual content</p>")
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+
+    def test_plainandhtml(self):
+        addHeaders(self.msg, "From", "To", "Subject")
+        attachText(self.msg, "Some basic textual content")
+        attachHTML(self.msg, "<p>Some basic textual content</p>")
         self.assertEqual(invokeEmail2PDF(self.msg), 0)
 
     def tearDown(self):
