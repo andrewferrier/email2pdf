@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 
 from email.mime.multipart import MIMEMultipart
+from email.message import Message
 from email.utils import formatdate
 from subprocess import Popen, PIPE
 
 import unittest
 import sys
+import time
 
-def createBasicMessage(frm = None, to = None, subject = None):
-    msg = MIMEMultipart()
+DELAY=0.5
 
+def addHeaders(msg, frm = None, to = None, subject = None):
     if(subject):
         msg['Subject'] = subject
 
@@ -20,7 +22,6 @@ def createBasicMessage(frm = None, to = None, subject = None):
         msg['To'] = to
 
     msg['Date'] = formatdate()
-    return msg
 
 def invokeEmail2PDF(message):
     textMessage = message.as_string()
@@ -29,14 +30,44 @@ def invokeEmail2PDF(message):
     p.wait()
     return p.returncode
 
-class TestText(unittest.TestCase):
-    def test_basic(self):
-        msg = createBasicMessage("From", "To", "Subject")
-        self.assertEqual(invokeEmail2PDF(msg), 0)
+def setPlainContent(message, content):
+    message.set_default_type("text/plain")
+    message.set_payload(content)
+
+class TestBasic(unittest.TestCase):
+    def setUp(self):
+        self.msg = Message()
+
+    def test_simple(self):
+        addHeaders(self.msg, "From", "To", "Subject")
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
 
     def test_nosubject(self):
-        msg = createBasicMessage("From", "To")
-        self.assertEqual(invokeEmail2PDF(msg), 0)
+        addHeaders(self.msg, "From", "To")
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+
+    def test_plaincontent(self):
+        addHeaders(self.msg, "From", "To", "Subject")
+        setPlainContent(self.msg, "Hello!")
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+
+    def tearDown(self):
+        time.sleep(DELAY)
+
+class TestMIME(unittest.TestCase):
+    def setUp(self):
+        self.msg = MIMEMultipart()
+
+    def test_simple(self):
+        addHeaders(self.msg, "From", "To", "Subject")
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+
+    def test_nosubject(self):
+        addHeaders(self.msg, "From", "To")
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+
+    def tearDown(self):
+        time.sleep(DELAY)
 
 if __name__ == '__main__':
     unittest.main()
