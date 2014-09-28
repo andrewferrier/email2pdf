@@ -10,4 +10,4 @@ delete = true
 [destination]
 type = MDA_external
 path = /where/I/installed/email2pdf
-arguments = ("-i-", "-d", "/where/I/want/PDFs/to/go", "-t")
+arguments = ("-d", "/where/I/want/PDFs/to/go")
