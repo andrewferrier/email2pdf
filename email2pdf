@@ -14,7 +14,7 @@ HEADERS = ('Subject', 'From', 'To', 'Date')
 
 def main(argv):
     inputFile = ''
-    outputFile = ''
+    outputFileName = ''
     try:
         opts, args = getopt.getopt(argv, "i:o:d:t", ["inputFile=","outputFile=", "outputDirectory=", "timedOutputFile"])
     except getopt.GetoptError:
@@ -24,14 +24,14 @@ def main(argv):
         if opt in ("-i", "--inputFile"):
             inputFile = arg
         elif opt in ("-o", "--outputFile"):
-            outputFile = arg
+            outputFileName = arg
         elif opt in ("-d", "--outputDirectory"):
             outputDirectory = arg
         elif opt in ("-t", "--timedOutputFile"):
-            outputFile = outputDirectory.rstrip("/") + "/" + datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"
+            outputFileName = outputDirectory.rstrip("/") + "/" + datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"
 
-    if os.path.isfile(outputFile):
-        print("ERROR: Output file " + outputFile + " already exists. Aborting.", file=sys.stderr)
+    if os.path.isfile(outputFileName):
+        print("ERROR: Output file " + outputFileName + " already exists. Aborting.", file=sys.stderr)
 
     if inputFile.strip() == "-":
         data = ""
@@ -49,29 +49,34 @@ def main(argv):
 
     headerInfo = headerInfo + '<br/>'
 
-    payload = find_depth_first(myEmail, "text/html")
-    if payload == False:
-        payload = find_depth_first(myEmail, "text/plain")
-        if payload == False:
-            print("ERROR: Cannot find an appropriate payload in email.", file=sys.stderr)
-        else:
-            payload = "<html><body><pre>\n" + payload + "\n</pre></body></html>"
+    payload = find_depth_first(myEmail, "application/pdf")
+    if payload == None:
+        payload = find_depth_first(myEmail, "text/html")
+        if payload == None:
+            payload = find_depth_first(myEmail, "text/plain")
+            if payload == None:
+                print("ERROR: Cannot find an appropriate payload in email.", file=sys.stderr)
+            else:
+                payload = "<html><body><pre>\n" + payload + "\n</pre></body></html>"
 
-    payload = headerInfo + payload
+        payload = headerInfo + payload
 
-    p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore', '-', outputFile], stdin=PIPE)
-    output = p.communicate(input = payload)
+        p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore', '-', outputFileName], stdin=PIPE)
+        output = p.communicate(input = payload)
+    else:
+        with open(outputFileName, 'wb') as outputFile:
+            outputFile.write(payload)
 
 def find_depth_first(message, content_type):
     if message.is_multipart():
         for part in message.get_payload():
             value = find_depth_first(part, content_type)
-            if value != False:
+            if value != None:
                 return value
     elif message.get_content_type() == content_type:
         return message.get_payload(decode = True)
     else:
-        return False
+        return None
 
 if __name__ == "__main__":
    main(sys.argv[1:])
