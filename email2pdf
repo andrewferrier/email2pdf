@@ -19,11 +19,11 @@ def main():
     parser.add_argument("-i", "--inputFile", default="-",
             help="Input file you wish to read. If set to '-' (which is the default), it reads from stdin.")
 
-    outputOptions = parser.add_mutually_exclusive_group()
+    output_options = parser.add_mutually_exclusive_group()
 
-    outputOptions.add_argument("-o", "--outputFile",
+    output_options.add_argument("-o", "--outputFile",
             help="Output file you wish to write to.")
-    outputOptions.add_argument("-t", "--timedOutputFile",
+    output_options.add_argument("-t", "--timedOutputFile",
             help="Specify that email2pdf should automatically pick a filename based on the current " +
             "date and time. This is the default if not output filename is specified.")
 
@@ -33,12 +33,12 @@ def main():
     args = parser.parse_args()
 
     if(args.outputFile):
-        outputFileName = args.outputFile
+        output_file_name = args.outputFile
     else:
-        outputFileName = args.outputDirectory.rstrip("/") + "/" + datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"
+        output_file_name = args.outputDirectory.rstrip("/") + "/" + datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"
 
-    if os.path.isfile(outputFileName):
-        print("ERROR: Output file " + outputFileName + " already exists. Aborting.", file=sys.stderr)
+    if os.path.isfile(output_file_name):
+        print("ERROR: Output file " + output_file_name + " already exists. Aborting.", file=sys.stderr)
 
     if args.inputFile.strip() == "-":
         data = ""
@@ -48,31 +48,31 @@ def main():
         with open(args.inputFile, "r") as inputHandle:
             data = inputHandle.read()
 
-    myEmail = email.message_from_string(data)
+    my_email = email.message_from_string(data)
 
-    headerInfo = ''
+    header_info = ''
     for header in HEADERS:
-        headerInfo = headerInfo + '<b>' + header + '</b>: ' + myEmail[header] + '<br/>'
+        header_info = header_info + '<b>' + header + '</b>: ' + my_email[header] + '<br/>'
 
-    headerInfo = headerInfo + '<br/>'
+    header_info = header_info + '<br/>'
 
-    payload = find_depth_first(myEmail, "application/pdf")
+    payload = find_depth_first(my_email, "application/pdf")
     if payload == None:
-        payload = find_depth_first(myEmail, "text/html")
+        payload = find_depth_first(my_email, "text/html")
         if payload == None:
-            payload = find_depth_first(myEmail, "text/plain")
+            payload = find_depth_first(my_email, "text/plain")
             if payload == None:
                 print("ERROR: Cannot find an appropriate payload in email.", file=sys.stderr)
             else:
                 payload = "<html><body><pre>\n" + payload + "\n</pre></body></html>"
 
-        payload = headerInfo + payload
+        payload = header_info + payload
 
-        p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore', '-', outputFileName], stdin=PIPE)
+        p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore', '-', output_file_name], stdin=PIPE)
         output = p.communicate(input = payload)
     else:
-        with open(outputFileName, 'wb') as outputFile:
-            outputFile.write(payload)
+        with open(output_file_name, 'wb') as output_file:
+            output_file.write(payload)
 
 def find_depth_first(message, content_type):
     if message.is_multipart():
