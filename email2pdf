@@ -4,41 +4,48 @@ from __future__ import print_function
 
 from datetime import datetime
 from subprocess import Popen, PIPE
+import argparse
 import email
-import getopt
 import os
 import os.path
 import sys
 
-HEADERS = ('Subject', 'From', 'To', 'Date')
+def main():
+    HEADERS = ('Subject', 'From', 'To', 'Date')
 
-def main(argv):
-    inputFile = ''
-    outputFileName = ''
-    try:
-        opts, args = getopt.getopt(argv, "i:o:d:t", ["inputFile=","outputFile=", "outputDirectory=", "timedOutputFile"])
-    except getopt.GetoptError:
-        print('email2pdf.py -i <inputFile> -o <outputFile> [-t]')
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt in ("-i", "--inputFile"):
-            inputFile = arg
-        elif opt in ("-o", "--outputFile"):
-            outputFileName = arg
-        elif opt in ("-d", "--outputDirectory"):
-            outputDirectory = arg
-        elif opt in ("-t", "--timedOutputFile"):
-            outputFileName = outputDirectory.rstrip("/") + "/" + datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"
+    parser = argparse.ArgumentParser(description="Converts emails to PDFs. " +
+            "See https://github.com/andrewferrier/email2pdf for more information.")
+
+    parser.add_argument("-i", "--inputFile", default="-",
+            help="Input file you wish to read. If set to '-' (which is the default), it reads from stdin.")
+
+    outputOptions = parser.add_mutually_exclusive_group()
+
+    outputOptions.add_argument("-o", "--outputFile",
+            help="Output file you wish to write to.")
+    outputOptions.add_argument("-t", "--timedOutputFile",
+            help="Specify that email2pdf should automatically pick a filename based on the current " +
+            "date and time. This is the default if not output filename is specified.")
+
+    parser.add_argument("-d", "--outputDirectory", default=os.getcwd(),
+            help="Output directory for --timedOutputFile. Defaults to the current directory.")
+
+    args = parser.parse_args()
+
+    if(args.outputFile):
+        outputFileName = args.outputFile
+    else:
+        outputFileName = args.outputDirectory.rstrip("/") + "/" + datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"
 
     if os.path.isfile(outputFileName):
         print("ERROR: Output file " + outputFileName + " already exists. Aborting.", file=sys.stderr)
 
-    if inputFile.strip() == "-":
+    if args.inputFile.strip() == "-":
         data = ""
         for line in sys.stdin:
             data += line
     else:
-        with open(inputFile, "r") as inputHandle:
+        with open(args.inputFile, "r") as inputHandle:
             data = inputHandle.read()
 
     myEmail = email.message_from_string(data)
@@ -79,4 +86,4 @@ def find_depth_first(message, content_type):
         return None
 
 if __name__ == "__main__":
-   main(sys.argv[1:])
+   main()
