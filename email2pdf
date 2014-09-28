@@ -8,25 +8,28 @@ import os
 import os.path
 import sys
 
+
 def main():
     HEADERS = ('Subject', 'From', 'To', 'Date')
 
     parser = argparse.ArgumentParser(description="Converts emails to PDFs. " +
-            "See https://github.com/andrewferrier/email2pdf for more information.")
+                                     "See https://github.com/andrewferrier/email2pdf for more information.")
 
     parser.add_argument("-i", "--inputFile", default="-",
-            help="Input file you wish to read. If set to '-' (which is the default), it reads from stdin.")
+                        help="Input file you wish to read. If set to '-' " +
+                        "(which is the default), it reads from stdin.")
 
     output_options = parser.add_mutually_exclusive_group()
 
     output_options.add_argument("-o", "--outputFile",
-            help="Output file you wish to write to.")
+                                help="Output file you wish to write to.")
     output_options.add_argument("-t", "--timedOutputFile",
-            help="Specify that email2pdf should automatically pick a filename based on the current " +
-            "date and time. This is the default if not output filename is specified.")
+                                help="Specify that email2pdf should automatically " +
+                                "pick a filename based on the current date and time. " +
+                                "This is the default if not output filename is specified.")
 
     parser.add_argument("-d", "--outputDirectory", default=os.getcwd(),
-            help="Output directory for --timedOutputFile. Defaults to the current directory.")
+                        help="Output directory for --timedOutputFile. Defaults to the current directory.")
 
     args = parser.parse_args()
 
@@ -57,33 +60,35 @@ def main():
     header_info = header_info + '<br/>'
 
     payload = find_depth_first(my_email, "application/pdf")
-    if payload == None:
+    if payload is None:
         payload = find_depth_first(my_email, "text/html")
-        if payload == None:
+        if payload is None:
             payload = find_depth_first(my_email, "text/plain")
-            if payload == None:
+            if payload is None:
                 print("ERROR: Cannot find an appropriate payload in email.", file=sys.stderr)
             else:
                 payload = bytes("<html><body><pre>\n", 'UTF-8') + payload + bytes("\n</pre></body></html>", 'UTF-8')
 
         payload = bytes(header_info, 'UTF-8') + payload
 
-        p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore', '-', output_file_name], stdin=PIPE)
-        output = p.communicate(input = payload)
+        p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling',
+                   'ignore', '-', output_file_name], stdin=PIPE)
+        output = p.communicate(input=payload)
     else:
         with open(output_file_name, 'wb') as output_file:
             output_file.write(payload)
+
 
 def find_depth_first(message, content_type):
     if message.is_multipart():
         for part in message.get_payload():
             value = find_depth_first(part, content_type)
-            if value != None:
+            if value is not None:
                 return value
     elif message.get_content_type() == content_type:
-        return message.get_payload(decode = True)
+        return message.get_payload(decode=True)
     else:
         return None
 
 if __name__ == "__main__":
-   main()
+    main()

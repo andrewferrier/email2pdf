@@ -10,9 +10,10 @@ import unittest
 import sys
 import time
 
-DELAY=0.5
+DELAY = 0.5
 
-def addHeaders(msg, frm = None, to = None, subject = None):
+
+def addHeaders(msg, frm=None, to=None, subject=None):
     if(subject):
         msg['Subject'] = subject
 
@@ -24,22 +25,27 @@ def addHeaders(msg, frm = None, to = None, subject = None):
 
     msg['Date'] = formatdate()
 
+
 def invokeEmail2PDF(message):
     textMessage = message.as_string()
     p = Popen(['./email2pdf', '-d', '/tmp'], stdin=PIPE)
-    output = p.communicate(input = bytes(textMessage, 'UTF-8'))
+    output = p.communicate(input=bytes(textMessage, 'UTF-8'))
     p.wait()
     return p.returncode
+
 
 def setPlainContent(message, content):
     message.set_default_type("text/plain")
     message.set_payload(content)
 
+
 def attachHTML(message, content):
     message.attach(MIMEText(content, 'html'))
 
+
 def attachText(message, content):
     message.attach(MIMEText(content, 'plain'))
+
 
 class TestBasic(unittest.TestCase):
     def setUp(self):
@@ -60,6 +66,7 @@ class TestBasic(unittest.TestCase):
 
     def tearDown(self):
         time.sleep(DELAY)
+
 
 class TestMIME(unittest.TestCase):
     def setUp(self):
