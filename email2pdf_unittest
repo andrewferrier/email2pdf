@@ -20,6 +20,10 @@ DELAY = 0.5
 error_log = open('email2pdf_unittest_stderr.log', "w")
 
 
+def touch(fname):
+    open(fname, 'w').close()
+
+
 def addHeaders(msg, frm=None, to=None, subject=None):
     if(subject):
         msg['Subject'] = subject
@@ -164,7 +168,22 @@ class TestMIME(unittest.TestCase):
         filename = attachPDF(self.msg, "Some PDF content")
         self.assertEqual(invokeEmail2PDF(self.msg), 0)
         self.assertTrue(os.path.exists(filename))
-        os.unlink(filename)
+
+    def test_pdf_exists(self):
+        addHeaders(self.msg, "From", "To", "Subject")
+        attachText(self.msg, "Some basic textual content")
+        filename = attachPDF(self.msg, "Some PDF content")
+
+        self.assertFalse(os.path.exists(filename))
+        touch(filename)
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.assertTrue(os.path.exists(filename))
+
+        dirName, baseName = os.path.split(filename)
+        rootName, unused_extension = os.path.splitext(baseName)
+        uniqueName = os.path.join(dirName, rootName + "_1.pdf")
+
+        self.assertTrue(os.path.exists(uniqueName))
 
     def tearDown(self):
         time.sleep(DELAY)
