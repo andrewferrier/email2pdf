@@ -26,9 +26,14 @@ def addHeaders(msg, frm=None, to=None, subject=None):
     msg['Date'] = formatdate()
 
 
-def invokeEmail2PDF(message):
+def invokeEmail2PDF(message, headers=False):
     textMessage = message.as_string()
-    p = Popen(['./email2pdf', '-d', '/tmp'], stdin=PIPE)
+
+    options = ['./email2pdf', '-d', '/tmp']
+    if headers:
+        options.append('--headers')
+
+    p = Popen(options, stdin=PIPE)
     output = p.communicate(input=bytes(textMessage, 'UTF-8'))
     p.wait()
     return p.returncode
@@ -63,6 +68,11 @@ class TestBasic(unittest.TestCase):
         addHeaders(self.msg, "From", "To", "Subject")
         setPlainContent(self.msg, "Hello!")
         self.assertEqual(invokeEmail2PDF(self.msg), 0)
+
+    def test_plaincontent_headers(self):
+        addHeaders(self.msg, "From", "To", "Subject")
+        setPlainContent(self.msg, "Hello!")
+        self.assertEqual(invokeEmail2PDF(self.msg, True), 0)
 
     def tearDown(self):
         time.sleep(DELAY)

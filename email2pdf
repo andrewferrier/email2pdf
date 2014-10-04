@@ -10,8 +10,6 @@ import sys
 
 
 def main():
-    HEADERS = ('Subject', 'From', 'To', 'Date')
-
     parser = argparse.ArgumentParser(description="Converts emails to PDFs. " +
                                      "See https://github.com/andrewferrier/email2pdf for more information.")
 
@@ -30,6 +28,10 @@ def main():
 
     parser.add_argument("-d", "--outputDirectory", default=os.getcwd(),
                         help="Output directory for --timedOutputFile. Defaults to the current directory.")
+
+    parser.add_argument("--headers", dest='headers', action='store_true',
+                        help="Add basic email headers to the PDF. The default is not to do this.")
+    parser.set_defaults(headers=False)
 
     args = parser.parse_args()
 
@@ -52,12 +54,10 @@ def main():
 
     my_email = email.message_from_string(data)
 
-    header_info = ''
-    for header in HEADERS:
-        if(my_email[header]):
-            header_info = header_info + '<b>' + header + '</b>: ' + my_email[header] + '<br/>'
-
-    header_info = header_info + '<br/>'
+    if(args.headers):
+        header_info = get_header_info(my_email)
+    else:
+        header_info = ""
 
     payload = find_depth_first(my_email, "application/pdf")
     if payload is None:
@@ -89,6 +89,18 @@ def find_depth_first(message, content_type):
         return message.get_payload(decode=True)
     else:
         return None
+
+
+def get_header_info(email):
+    HEADERS = ('Subject', 'From', 'To', 'Date')
+
+    header_info = ""
+
+    for header in HEADERS:
+        if(email[header]):
+            header_info = header_info + '<b>' + header + '</b>: ' + email[header] + '<br/>'
+
+    return header_info + '<br/>'
 
 if __name__ == "__main__":
     main()
