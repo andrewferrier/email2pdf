@@ -140,27 +140,17 @@ def get_unique_version(filename):
 
 
 def find_part_by_content_type(message, content_type):
-    if message.is_multipart():
-        for part in message.get_payload():
-            value = find_part_by_content_type(part, content_type)
-            if value is not None:
-                return value
-    elif message.get_content_type() == content_type:
-        return message
-    else:
-        return None
+    for part in message.walk():
+        if part.get_content_type() == content_type:
+            return part
+    return None
 
 
 def find_part_by_content_id(message, content_id):
-    if message.is_multipart():
-        for part in message.get_payload():
-            value = find_part_by_content_id(part, content_id)
-            if value is not None:
-                return value
-    elif message['Content-ID'] in (content_id, '<' + content_id + '>'):
-        return message
-    else:
-        return None
+    for part in message.walk():
+        if part['Content-ID'] in (content_id, '<' + content_id + '>'):
+            return part
+    return None
 
 
 def find_all_parts(message, content_type):
