@@ -96,6 +96,9 @@ class TestBasic(unittest.TestCase):
     def setUp(self):
         self.msg = Message()
 
+    def test_noheaders(self):
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+
     def test_simple(self):
         addHeaders(self.msg, "From", "To", "Subject")
         self.assertEqual(invokeEmail2PDF(self.msg), 0)
@@ -137,6 +140,9 @@ class TestBasic(unittest.TestCase):
 class TestMIME(unittest.TestCase):
     def setUp(self):
         self.msg = MIMEMultipart()
+
+    def test_noheaders(self):
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
 
     def test_simple(self):
         addHeaders(self.msg, "From", "To", "Subject")
