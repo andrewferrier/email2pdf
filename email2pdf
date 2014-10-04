@@ -59,15 +59,18 @@ def main():
     else:
         header_info = ""
 
-    payload = find_depth_first(my_email, "application/pdf")
-    if payload is None:
-        payload = find_depth_first(my_email, "text/html")
-        if payload is None:
-            payload = find_depth_first(my_email, "text/plain")
-            if payload is None:
+    part = find_depth_first(my_email, "application/pdf")
+    if part is None:
+        part = find_depth_first(my_email, "text/html")
+        if part is None:
+            part = find_depth_first(my_email, "text/plain")
+            if part is None:
                 print("ERROR: Cannot find an appropriate payload in email.", file=sys.stderr)
             else:
+                payload = part.get_payload(decode=True)
                 payload = bytes("<html><body><pre>\n", 'UTF-8') + payload + bytes("\n</pre></body></html>", 'UTF-8')
+        else:
+            payload = part.get_payload(decode=True)
 
         payload = bytes(header_info, 'UTF-8') + payload
 
@@ -75,6 +78,7 @@ def main():
                    'ignore', '-', output_file_name], stdin=PIPE)
         output = p.communicate(input=payload)
     else:
+        payload = part.get_payload(decode=True)
         with open(output_file_name, 'wb') as output_file:
             output_file.write(payload)
 
@@ -86,7 +90,7 @@ def find_depth_first(message, content_type):
             if value is not None:
                 return value
     elif message.get_content_type() == content_type:
-        return message.get_payload(decode=True)
+        return message
     else:
         return None
 
