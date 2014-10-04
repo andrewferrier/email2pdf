@@ -156,14 +156,11 @@ def find_part_by_content_id(message, content_id):
 def find_all_parts(message, content_type):
     parts = []
 
-    if message.is_multipart():
-        for part in message.get_payload():
-            parts = parts + find_all_parts(part, content_type)
-        return parts
-    elif message.get_content_type() == content_type:
-        return [message]
-    else:
-        return []
+    for part in message.walk():
+        if part.get_content_type() == content_type:
+            parts.append(part)
+
+    return parts
 
 
 def get_header_info(email):
