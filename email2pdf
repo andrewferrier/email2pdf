@@ -82,6 +82,8 @@ def main():
     p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling',
                'ignore', '-', output_file_name], stdin=PIPE)
     output = p.communicate(input=payload)
+    if p.returncode > 0:
+        raise ExitCodeException("wkhtmltopdf failed with exit code " + str(p.returncode))
 
 
 def handle_pdf_parts(email, output_directory):
