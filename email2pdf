@@ -86,21 +86,29 @@ def main():
 
 def handle_pdf_parts(email, output_directory):
     parts = find_all_parts(email, "application/pdf")
+    maybeParts = find_all_parts(email, "application/octet-stream")
+
+    for maybePart in maybeParts:
+        filename = extract_part_filename(maybePart)
+        unused_base, ext = os.path.splitext(filename)
+        if ext.lower() == '.pdf':
+            parts.append(maybePart)
 
     for part in parts:
-        payload = part.get_payload(decode=True)
-
-        filename = part.get_filename()
-        if decode_header(filename)[0][1] is not None:
-            filename = str(decode_header(filename)[0][0]).decode(decode_header(filename)[0][1])
+        filename = extract_part_filename(part)
 
         fullFilename = os.path.join(output_directory, filename)
-
         fullFilename = get_unique_version(fullFilename)
 
+        payload = part.get_payload(decode=True)
         with open(fullFilename, 'wb') as output_file:
             output_file.write(payload)
 
+def extract_part_filename(part):
+    filename = part.get_filename()
+    if decode_header(filename)[0][1] is not None:
+        filename = str(decode_header(filename)[0][0]).decode(decode_header(filename)[0][1])
+    return filename
 
 def get_unique_version(filename):
     # From here: http://stackoverflow.com/q/183480/27641

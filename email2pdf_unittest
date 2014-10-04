@@ -76,15 +76,15 @@ class BaseTestClasses:
         def attachText(self, content):
             self.msg.attach(MIMEText(content, 'plain'))
 
-        def attachPDF(self, string):
-            unused_f_handle, file_name = tempfile.mkstemp(prefix="email2pdf_unittest_file", suffix=".pdf")
+        def attachPDF(self, string, fileSuffix="pdf", mainContentType="application", subContentType="pdf"):
+            unused_f_handle, file_name = tempfile.mkstemp(prefix="email2pdf_unittest_file", suffix="." + fileSuffix)
 
             try:
                 cv = canvas.Canvas(file_name)
                 cv.drawString(0, 500, string)
                 cv.save()
 
-                part = MIMEBase('application', "pdf")
+                part = MIMEBase(mainContentType, subContentType)
                 openHandle = open(file_name, "rb")
                 part.set_payload(openHandle.read())
                 encoders.encode_base64(part)
@@ -162,7 +162,9 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
     def test_plain(self):
         self.addHeaders("From", "To", "Subject")
         self.attachText("Some basic textual content")
+        filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
         self.assertEqual(self.invokeEmail2PDF(), 0)
+        self.assertTrue(os.path.exists(filename))
 
     def test_html(self):
         self.addHeaders("From", "To", "Subject")
@@ -181,6 +183,20 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         filename = self.attachPDF("Some PDF content")
         self.assertEqual(self.invokeEmail2PDF(), 0)
         self.assertTrue(os.path.exists(filename))
+
+    def test_pdfAsOctetStream(self):
+        self.addHeaders("From", "To", "Subject")
+        self.attachText("Some basic textual content")
+        filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
+        self.assertEqual(self.invokeEmail2PDF(), 0)
+        self.assertTrue(os.path.exists(filename))
+
+    def test_somethingElseAsOctetStream(self):
+        self.addHeaders("From", "To", "Subject")
+        self.attachText("Some basic textual content")
+        filename = self.attachPDF("Some PDF content", fileSuffix="xyz", mainContentType="application", subContentType="octet-stream")
+        self.assertEqual(self.invokeEmail2PDF(), 0)
+        self.assertFalse(os.path.exists(filename))
 
     def test_2pdfs(self):
         self.addHeaders("From", "To", "Subject")
