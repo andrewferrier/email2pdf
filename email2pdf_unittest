@@ -3,8 +3,11 @@
 from email.message import Message
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 from email.utils import formatdate
 from subprocess import Popen, PIPE, DEVNULL
+from reportlab.pdfgen import canvas
 
 import os
 import sys
@@ -64,6 +67,27 @@ def attachText(message, content):
     message.attach(MIMEText(content, 'plain'))
 
 
+def attachPDF(message, string):
+    unused_f_handle, file_name = tempfile.mkstemp(prefix="email2pdf_unittest_file", suffix=".pdf")
+
+    try:
+        cv = canvas.Canvas(file_name)
+        cv.drawString(0, 500, string)
+        cv.save()
+
+        part = MIMEBase('application', "pdf")
+        openHandle = open(file_name, "rb")
+        part.set_payload(openHandle.read())
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(file_name))
+        message.attach(part)
+        openHandle.close()
+
+        return file_name
+    finally:
+        os.unlink(file_name)
+
+
 class TestBasic(unittest.TestCase):
     def setUp(self):
         self.msg = Message()
@@ -96,7 +120,7 @@ class TestBasic(unittest.TestCase):
 
     def test_plaincontent_fileexist(self):
         setPlainContent(self.msg, "Hello!")
-        f_handle, f_path = tempfile.mkstemp()
+        unused_f_handle, f_path = tempfile.mkstemp()
         try:
             self.assertNotEqual(invokeEmail2PDF(self.msg, outputFile=f_path, errorExpected=True), 0)
         finally:
@@ -133,6 +157,14 @@ class TestMIME(unittest.TestCase):
         attachText(self.msg, "Some basic textual content")
         attachHTML(self.msg, "<p>Some basic textual content</p>")
         self.assertEqual(invokeEmail2PDF(self.msg), 0)
+
+    def test_pdf(self):
+        addHeaders(self.msg, "From", "To", "Subject")
+        attachText(self.msg, "Some basic textual content")
+        filename = attachPDF(self.msg, "Some PDF content")
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.assertTrue(os.path.exists(filename))
+        os.unlink(filename)
 
     def tearDown(self):
         time.sleep(DELAY)

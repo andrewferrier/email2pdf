@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from subprocess import Popen, PIPE
+from email.header import decode_header
 import argparse
 import email
 import os
@@ -83,8 +84,27 @@ def main():
         output = p.communicate(input=payload)
     else:
         payload = part.get_payload(decode=True)
-        with open(output_file_name, 'wb') as output_file:
+
+        filename = part.get_filename()
+        if decode_header(filename)[0][1] is not None:
+            filename = str(decode_header(filename)[0][0]).decode(decode_header(filename)[0][1])
+
+        fullFilename = os.path.join(output_directory, filename)
+
+        fullFilename = get_unique_version(fullFilename)
+
+        with open(fullFilename, 'wb') as output_file:
             output_file.write(payload)
+
+
+def get_unique_version(filename):
+    # From here: http://stackoverflow.com/q/183480/27641
+    counter = 1
+    file_name_parts = os.path.splitext(filename)
+    while os.path.isfile(filename):
+        filename = file_name_parts[0] + '_' + str(counter) + file_name_parts[1]
+        counter += 1
+    return filename
 
 
 def find_depth_first(message, content_type):
