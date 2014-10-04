@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from datetime import datetime
 from email.message import Message
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -16,6 +17,7 @@ import time
 import unittest
 
 DELAY = 0.5
+DEFAULT_OUTPUT_DIR = '/tmp'
 
 error_log = open('email2pdf_unittest_stderr.log', "w")
 
@@ -24,177 +26,182 @@ def touch(fname):
     open(fname, 'w').close()
 
 
-def addHeaders(msg, frm=None, to=None, subject=None):
-    if(subject):
-        msg['Subject'] = subject
+class BaseTestClasses:
+    class Email2PDFTestCase(unittest.TestCase):
+        def setUp(self):
+            self.timeAtStart = datetime.now()
 
-    if(frm):
-        msg['From'] = frm
+        def existsByTime(self):
+            return os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, self.timeAtStart.strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"))
 
-    if(to):
-        msg['To'] = to
+        def addHeaders(self, frm=None, to=None, subject=None):
+            if(subject):
+                self.msg['Subject'] = subject
 
-    msg['Date'] = formatdate()
+            if(frm):
+                self.msg['From'] = frm
+
+            if(to):
+                self.msg['To'] = to
+
+            self.msg['Date'] = formatdate()
+
+        def invokeEmail2PDF(self, headers=False, outputDirectory=DEFAULT_OUTPUT_DIR, errorExpected=False, outputFile=None):
+            textMessage = self.msg.as_string()
+
+            options = ['./email2pdf', '-d', outputDirectory]
+            if headers:
+                options.append('--headers')
+
+            if outputFile:
+                options.append('-o')
+                options.append(outputFile)
+
+            if errorExpected:
+                p = Popen(options, stdin=PIPE, stderr=error_log)
+            else:
+                p = Popen(options, stdin=PIPE)
+
+            output = p.communicate(input=bytes(textMessage, 'UTF-8'))
+            p.wait()
+            return p.returncode
+
+        def setPlainContent(self, content):
+            self.msg.set_default_type("text/plain")
+            self.msg.set_payload(content)
+
+        def attachHTML(self, content):
+            self.msg.attach(MIMEText(content, 'html'))
+
+        def attachText(self, content):
+            self.msg.attach(MIMEText(content, 'plain'))
+
+        def attachPDF(self, string):
+            unused_f_handle, file_name = tempfile.mkstemp(prefix="email2pdf_unittest_file", suffix=".pdf")
+
+            try:
+                cv = canvas.Canvas(file_name)
+                cv.drawString(0, 500, string)
+                cv.save()
+
+                part = MIMEBase('application', "pdf")
+                openHandle = open(file_name, "rb")
+                part.set_payload(openHandle.read())
+                encoders.encode_base64(part)
+                part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(file_name))
+                self.msg.attach(part)
+                openHandle.close()
+
+                return file_name
+            finally:
+                os.unlink(file_name)
+
+        def tearDown(self):
+            time.sleep(DELAY)
 
 
-def invokeEmail2PDF(message, headers=False, outputDirectory="/tmp", errorExpected=False, outputFile=None):
-    textMessage = message.as_string()
-
-    options = ['./email2pdf', '-d', outputDirectory]
-    if headers:
-        options.append('--headers')
-
-    if outputFile:
-        options.append('-o')
-        options.append(outputFile)
-
-    if errorExpected:
-        p = Popen(options, stdin=PIPE, stderr=error_log)
-    else:
-        p = Popen(options, stdin=PIPE)
-
-    output = p.communicate(input=bytes(textMessage, 'UTF-8'))
-    p.wait()
-    return p.returncode
-
-
-def setPlainContent(message, content):
-    message.set_default_type("text/plain")
-    message.set_payload(content)
-
-
-def attachHTML(message, content):
-    message.attach(MIMEText(content, 'html'))
-
-
-def attachText(message, content):
-    message.attach(MIMEText(content, 'plain'))
-
-
-def attachPDF(message, string):
-    unused_f_handle, file_name = tempfile.mkstemp(prefix="email2pdf_unittest_file", suffix=".pdf")
-
-    try:
-        cv = canvas.Canvas(file_name)
-        cv.drawString(0, 500, string)
-        cv.save()
-
-        part = MIMEBase('application', "pdf")
-        openHandle = open(file_name, "rb")
-        part.set_payload(openHandle.read())
-        encoders.encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(file_name))
-        message.attach(part)
-        openHandle.close()
-
-        return file_name
-    finally:
-        os.unlink(file_name)
-
-
-class TestBasic(unittest.TestCase):
+class TestBasic(BaseTestClasses.Email2PDFTestCase):
     def setUp(self):
+        super(TestBasic, self).setUp()
         self.msg = Message()
 
     def test_noheaders(self):
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.assertEqual(self.invokeEmail2PDF(), 0)
 
     def test_simple(self):
-        addHeaders(self.msg, "From", "To", "Subject")
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.addHeaders("From", "To", "Subject")
+        self.assertEqual(self.invokeEmail2PDF(), 0)
 
     def test_nosubject(self):
-        addHeaders(self.msg, "From", "To")
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.addHeaders("From", "To")
+        self.assertEqual(self.invokeEmail2PDF(), 0)
 
     def test_plaincontent(self):
-        addHeaders(self.msg, "From", "To", "Subject")
-        setPlainContent(self.msg, "Hello!")
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.addHeaders("From", "To", "Subject")
+        self.setPlainContent("Hello!")
+        self.assertEqual(self.invokeEmail2PDF(), 0)
 
     def test_plaincontent_headers(self):
-        addHeaders(self.msg, "From", "To", "Subject")
-        setPlainContent(self.msg, "Hello!")
-        self.assertEqual(invokeEmail2PDF(self.msg, True), 0)
+        self.addHeaders("From", "To", "Subject")
+        self.setPlainContent("Hello!")
+        self.assertEqual(self.invokeEmail2PDF(headers=True), 0)
 
     def test_plaincontent_trailingslash(self):
-        setPlainContent(self.msg, "Hello!")
-        self.assertEqual(invokeEmail2PDF(self.msg, outputDirectory="/tmp/"), 0)
+        self.setPlainContent("Hello!")
+        self.assertEqual(self.invokeEmail2PDF(outputDirectory="/tmp/"), 0)
 
     def test_plaincontent_dirnotexist(self):
-        setPlainContent(self.msg, "Hello!")
-        self.assertNotEqual(invokeEmail2PDF(self.msg, outputDirectory="/notexist/", errorExpected=True), 0)
+        self.setPlainContent("Hello!")
+        self.assertNotEqual(self.invokeEmail2PDF(outputDirectory="/notexist/", errorExpected=True), 0)
 
     def test_plaincontent_fileexist(self):
-        setPlainContent(self.msg, "Hello!")
+        self.setPlainContent("Hello!")
         unused_f_handle, f_path = tempfile.mkstemp()
         try:
-            self.assertNotEqual(invokeEmail2PDF(self.msg, outputFile=f_path, errorExpected=True), 0)
+            self.assertNotEqual(self.invokeEmail2PDF(outputFile=f_path, errorExpected=True), 0)
         finally:
             os.unlink(f_path)
 
-    def tearDown(self):
-        time.sleep(DELAY)
 
-
-class TestMIME(unittest.TestCase):
+class TestMIME(BaseTestClasses.Email2PDFTestCase):
     def setUp(self):
+        super(TestMIME, self).setUp()
         self.msg = MIMEMultipart()
 
     def test_noheaders(self):
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.assertEqual(self.invokeEmail2PDF(), 0)
 
     def test_simple(self):
-        addHeaders(self.msg, "From", "To", "Subject")
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.addHeaders("From", "To", "Subject")
+        self.assertEqual(self.invokeEmail2PDF(), 0)
 
     def test_nosubject(self):
-        addHeaders(self.msg, "From", "To")
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.addHeaders("From", "To")
+        self.assertEqual(self.invokeEmail2PDF(), 0)
 
     def test_plain(self):
-        addHeaders(self.msg, "From", "To", "Subject")
-        attachText(self.msg, "Some basic textual content")
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.addHeaders("From", "To", "Subject")
+        self.attachText("Some basic textual content")
+        self.assertEqual(self.invokeEmail2PDF(), 0)
 
     def test_html(self):
-        addHeaders(self.msg, "From", "To", "Subject")
-        attachHTML(self.msg, "<p>Some basic textual content</p>")
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.addHeaders("From", "To", "Subject")
+        self.attachHTML("<p>Some basic textual content</p>")
+        self.assertEqual(self.invokeEmail2PDF(), 0)
 
     def test_plainandhtml(self):
-        addHeaders(self.msg, "From", "To", "Subject")
-        attachText(self.msg, "Some basic textual content")
-        attachHTML(self.msg, "<p>Some basic textual content</p>")
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.addHeaders("From", "To", "Subject")
+        self.attachText("Some basic textual content")
+        self.attachHTML("<p>Some basic textual content</p>")
+        self.assertEqual(self.invokeEmail2PDF(), 0)
 
     def test_pdf(self):
-        addHeaders(self.msg, "From", "To", "Subject")
-        attachText(self.msg, "Some basic textual content")
-        filename = attachPDF(self.msg, "Some PDF content")
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.addHeaders("From", "To", "Subject")
+        self.attachText("Some basic textual content")
+        filename = self.attachPDF("Some PDF content")
+        self.assertEqual(self.invokeEmail2PDF(), 0)
         self.assertTrue(os.path.exists(filename))
 
     def test_2pdfs(self):
-        addHeaders(self.msg, "From", "To", "Subject")
-        attachText(self.msg, "Some basic textual content")
-        filename = attachPDF(self.msg, "Some PDF content")
-        filename2 = attachPDF(self.msg, "Some More PDF content")
+        self.addHeaders("From", "To", "Subject")
+        self.attachText("Some basic textual content")
+        filename = self.attachPDF("Some PDF content")
+        filename2 = self.attachPDF("Some More PDF content")
         self.assertFalse(os.path.exists(filename))
         self.assertFalse(os.path.exists(filename2))
 
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.assertEqual(self.invokeEmail2PDF(), 0)
         self.assertTrue(os.path.exists(filename))
         self.assertTrue(os.path.exists(filename2))
 
     def test_pdf_exists(self):
-        addHeaders(self.msg, "From", "To", "Subject")
-        attachText(self.msg, "Some basic textual content")
-        filename = attachPDF(self.msg, "Some PDF content")
+        self.addHeaders("From", "To", "Subject")
+        self.attachText("Some basic textual content")
+        filename = self.attachPDF("Some PDF content")
         self.assertFalse(os.path.exists(filename))
 
         touch(filename)
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.assertEqual(self.invokeEmail2PDF(), 0)
         self.assertTrue(os.path.exists(filename))
 
         dirName, baseName = os.path.split(filename)
@@ -204,15 +211,15 @@ class TestMIME(unittest.TestCase):
         self.assertTrue(os.path.exists(uniqueName))
 
     def test_2pdfs_oneexists(self):
-        addHeaders(self.msg, "From", "To", "Subject")
-        attachText(self.msg, "Some basic textual content")
-        filename = attachPDF(self.msg, "Some PDF content")
-        filename2 = attachPDF(self.msg, "Some More PDF content")
+        self.addHeaders("From", "To", "Subject")
+        self.attachText("Some basic textual content")
+        filename = self.attachPDF("Some PDF content")
+        filename2 = self.attachPDF("Some More PDF content")
         self.assertFalse(os.path.exists(filename))
         self.assertFalse(os.path.exists(filename2))
 
         touch(filename)
-        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.assertEqual(self.invokeEmail2PDF(), 0)
 
         self.assertTrue(os.path.exists(filename))
         dirName, baseName = os.path.split(filename)
@@ -225,9 +232,6 @@ class TestMIME(unittest.TestCase):
         rootName2, unused_extension2 = os.path.splitext(baseName2)
         uniqueName2 = os.path.join(dirName2, rootName2 + "_1.pdf")
         self.assertFalse(os.path.exists(uniqueName2))
-
-    def tearDown(self):
-        time.sleep(DELAY)
 
 if __name__ == '__main__':
     unittest.main()
