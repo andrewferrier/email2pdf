@@ -4,13 +4,17 @@ from email.message import Message
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, DEVNULL
 
-import unittest
+import os
 import sys
+import tempfile
 import time
+import unittest
 
 DELAY = 0.5
+
+error_log = open('email2pdf_unittest_stderr.log', "w")
 
 
 def addHeaders(msg, frm=None, to=None, subject=None):
@@ -26,14 +30,22 @@ def addHeaders(msg, frm=None, to=None, subject=None):
     msg['Date'] = formatdate()
 
 
-def invokeEmail2PDF(message, headers=False):
+def invokeEmail2PDF(message, headers=False, outputDirectory="/tmp", errorExpected=False, outputFile=None):
     textMessage = message.as_string()
 
-    options = ['./email2pdf', '-d', '/tmp']
+    options = ['./email2pdf', '-d', outputDirectory]
     if headers:
         options.append('--headers')
 
-    p = Popen(options, stdin=PIPE)
+    if outputFile:
+        options.append('-o')
+        options.append(outputFile)
+
+    if errorExpected:
+        p = Popen(options, stdin=PIPE, stderr=error_log)
+    else:
+        p = Popen(options, stdin=PIPE)
+
     output = p.communicate(input=bytes(textMessage, 'UTF-8'))
     p.wait()
     return p.returncode
@@ -73,6 +85,22 @@ class TestBasic(unittest.TestCase):
         addHeaders(self.msg, "From", "To", "Subject")
         setPlainContent(self.msg, "Hello!")
         self.assertEqual(invokeEmail2PDF(self.msg, True), 0)
+
+    def test_plaincontent_trailingslash(self):
+        setPlainContent(self.msg, "Hello!")
+        self.assertEqual(invokeEmail2PDF(self.msg, outputDirectory="/tmp/"), 0)
+
+    def test_plaincontent_dirnotexist(self):
+        setPlainContent(self.msg, "Hello!")
+        self.assertNotEqual(invokeEmail2PDF(self.msg, outputDirectory="/notexist/", errorExpected=True), 0)
+
+    def test_plaincontent_fileexist(self):
+        setPlainContent(self.msg, "Hello!")
+        f_handle, f_path = tempfile.mkstemp()
+        try:
+            self.assertNotEqual(invokeEmail2PDF(self.msg, outputFile=f_path, errorExpected=True), 0)
+        finally:
+            os.unlink(f_path)
 
     def tearDown(self):
         time.sleep(DELAY)

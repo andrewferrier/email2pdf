@@ -35,14 +35,18 @@ def main():
 
     args = parser.parse_args()
 
-    if(args.outputFile):
+    output_directory = os.path.normpath(args.outputDirectory)
+
+    if not os.path.exists(output_directory):
+        raise ExitCodeException("outputDirectory does not exist.")
+
+    if args.outputFile:
         output_file_name = args.outputFile
     else:
-        output_file_name = args.outputDirectory.rstrip("/") + "/" + datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"
+        output_file_name = os.path.join(output_directory, datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf")
 
     if os.path.isfile(output_file_name):
-        print("ERROR: Output file " + output_file_name + " already exists. Aborting.", file=sys.stderr)
-        sys.exit(2)
+        raise ExitCodeException("Output file " + output_file_name + " already exists. Aborting.")
 
     if args.inputFile.strip() == "-":
         data = ""
@@ -65,7 +69,7 @@ def main():
         if part is None:
             part = find_depth_first(my_email, "text/plain")
             if part is None:
-                print("ERROR: Cannot find an appropriate payload in email.", file=sys.stderr)
+                raise ExitCodeException("Cannot find an appropriate payload in email.")
             else:
                 payload = part.get_payload(decode=True)
                 payload = bytes("<html><body><pre>\n", 'UTF-8') + payload + bytes("\n</pre></body></html>", 'UTF-8')
@@ -105,6 +109,30 @@ def get_header_info(email):
             header_info = header_info + '<b>' + header + '</b>: ' + email[header] + '<br/>'
 
     return header_info + '<br/>'
+
+# Idea for this error handling strategy from here:
+# http://stackoverflow.com/a/16787722/27641
+
+
+class ExitCodeException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return repr(self.message)
+
+    def getExitCode(self):
+        return 2
+
+
+def handle_uncaught_exception(exctype, value, trace):
+    if isinstance(value, ExitCodeException):
+        print("ERROR: " + value.message, file=sys.stderr)
+        sys.exit(value.getExitCode())
+    else:
+        oldHook(exctype, value, trace)
+
+sys.excepthook, oldHook = handle_uncaught_exception, sys.excepthook
 
 if __name__ == "__main__":
     main()
