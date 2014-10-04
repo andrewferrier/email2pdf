@@ -24,7 +24,7 @@ def main():
     output_options.add_argument("-t", "--timedOutputFile",
                                 help="Specify that email2pdf should automatically " +
                                 "pick a filename based on the current date and time. " +
-                                "This is the default if not output filename is specified.")
+                                "This is the default if no output filename is specified.")
 
     parser.add_argument("-d", "--outputDirectory", default=os.getcwd(),
                         help="Output directory for --timedOutputFile. Defaults to the current directory.")
