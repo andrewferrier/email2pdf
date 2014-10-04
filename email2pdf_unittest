@@ -191,6 +191,11 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual(self.invokeEmail2PDF(), 0)
         self.assertTrue(os.path.exists(filename))
 
+    def test_embeddedImageEmail(self):
+        self.addHeaders("From", "To", "Subject")
+        self.attachHTML('<img src=cid:_1_C9C396E8C9C391380055638680257D67>')
+        self.assertEqual(self.invokeEmail2PDF(), 0)
+
     def test_somethingElseAsOctetStream(self):
         self.addHeaders("From", "To", "Subject")
         self.attachText("Some basic textual content")

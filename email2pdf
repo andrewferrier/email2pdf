@@ -80,10 +80,15 @@ def main():
     payload = bytes(header_info, 'UTF-8') + payload
 
     p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling',
-               'ignore', '-', output_file_name], stdin=PIPE)
-    output = p.communicate(input=payload)
+               'ignore', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    output, error = p.communicate(input=payload)
     if p.returncode > 0:
-        raise ExitCodeException("wkhtmltopdf failed with exit code " + str(p.returncode))
+        if error == bytes('Exit with code 1 due to network error: ProtocolUnknownError\n', 'UTF-8'):
+            # WARNING: we should handle this better - see
+            # https://github.com/andrewferrier/email2pdf/issues/12
+            pass
+        else:
+            raise ExitCodeException("wkhtmltopdf failed with exit code " + str(p.returncode))
 
 
 def handle_pdf_parts(email, output_directory):
