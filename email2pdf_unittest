@@ -169,12 +169,24 @@ class TestMIME(unittest.TestCase):
         self.assertEqual(invokeEmail2PDF(self.msg), 0)
         self.assertTrue(os.path.exists(filename))
 
+    def test_2pdfs(self):
+        addHeaders(self.msg, "From", "To", "Subject")
+        attachText(self.msg, "Some basic textual content")
+        filename = attachPDF(self.msg, "Some PDF content")
+        filename2 = attachPDF(self.msg, "Some More PDF content")
+        self.assertFalse(os.path.exists(filename))
+        self.assertFalse(os.path.exists(filename2))
+
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+        self.assertTrue(os.path.exists(filename))
+        self.assertTrue(os.path.exists(filename2))
+
     def test_pdf_exists(self):
         addHeaders(self.msg, "From", "To", "Subject")
         attachText(self.msg, "Some basic textual content")
         filename = attachPDF(self.msg, "Some PDF content")
-
         self.assertFalse(os.path.exists(filename))
+
         touch(filename)
         self.assertEqual(invokeEmail2PDF(self.msg), 0)
         self.assertTrue(os.path.exists(filename))
@@ -184,6 +196,29 @@ class TestMIME(unittest.TestCase):
         uniqueName = os.path.join(dirName, rootName + "_1.pdf")
 
         self.assertTrue(os.path.exists(uniqueName))
+
+    def test_2pdfs_oneexists(self):
+        addHeaders(self.msg, "From", "To", "Subject")
+        attachText(self.msg, "Some basic textual content")
+        filename = attachPDF(self.msg, "Some PDF content")
+        filename2 = attachPDF(self.msg, "Some More PDF content")
+        self.assertFalse(os.path.exists(filename))
+        self.assertFalse(os.path.exists(filename2))
+
+        touch(filename)
+        self.assertEqual(invokeEmail2PDF(self.msg), 0)
+
+        self.assertTrue(os.path.exists(filename))
+        dirName, baseName = os.path.split(filename)
+        rootName, unused_extension = os.path.splitext(baseName)
+        uniqueName = os.path.join(dirName, rootName + "_1.pdf")
+        self.assertTrue(os.path.exists(uniqueName))
+
+        self.assertTrue(os.path.exists(filename2))
+        dirName2, baseName2 = os.path.split(filename2)
+        rootName2, unused_extension2 = os.path.splitext(baseName2)
+        uniqueName2 = os.path.join(dirName2, rootName2 + "_1.pdf")
+        self.assertFalse(os.path.exists(uniqueName2))
 
     def tearDown(self):
         time.sleep(DELAY)

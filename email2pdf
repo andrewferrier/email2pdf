@@ -59,30 +59,35 @@ def main():
 
     my_email = email.message_from_string(data)
 
+    handle_pdf_parts(my_email, output_directory)
+
     if(args.headers):
         header_info = get_header_info(my_email)
     else:
         header_info = ""
 
-    part = find_depth_first(my_email, "application/pdf")
+    part = find_part_depth_first(my_email, "text/html")
     if part is None:
-        part = find_depth_first(my_email, "text/html")
+        part = find_part_depth_first(my_email, "text/plain")
         if part is None:
-            part = find_depth_first(my_email, "text/plain")
-            if part is None:
-                raise ExitCodeException("Cannot find an appropriate payload in email.")
-            else:
-                payload = part.get_payload(decode=True)
-                payload = bytes("<html><body><pre>\n", 'UTF-8') + payload + bytes("\n</pre></body></html>", 'UTF-8')
+            raise ExitCodeException("Cannot find an appropriate payload in email.")
         else:
             payload = part.get_payload(decode=True)
-
-        payload = bytes(header_info, 'UTF-8') + payload
-
-        p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling',
-                   'ignore', '-', output_file_name], stdin=PIPE)
-        output = p.communicate(input=payload)
+            payload = bytes("<html><body><pre>\n", 'UTF-8') + payload + bytes("\n</pre></body></html>", 'UTF-8')
     else:
+        payload = part.get_payload(decode=True)
+
+    payload = bytes(header_info, 'UTF-8') + payload
+
+    p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling',
+               'ignore', '-', output_file_name], stdin=PIPE)
+    output = p.communicate(input=payload)
+
+
+def handle_pdf_parts(email, output_directory):
+    parts = find_all_parts(email, "application/pdf")
+
+    for part in parts:
         payload = part.get_payload(decode=True)
 
         filename = part.get_filename()
@@ -107,16 +112,29 @@ def get_unique_version(filename):
     return filename
 
 
-def find_depth_first(message, content_type):
+def find_part_depth_first(message, content_type):
     if message.is_multipart():
         for part in message.get_payload():
-            value = find_depth_first(part, content_type)
+            value = find_part_depth_first(part, content_type)
             if value is not None:
                 return value
     elif message.get_content_type() == content_type:
         return message
     else:
         return None
+
+
+def find_all_parts(message, content_type):
+    parts = []
+
+    if message.is_multipart():
+        for part in message.get_payload():
+            parts = parts + find_all_parts(part, content_type)
+        return parts
+    elif message.get_content_type() == content_type:
+        return [message]
+    else:
+        return []
 
 
 def get_header_info(email):
