@@ -225,7 +225,8 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
     def test_somethingElseAsOctetStream(self):
         self.addHeaders("From", "To", "Subject")
         self.attachText("Some basic textual content")
-        filename = self.attachPDF("Some PDF content", fileSuffix="xyz", mainContentType="application", subContentType="octet-stream")
+        filename = self.attachPDF("Some PDF content", fileSuffix="xyz", mainContentType="application",
+                                  subContentType="octet-stream")
         self.assertEqual(self.invokeEmail2PDF(), 0)
         self.assertFalse(os.path.exists(filename))
 
