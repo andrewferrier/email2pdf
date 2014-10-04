@@ -5,8 +5,11 @@ from subprocess import Popen, PIPE
 from email.header import decode_header
 import argparse
 import email
+import magic
+import io
 import os
 import os.path
+import re
 import sys
 
 
@@ -66,9 +69,9 @@ def main():
     else:
         header_info = ""
 
-    part = find_part_depth_first(my_email, "text/html")
+    part = find_part_by_content_type(my_email, "text/html")
     if part is None:
-        part = find_part_depth_first(my_email, "text/plain")
+        part = find_part_by_content_type(my_email, "text/plain")
         if part is None:
             raise ExitCodeException("Cannot find an appropriate payload in email.")
         else:
@@ -77,18 +80,25 @@ def main():
     else:
         payload = part.get_payload(decode=True)
 
+        def cid_replace(matchobj):
+            imagePart = find_part_by_content_id(my_email, matchobj.group(1))
+            assert(imagePart['Content-Transfer-Encoding'] == 'base64')
+            imageBase64 = imagePart.get_payload(decode=False)
+            imageDecoded = imagePart.get_payload(decode=True)
+            m = magic.open(magic.MAGIC_MIME_TYPE)
+            m.load()
+            mimeType = m.buffer(imageDecoded)
+            return "data:" + mimeType + ";base64," + imageBase64
+
+        payload = bytes(re.sub('cid:([\w_-]+)', cid_replace, str(payload, encoding='utf-8')), 'UTF-8')
+
     payload = bytes(header_info, 'UTF-8') + payload
 
     p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling',
                'ignore', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = p.communicate(input=payload)
     if p.returncode > 0:
-        if error == bytes('Exit with code 1 due to network error: ProtocolUnknownError\n', 'UTF-8'):
-            # WARNING: we should handle this better - see
-            # https://github.com/andrewferrier/email2pdf/issues/12
-            pass
-        else:
-            raise ExitCodeException("wkhtmltopdf failed with exit code " + str(p.returncode))
+        raise ExitCodeException("wkhtmltopdf failed with exit code " + str(p.returncode))
 
 
 def handle_pdf_parts(email, output_directory):
@@ -111,11 +121,13 @@ def handle_pdf_parts(email, output_directory):
         with open(fullFilename, 'wb') as output_file:
             output_file.write(payload)
 
+
 def extract_part_filename(part):
     filename = part.get_filename()
     if decode_header(filename)[0][1] is not None:
         filename = str(decode_header(filename)[0][0]).decode(decode_header(filename)[0][1])
     return filename
+
 
 def get_unique_version(filename):
     # From here: http://stackoverflow.com/q/183480/27641
@@ -127,13 +139,25 @@ def get_unique_version(filename):
     return filename
 
 
-def find_part_depth_first(message, content_type):
+def find_part_by_content_type(message, content_type):
     if message.is_multipart():
         for part in message.get_payload():
-            value = find_part_depth_first(part, content_type)
+            value = find_part_by_content_type(part, content_type)
             if value is not None:
                 return value
     elif message.get_content_type() == content_type:
+        return message
+    else:
+        return None
+
+
+def find_part_by_content_id(message, content_id):
+    if message.is_multipart():
+        for part in message.get_payload():
+            value = find_part_by_content_id(part, content_id)
+            if value is not None:
+                return value
+    elif message['Content-ID'] in (content_id, '<' + content_id + '>'):
         return message
     else:
         return None
