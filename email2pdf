@@ -98,8 +98,8 @@ def main():
 
     payload = bytes(header_info, 'UTF-8') + payload
 
-    p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling',
-               'ignore', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore',
+               '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = p.communicate(input=payload)
     if p.returncode > 0:
         raise ExitCodeException("wkhtmltopdf failed with exit code " + str(p.returncode))
