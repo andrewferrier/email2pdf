@@ -35,6 +35,10 @@ class BaseTestClasses:
         def existsByTime(self):
             return os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, self.timeAtStart.strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"))
 
+        def silentRemove(self, path):
+            if(os.path.exists(path)):
+                os.remove(path)
+
         def addHeaders(self, frm=None, to=None, subject=None):
             if(subject):
                 self.msg['Subject'] = subject
@@ -180,8 +184,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
 
     def test_htmlEntitiesCurrency(self):
         path = os.path.join(DEFAULT_OUTPUT_DIR, "htmlEntitiesCurrency.pdf")
-        if(os.path.exists(path)):
-            os.remove(path)
+        self.silentRemove(path)
         self.addHeaders("From", "To", "Subject")
         self.attachHTML(b'<span>Pounds: \xc2\xa37.14, Another Pounds: &#163;7.14</span>'.decode('utf-8'))
         self.assertEqual(self.invokeEmail2PDF(outputFile=path), 0)
