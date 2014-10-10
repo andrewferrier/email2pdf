@@ -82,13 +82,17 @@ def main():
 
         def cid_replace(matchobj):
             imagePart = find_part_by_content_id(my_email, matchobj.group(1))
-            assert(imagePart['Content-Transfer-Encoding'] == 'base64')
-            imageBase64 = imagePart.get_payload(decode=False)
-            imageDecoded = imagePart.get_payload(decode=True)
-            m = magic.open(magic.MAGIC_MIME_TYPE)
-            m.load()
-            mimeType = m.buffer(imageDecoded)
-            return "data:" + mimeType + ";base64," + imageBase64
+            if imagePart is not None:
+                assert(imagePart['Content-Transfer-Encoding'] == 'base64')
+                imageBase64 = imagePart.get_payload(decode=False)
+                imageDecoded = imagePart.get_payload(decode=True)
+                m = magic.open(magic.MAGIC_MIME_TYPE)
+                m.load()
+                mimeType = m.buffer(imageDecoded)
+                return "data:" + mimeType + ";base64," + imageBase64
+            else:
+                warn("Could not find image cid " + matchobj.group(1) + " in email content.")
+                return "broken"
 
         payload = bytes(re.sub('cid:([\w_-]+)', cid_replace, str(payload, encoding='utf-8')), 'UTF-8')
 
@@ -173,6 +177,9 @@ def get_header_info(email):
             header_info = header_info + '<b>' + header + '</b>: ' + email[header] + '<br/>'
 
     return header_info + '<br/>'
+
+def warn(message):
+    print("WARNING: " + message, file=sys.stderr)
 
 # Idea for this error handling strategy from here:
 # http://stackoverflow.com/a/16787722/27641
