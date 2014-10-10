@@ -183,7 +183,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         if(os.path.exists(path)):
             os.remove(path)
         self.addHeaders("From", "To", "Subject")
-        self.attachHTML(b'<span>Pounds: \xc2\xa37.14</span>'.decode('utf-8'))
+        self.attachHTML(b'<span>Pounds: \xc2\xa37.14, Another Pounds: &#163;7.14</span>'.decode('utf-8'))
         self.assertEqual(self.invokeEmail2PDF(outputFile=path), 0)
 
     def test_plainandhtml(self):
