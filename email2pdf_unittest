@@ -178,6 +178,14 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.attachHTML("<p>Some basic textual content</p>")
         self.assertEqual(self.invokeEmail2PDF(), 0)
 
+    def test_htmlEntitiesCurrency(self):
+        path = os.path.join(DEFAULT_OUTPUT_DIR, "htmlEntitiesCurrency.pdf")
+        if(os.path.exists(path)):
+            os.remove(path)
+        self.addHeaders("From", "To", "Subject")
+        self.attachHTML(b'<span>Pounds: \xc2\xa37.14</span>'.decode('utf-8'))
+        self.assertEqual(self.invokeEmail2PDF(outputFile=path), 0)
+
     def test_plainandhtml(self):
         self.addHeaders("From", "To", "Subject")
         self.attachText("Some basic textual content")
