@@ -85,6 +85,7 @@ def main():
             if imagePart is not None:
                 assert(imagePart['Content-Transfer-Encoding'] == 'base64')
                 imageBase64 = imagePart.get_payload(decode=False)
+                imageBase64 = re.sub("[\r\n\t]", "", imageBase64)
                 imageDecoded = imagePart.get_payload(decode=True)
                 m = magic.open(magic.MAGIC_MIME_TYPE)
                 m.load()
