@@ -230,11 +230,13 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(filename))
 
     def test_embeddedImageEmail(self):
+        path = os.path.join(DEFAULT_OUTPUT_DIR, "embeddedImage.pdf")
+        self.silentRemove(path)
         self.addHeaders("From", "To", "Subject")
         self.attachImage('myid')
         self.attachHTML('<img src=cid:myid>')
-        self.assertEqual(self.invokeEmail2PDF(), 0)
-        self.assertTrue(self.existsByTime())
+        self.assertEqual(self.invokeEmail2PDF(outputFile=path), 0)
+        self.assertTrue(os.path.exists(path))
 
     def test_embeddedImageEmail2(self):
         self.addHeaders("From", "To", "Subject")
