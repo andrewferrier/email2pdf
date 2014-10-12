@@ -20,7 +20,7 @@ Python script to convert emails to PDF from the command-line. Type `email2pdf
   emails from the server once they are converted - be careful with that. You
   might want to consider setting up your crontab something like this:
 
-    @hourly getmail --verbose | logger
+      @hourly getmail --verbose | logger
 
   This will ensure that getmail is invoked hourly to fetch email, and log its
   output to syslog.
