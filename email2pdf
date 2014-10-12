@@ -80,19 +80,23 @@ def main():
 
     logger.debug("Email input data is: " + data)
 
-    my_email = email.message_from_string(data)
+    input_email = email.message_from_string(data)
 
-    handle_pdf_parts(my_email, output_directory)
+    handle_pdf_parts(input_email, output_directory)
 
-    header_info = get_header_info(my_email)
+    header_info = get_header_info(input_email)
     logger.info("Header info is: " + header_info)
 
     if not args.headers:
         header_info = ""
 
-    part = find_part_by_content_type(my_email, "text/html")
+    handle_message_body(input_email, header_info, output_file_name)
+
+
+def handle_message_body(input_email, header_info, output_file_name):
+    part = find_part_by_content_type(input_email, "text/html")
     if part is None:
-        part = find_part_by_content_type(my_email, "text/plain")
+        part = find_part_by_content_type(input_email, "text/plain")
         if part is None:
             raise ExitCodeException("Cannot find an appropriate payload in email.")
         else:
@@ -105,7 +109,7 @@ def main():
 
         def cid_replace(matchobj):
             logger.debug("Looking for image for cid " + matchobj.group(1))
-            imagePart = find_part_by_content_id(my_email, matchobj.group(1))
+            imagePart = find_part_by_content_id(input_email, matchobj.group(1))
             if imagePart is not None:
                 assert(imagePart['Content-Transfer-Encoding'] == 'base64')
                 imageBase64 = imagePart.get_payload(decode=False)
@@ -132,9 +136,9 @@ def main():
         raise ExitCodeException("wkhtmltopdf failed with exit code " + str(p.returncode))
 
 
-def handle_pdf_parts(email, output_directory):
-    parts = find_all_parts(email, "application/pdf")
-    maybeParts = find_all_parts(email, "application/octet-stream")
+def handle_pdf_parts(input_email, output_directory):
+    parts = find_all_parts(input_email, "application/pdf")
+    maybeParts = find_all_parts(input_email, "application/octet-stream")
 
     for maybePart in maybeParts:
         filename = extract_part_filename(maybePart)
@@ -144,6 +148,7 @@ def handle_pdf_parts(email, output_directory):
 
     for part in parts:
         filename = extract_part_filename(part)
+        logger.info("Extracting attachment " + filename)
 
         fullFilename = os.path.join(output_directory, filename)
         fullFilename = get_unique_version(fullFilename)
