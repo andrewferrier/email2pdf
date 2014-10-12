@@ -13,20 +13,36 @@ Python script to convert emails to PDF from the command-line. Type `email2pdf
 * [getmail](http://pyropus.ca/software/getmail/) - getmail is not strictly a
   dependency, but when it is combined with email2pdf, it can be used to
   retrieve new emails from a remote IMAP server and automatically convert them
-  to PDFs locally. The [`getmailrc.sample`](https://github.com/andrewferrier/email2pdf/blob/master/getmailrc.sample)
-  file in the repository can be used as
-  a starting point for your own getmailrc to do this. Note that the sample
-  will need editing, of course - see the getmail documentation for more
-  information on that. Also, it is configured by default to *delete* remote
-  emails from the server once they are converted - be careful with that. You
-  might want to consider setting up your crontab something like this:
+  to PDFs locally. The
+  [`getmailrc.sample`](https://github.com/andrewferrier/email2pdf/blob/master/getmailrc.sample)
+  file in the repository can be used as a starting point for your own
+  getmailrc to do this. Note that the sample will need editing, of course -
+  see the getmail documentation for more information on that. Also, it is
+  configured by default to *delete* remote emails from the server once they
+  are converted - be careful with that. You might want to consider setting up
+  your crontab something like this:
 
       @hourly getmail --verbose | logger
 
   This will ensure that getmail is invoked hourly to fetch email, and log its
   output to syslog.
 
-## Packaging for Debian
+## Building & Packaging for Debian
 
 Some basic Debian packaging is included. Simply run `sudo apt-get install
 build-essential && make builddeb` to build a Debian package.
+
+## Developing & Hacking
+
+### Debian
+
+* Install all the package dependencies listed in the
+  [`control`](https://github.com/andrewferrier/email2pdf/blob/master/debian/DEBIAN/control)
+  file.
+
+### OSX (instructions not yet complete)
+
+* Install [Homebrew](http://brew.sh/)
+* `brew install python3`
+* `pip3 install reportlab`
+* `pip3 install --allow-unverified magic --allow-external magic magic`
