@@ -8,10 +8,9 @@ builddeb: clean
 	cp README* $(TEMPDIR)/usr/share/doc/email2pdf
 	cp LICENSE* $(TEMPDIR)/usr/share/doc/email2pdf
 	cp getmailrc.sample $(TEMPDIR)/usr/share/doc/email2pdf
-	sudo chown -R root:root $(TEMPDIR)
-	sudo chmod -R u=rwX,go=rX $(TEMPDIR)
-	sudo chmod -R u+x $(TEMPDIR)/usr/bin
-	dpkg-deb --build $(TEMPDIR) .
+	fakeroot chmod -R u=rwX,go=rX $(TEMPDIR)
+	fakeroot chmod -R u+x $(TEMPDIR)/usr/bin
+	fakeroot dpkg-deb --build $(TEMPDIR) .
 
 unittest:
 	./email2pdf_unittest
