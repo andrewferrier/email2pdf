@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 from datetime import datetime
-from subprocess import Popen, PIPE
 from email.header import decode_header
+from subprocess import Popen, PIPE
 import argparse
 import email
-import magic
 import io
+import logging
+import logging.handlers
+import magic
 import os
 import os.path
 import re
@@ -37,7 +39,19 @@ def main():
                         help="Add basic email headers to the PDF. The default is not to do this.")
     parser.set_defaults(headers=False)
 
+    parser.add_argument('--verbose', '-v', action='count', default=0)
+
     args = parser.parse_args()
+
+    if args.verbose > 1:
+        sysLogHandler.setLevel(logging.DEBUG)
+        sysOutHandler.setLevel(logging.DEBUG)
+    elif args.verbose == 1:
+        sysLogHandler.setLevel(logging.DEBUG)
+        sysOutHandler.setLevel(logging.INFO)
+    else:
+        sysLogHandler.setLevel(logging.INFO)
+        sysOutHandler.setLevel(logging.WARNING)
 
     output_directory = os.path.normpath(args.outputDirectory)
 
@@ -48,6 +62,8 @@ def main():
         output_file_name = args.outputFile
     else:
         output_file_name = os.path.join(output_directory, datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf")
+
+    logger.info("Output file name is: " + output_file_name)
 
     if os.path.isfile(output_file_name):
         raise ExitCodeException("Output file " + output_file_name + " already exists. Aborting.")
@@ -60,6 +76,8 @@ def main():
         with open(args.inputFile, "r") as inputHandle:
             data = inputHandle.read()
 
+    logger.debug("Email input data is: " + data)
+
     my_email = email.message_from_string(data)
 
     handle_pdf_parts(my_email, output_directory)
@@ -69,18 +87,23 @@ def main():
     else:
         header_info = ""
 
+    logger.debug("Header info is: " + header_info)
+
     part = find_part_by_content_type(my_email, "text/html")
     if part is None:
         part = find_part_by_content_type(my_email, "text/plain")
         if part is None:
             raise ExitCodeException("Cannot find an appropriate payload in email.")
         else:
+            logger.info("Determined email is Text.")
             payload = part.get_payload(decode=True)
             payload = bytes("<html><body><pre>\n", 'UTF-8') + payload + bytes("\n</pre></body></html>", 'UTF-8')
     else:
+        logger.info("Determined email is HTML.")
         payload = part.get_payload(decode=True)
 
         def cid_replace(matchobj):
+            logger.debug("Looking for image for cid " + matchobj.group(1))
             imagePart = find_part_by_content_id(my_email, matchobj.group(1))
             if imagePart is not None:
                 assert(imagePart['Content-Transfer-Encoding'] == 'base64')
@@ -92,12 +115,14 @@ def main():
                 mimeType = m.buffer(imageDecoded)
                 return "data:" + mimeType + ";base64," + imageBase64
             else:
-                warn("Could not find image cid " + matchobj.group(1) + " in email content.")
+                logger.warn("Could not find image cid " + matchobj.group(1) + " in email content.")
                 return "broken"
 
         payload = bytes(re.sub('cid:([\w_-]+)', cid_replace, str(payload, encoding='utf-8')), 'UTF-8')
 
     payload = bytes(header_info, 'UTF-8') + payload
+
+    logger.debug("Final payload before PDFing: " + str(payload, encoding='utf-8'))
 
     p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore',
                '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -179,9 +204,6 @@ def get_header_info(email):
 
     return header_info + '<br/>'
 
-def warn(message):
-    print("WARNING: " + message, file=sys.stderr)
-
 # Idea for this error handling strategy from here:
 # http://stackoverflow.com/a/16787722/27641
 
@@ -199,12 +221,28 @@ class ExitCodeException(Exception):
 
 def handle_uncaught_exception(exctype, value, trace):
     if isinstance(value, ExitCodeException):
-        print("ERROR: " + value.message, file=sys.stderr)
+        logger.error(value.message)
         sys.exit(value.getExitCode())
     else:
         oldHook(exctype, value, trace)
 
 sys.excepthook, oldHook = handle_uncaught_exception, sys.excepthook
+
+# See http://stackoverflow.com/a/11111212/27641
+logger = logging.getLogger('email2pdf')
+logger.setLevel(logging.DEBUG)
+
+sysLogHandler = logging.handlers.SysLogHandler(address = '/dev/log')
+sysLogHandler.setLevel(logging.INFO)
+sysLogFormatter = logging.Formatter('%(pathname)s[' + str(os.getpid()) + '] %(levelname)s %(lineno)s: %(message)s')
+sysLogHandler.setFormatter(sysLogFormatter)
+logger.addHandler(sysLogHandler)
+
+sysOutHandler = logging.StreamHandler(stream = sys.stderr)
+sysOutHandler.setLevel(logging.WARNING)
+sysOutFormatter = logging.Formatter('%(levelname)s: %(message)s')
+sysOutHandler.setFormatter(sysOutFormatter)
+logger.addHandler(sysOutHandler)
 
 if __name__ == "__main__":
     main()
