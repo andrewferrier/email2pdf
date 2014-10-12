@@ -226,6 +226,7 @@ def handle_uncaught_exception(exctype, value, trace):
         logger.error(value.message)
         sys.exit(value.getExitCode())
     else:
+        logger.error(value)
         oldHook(exctype, value, trace)
 
 sys.excepthook, oldHook = handle_uncaught_exception, sys.excepthook
