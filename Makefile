@@ -9,7 +9,8 @@ builddeb: clean
 	cp LICENSE* $(TEMPDIR)/usr/share/doc/email2pdf
 	cp getmailrc.sample $(TEMPDIR)/usr/share/doc/email2pdf
 	sudo chown -R root:root $(TEMPDIR)
-	sudo chmod -R 755 $(TEMPDIR)
+	sudo chmod -R u=rwX,go=rX $(TEMPDIR)
+	sudo chmod -R u+x $(TEMPDIR)/usr/bin
 	dpkg-deb --build $(TEMPDIR) .
 
 unittest:
