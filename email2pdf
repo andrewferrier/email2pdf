@@ -66,7 +66,7 @@ def main():
     output_directory = os.path.normpath(args.outputDirectory)
 
     if not os.path.exists(output_directory):
-        raise ExitCodeException("outputDirectory does not exist.")
+        raise FatalException("outputDirectory does not exist.")
 
     if args.outputFile:
         output_file_name = args.outputFile
@@ -76,7 +76,7 @@ def main():
     logger.info("Output file name is: " + output_file_name)
 
     if os.path.isfile(output_file_name):
-        raise ExitCodeException("Output file " + output_file_name + " already exists. Aborting.")
+        raise FatalException("Output file " + output_file_name + " already exists. Aborting.")
 
     if args.inputFile.strip() == "-":
         data = ""
@@ -112,7 +112,7 @@ def handle_message_body(input_email, header_info, output_file_name):
     if part is None:
         part = find_part_by_content_type(input_email, "text/plain")
         if part is None:
-            raise ExitCodeException("Cannot find an appropriate payload in email.")
+            raise FatalException("Cannot find an appropriate payload in email.")
         else:
             logger.info("Determined email is Text.")
             payload = part.get_payload(decode=True)
@@ -147,7 +147,7 @@ def handle_message_body(input_email, header_info, output_file_name):
                '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = p.communicate(input=payload)
     if p.returncode > 0:
-        raise ExitCodeException("wkhtmltopdf failed with exit code " + str(p.returncode))
+        raise FatalException("wkhtmltopdf failed with exit code " + str(p.returncode))
 
 
 def handle_pdf_parts(input_email, output_directory):
@@ -234,6 +234,7 @@ class ExitCodeException(Exception):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, message):
+        super().__init__()
         self._message = message
 
     def __str__(self):

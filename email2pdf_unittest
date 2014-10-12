@@ -125,7 +125,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.msg = Message()
 
     def test_dontPrintBody(self):
-        self.assertNotEqual(0, self.invokeEmail2PDF(extraParams=['--no-body'], sysErrExpected=True))
+        self.assertEqual(1, self.invokeEmail2PDF(extraParams=['--no-body'], sysErrExpected=True))
         self.assertFalse(self.existsByTime())
 
     def test_noheaders(self):
@@ -161,13 +161,13 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
 
     def test_plaincontent_dirnotexist(self):
         self.setPlainContent("Hello!")
-        self.assertNotEqual(0, self.invokeEmail2PDF(outputDirectory="/notexist/", sysErrExpected=True))
+        self.assertEqual(2, self.invokeEmail2PDF(outputDirectory="/notexist/", sysErrExpected=True))
 
     def test_plaincontent_fileexist(self):
         self.setPlainContent("Hello!")
         unused_f_handle, f_path = tempfile.mkstemp()
         try:
-            self.assertNotEqual(0, self.invokeEmail2PDF(outputFile=f_path, sysErrExpected=True))
+            self.assertEqual(2, self.invokeEmail2PDF(outputFile=f_path, sysErrExpected=True))
         finally:
             os.unlink(f_path)
 
