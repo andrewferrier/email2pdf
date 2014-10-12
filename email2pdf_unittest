@@ -57,20 +57,20 @@ class BaseTestClasses:
 
             self.msg['Date'] = formatdate()
 
-        def invokeEmail2PDF(self, headers=False, outputDirectory=DEFAULT_OUTPUT_DIR, errorExpected=False, outputFile=None):
+        def invokeEmail2PDF(self, outputDirectory=DEFAULT_OUTPUT_DIR, sysErrExpected=False, outputFile=None,
+                            extraParams=[]):
             textMessage = self.msg.as_string()
 
             options = ['./email2pdf', '-d', outputDirectory]
-            if headers:
-                options.append('--headers')
 
             if outputFile:
                 options.append('-o')
                 options.append(outputFile)
 
             options.extend(sys.argv[1:])
+            options.extend(extraParams)
 
-            if errorExpected:
+            if sysErrExpected:
                 p = Popen(options, stdin=PIPE, stderr=error_log)
             else:
                 p = Popen(options, stdin=PIPE)
@@ -147,7 +147,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
     def test_plaincontent_headers(self):
         self.addHeaders("From", "To", "Subject")
         self.setPlainContent("Hello!")
-        self.assertEqual(self.invokeEmail2PDF(headers=True), 0)
+        self.assertEqual(self.invokeEmail2PDF(extraParams=['--headers']), 0)
         self.assertTrue(self.existsByTime())
 
     def test_plaincontent_trailingslash(self):
@@ -157,15 +157,23 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
 
     def test_plaincontent_dirnotexist(self):
         self.setPlainContent("Hello!")
-        self.assertNotEqual(self.invokeEmail2PDF(outputDirectory="/notexist/", errorExpected=True), 0)
+        self.assertNotEqual(self.invokeEmail2PDF(outputDirectory="/notexist/", sysErrExpected=True), 0)
 
     def test_plaincontent_fileexist(self):
         self.setPlainContent("Hello!")
         unused_f_handle, f_path = tempfile.mkstemp()
         try:
-            self.assertNotEqual(self.invokeEmail2PDF(outputFile=f_path, errorExpected=True), 0)
+            self.assertNotEqual(self.invokeEmail2PDF(outputFile=f_path, sysErrExpected=True), 0)
         finally:
             os.unlink(f_path)
+
+    def test_verbose(self):
+        self.setPlainContent("Hello!")
+        self.assertEqual(self.invokeEmail2PDF(extraParams=['-v'], sysErrExpected=True), 0)
+
+    def test_veryverbose(self):
+        self.setPlainContent("Hello!")
+        self.assertEqual(self.invokeEmail2PDF(extraParams=['-vv'], sysErrExpected=True), 0)
 
 
 class TestMIME(BaseTestClasses.Email2PDFTestCase):

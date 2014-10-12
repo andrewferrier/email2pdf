@@ -45,13 +45,13 @@ def main():
 
     if args.verbose > 1:
         sysLogHandler.setLevel(logging.DEBUG)
-        sysOutHandler.setLevel(logging.DEBUG)
+        sysErrHandler.setLevel(logging.DEBUG)
     elif args.verbose == 1:
         sysLogHandler.setLevel(logging.DEBUG)
-        sysOutHandler.setLevel(logging.INFO)
+        sysErrHandler.setLevel(logging.INFO)
     else:
         sysLogHandler.setLevel(logging.INFO)
-        sysOutHandler.setLevel(logging.WARNING)
+        sysErrHandler.setLevel(logging.WARNING)
 
     output_directory = os.path.normpath(args.outputDirectory)
 
@@ -238,11 +238,11 @@ sysLogFormatter = logging.Formatter('%(pathname)s[' + str(os.getpid()) + '] %(le
 sysLogHandler.setFormatter(sysLogFormatter)
 logger.addHandler(sysLogHandler)
 
-sysOutHandler = logging.StreamHandler(stream = sys.stderr)
-sysOutHandler.setLevel(logging.WARNING)
-sysOutFormatter = logging.Formatter('%(levelname)s: %(message)s')
-sysOutHandler.setFormatter(sysOutFormatter)
-logger.addHandler(sysOutHandler)
+sysErrHandler = logging.StreamHandler(stream = sys.stderr)
+sysErrHandler.setLevel(logging.WARNING)
+sysErrFormatter = logging.Formatter('%(levelname)s: %(message)s')
+sysErrHandler.setFormatter(sysErrFormatter)
+logger.addHandler(sysErrHandler)
 
 if __name__ == "__main__":
     main()
