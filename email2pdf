@@ -234,13 +234,13 @@ sys.excepthook, oldHook = handle_uncaught_exception, sys.excepthook
 logger = logging.getLogger('email2pdf')
 logger.setLevel(logging.DEBUG)
 
-sysLogHandler = logging.handlers.SysLogHandler(address = '/dev/log')
+sysLogHandler = logging.handlers.SysLogHandler(address='/dev/log')
 sysLogHandler.setLevel(logging.INFO)
 sysLogFormatter = logging.Formatter('%(pathname)s[' + str(os.getpid()) + '] %(levelname)s %(lineno)s: %(message)s')
 sysLogHandler.setFormatter(sysLogFormatter)
 logger.addHandler(sysLogHandler)
 
-sysErrHandler = logging.StreamHandler(stream = sys.stderr)
+sysErrHandler = logging.StreamHandler(stream=sys.stderr)
 sysErrHandler.setLevel(logging.WARNING)
 sysErrFormatter = logging.Formatter('%(levelname)s: %(message)s')
 sysErrHandler.setFormatter(sysErrFormatter)
