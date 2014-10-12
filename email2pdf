@@ -3,6 +3,7 @@
 from datetime import datetime
 from email.header import decode_header
 from subprocess import Popen, PIPE
+import abc
 import argparse
 import email
 import io
@@ -26,23 +27,29 @@ def main():
     output_options = parser.add_mutually_exclusive_group()
 
     output_options.add_argument("-o", "--outputFile",
-                                help="Output file you wish to write to.")
-    output_options.add_argument("-t", "--timedOutputFile",
-                                help="Specify that email2pdf should automatically " +
-                                "pick a filename based on the current date and time. " +
-                                "This is the default if no output filename is specified.")
+                                help="Output file you wish to write to. Should " +
+                                "include the complete path, otherwise it " +
+                                "defaults to the current directory. If this is " +
+                                "not specified, email2pdf picks a date & " +
+                                "time-based filename and puts the file in the " +
+                                "directory specified by --outputDirectory.")
 
     parser.add_argument("-d", "--outputDirectory", default=os.getcwd(),
-                        help="Output directory for --timedOutputFile. Defaults to the current directory.")
+                        help="Output directory when --outputFile is not specified. Defaults to the " +
+                        "current directory.")
 
-    parser.add_argument("--headers", dest='headers', action='store_true',
+    parser.add_argument("--no-body", dest='body', action='store_false',
+                        help="Don't parse the body of the email and print it to PDF, just detach relevant " +
+                        "attachments. The default is to parse both the body and detach attachments.")
+
+    parser.add_argument("--headers", action='store_true',
                         help="Add basic email headers to the PDF. The default is not to do this.")
-    parser.set_defaults(headers=False)
 
     parser.add_argument('-v', '--verbose', action='count', default=0,
                         help="Make the output more verbose. This affects both the output logged to " +
                         "syslog, as well as output to the console.")
 
+    parser.set_defaults(body=True, headers=False)
     args = parser.parse_args()
 
     if args.verbose > 1:
@@ -82,7 +89,7 @@ def main():
 
     input_email = email.message_from_string(data)
 
-    handle_pdf_parts(input_email, output_directory)
+    number_of_pdf_parts = handle_pdf_parts(input_email, output_directory)
 
     header_info = get_header_info(input_email)
     logger.info("Header info is: " + header_info)
@@ -90,7 +97,13 @@ def main():
     if not args.headers:
         header_info = ""
 
-    handle_message_body(input_email, header_info, output_file_name)
+    if args.body:
+        handle_message_body(input_email, header_info, output_file_name)
+    elif number_of_pdf_parts == 0:
+        raise WarningException("Didn't print body (on request) or extract any attachments.")
+
+    if warning_pending:
+        sys.exit(warning_pending.getExitCode())
 
 
 def handle_message_body(input_email, header_info, output_file_name):
@@ -120,7 +133,7 @@ def handle_message_body(input_email, header_info, output_file_name):
                 mimeType = m.buffer(imageDecoded)
                 return "data:" + mimeType + ";base64," + imageBase64
             else:
-                logger.warn("Could not find image cid " + matchobj.group(1) + " in email content.")
+                raise WarningException("Could not find image cid " + matchobj.group(1) + " in email content.")
                 return "broken"
 
         payload = bytes(re.sub('cid:([\w_-]+)', cid_replace, str(payload, encoding='utf-8')), 'UTF-8')
@@ -156,6 +169,8 @@ def handle_pdf_parts(input_email, output_directory):
         payload = part.get_payload(decode=True)
         with open(fullFilename, 'wb') as output_file:
             output_file.write(payload)
+
+    return len(parts)
 
 
 def extract_part_filename(part):
@@ -215,25 +230,44 @@ def get_header_info(email):
 
 
 class ExitCodeException(Exception):
+    __metaclass__ = abc.ABCMeta
+
     def __init__(self, message):
-        self.message = message
+        self._message = message
 
     def __str__(self):
-        return repr(self.message)
+        return repr(self._message)
 
+    @abc.abstractmethod
+    def getExitCode(self):
+        """Return the exit code for this exception"""
+        return
+
+
+class FatalException(ExitCodeException):
     def getExitCode(self):
         return 2
 
 
+class WarningException(ExitCodeException):
+    def getExitCode(self):
+        return 1
+
+
 def handle_uncaught_exception(exctype, value, trace):
-    if isinstance(value, ExitCodeException):
-        logger.error(value.message)
+    if isinstance(value, FatalException):
+        logger.error(value)
         sys.exit(value.getExitCode())
+    elif isinstance(value, WarningException):
+        warning_pending = value
+        logger.warn(value)
     else:
         logger.error(value)
         oldHook(exctype, value, trace)
 
 sys.excepthook, oldHook = handle_uncaught_exception, sys.excepthook
+
+warning_pending = None
 
 # See http://stackoverflow.com/a/11111212/27641
 logger = logging.getLogger('email2pdf')
