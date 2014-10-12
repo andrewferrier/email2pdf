@@ -17,3 +17,8 @@ Python script to convert emails to PDF from the command-line. Type `email2pdf --
   see the getmail documentation for more information on that. Also, it is
   configured by default to *delete* remote emails from the server once they
   are converted - be careful with that.
+
+## Packaging for Debian
+
+Some basic Debian packaging is included. Simply run `sudo apt-get install
+build-essential && make builddeb` to build a Debian package.
