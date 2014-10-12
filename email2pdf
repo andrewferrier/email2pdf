@@ -21,8 +21,9 @@ def main():
                                      "See https://github.com/andrewferrier/email2pdf for more information.")
 
     parser.add_argument("-i", "--inputFile", default="-",
-                        help="Input file you wish to read. If set to '-' " +
-                        "(which is the default), it reads from stdin.")
+                        help="File containing input email you wish to read - in raw form " +
+                        "delivered from a MTA. If set to '-' (which is the default), it " +
+                        "reads from stdin.")
 
     output_options = parser.add_mutually_exclusive_group()
 
