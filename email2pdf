@@ -3,6 +3,7 @@
 from datetime import datetime
 from email.header import decode_header
 from subprocess import Popen, PIPE
+from sys import platform as _platform
 import abc
 import argparse
 import email
@@ -275,7 +276,15 @@ warning_pending = None
 logger = logging.getLogger('email2pdf')
 logger.setLevel(logging.DEBUG)
 
-sysLogHandler = logging.handlers.SysLogHandler(address='/dev/log')
+if _platform == "linux" or _platform == "linux2":
+    sysLogAddress = '/dev/log'
+elif _platform == "darwin":
+    sysLogAddress = '/var/run/syslog'
+else:
+    print("Unsupported platform.")
+    sys.exit(3)
+
+sysLogHandler = logging.handlers.SysLogHandler(address=sysLogAddress)
 sysLogHandler.setLevel(logging.INFO)
 sysLogFormatter = logging.Formatter('%(pathname)s[' + str(os.getpid()) + '] %(levelname)s %(lineno)s: %(message)s')
 sysLogHandler.setFormatter(sysLogFormatter)
