@@ -1,6 +1,6 @@
 TEMPDIR := $(shell mktemp -d)
 
-builddeb: clean
+builddeb:
 	cp -R debian/DEBIAN/ $(TEMPDIR)
 	mkdir -p $(TEMPDIR)/usr/bin
 	mkdir -p $(TEMPDIR)/usr/share/doc/email2pdf
