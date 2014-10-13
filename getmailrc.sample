@@ -1,5 +1,5 @@
 [retriever]
-type = SimpleIMAPRetriever
+type = SimpleIMAPSSLRetriever
 server = mail.example.com
 username = pdf@example.com
 password = mypassword
