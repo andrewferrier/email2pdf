@@ -105,7 +105,7 @@ class BaseTestClasses:
                 self.msg.attach(part)
                 openHandle.close()
 
-                return file_name
+                return os.path.basename(file_name)
             finally:
                 os.unlink(file_name)
 
@@ -205,7 +205,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
         self.assertEqual(0, self.invokeEmail2PDF())
         self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(filename))
+        self.assertTrue(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename)))
 
     def test_plainNoBody(self):
         self.addHeaders("From", "To", "Subject")
@@ -213,7 +213,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
         self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--no-body']))
         self.assertFalse(self.existsByTime())
-        self.assertTrue(os.path.exists(filename))
+        self.assertTrue(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename)))
 
     def test_html(self):
         self.addHeaders("From", "To", "Subject")
@@ -241,7 +241,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         filename = self.attachPDF("Some PDF content")
         self.assertEqual(0, self.invokeEmail2PDF())
         self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(filename))
+        self.assertTrue(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename)))
 
     def test_pdfAsOctetStream(self):
         self.addHeaders("From", "To", "Subject")
@@ -249,7 +249,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
         self.assertEqual(0, self.invokeEmail2PDF())
         self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(filename))
+        self.assertTrue(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename)))
 
     def test_embeddedImageEmail(self):
         path = os.path.join(DEFAULT_OUTPUT_DIR, "embeddedImage.pdf")
@@ -288,61 +288,58 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
                                   subContentType="octet-stream")
         self.assertEqual(0, self.invokeEmail2PDF())
         self.assertTrue(self.existsByTime())
-        self.assertFalse(os.path.exists(filename))
+        self.assertFalse(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename)))
 
     def test_2pdfs(self):
         self.addHeaders("From", "To", "Subject")
         self.attachText("Some basic textual content")
         filename = self.attachPDF("Some PDF content")
         filename2 = self.attachPDF("Some More PDF content")
-        self.assertFalse(os.path.exists(filename))
-        self.assertFalse(os.path.exists(filename2))
+        self.assertFalse(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename)))
+        self.assertFalse(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename2)))
 
         self.assertEqual(0, self.invokeEmail2PDF())
         self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(filename))
-        self.assertTrue(os.path.exists(filename2))
+        self.assertTrue(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename)))
+        self.assertTrue(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename2)))
 
     def test_pdf_exists(self):
         self.addHeaders("From", "To", "Subject")
         self.attachText("Some basic textual content")
         filename = self.attachPDF("Some PDF content")
-        self.assertFalse(os.path.exists(filename))
+        self.assertFalse(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename)))
 
-        touch(filename)
+        touch(os.path.join(DEFAULT_OUTPUT_DIR, filename))
         self.assertEqual(0, self.invokeEmail2PDF())
         self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(filename))
+        self.assertTrue(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename)))
 
-        dirName, baseName = os.path.split(filename)
-        rootName, unused_extension = os.path.splitext(baseName)
-        uniqueName = os.path.join(dirName, rootName + "_1.pdf")
+        rootName, unused_extension = os.path.splitext(filename)
+        uniqueName = rootName + "_1.pdf"
 
-        self.assertTrue(os.path.exists(uniqueName))
+        self.assertTrue(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, uniqueName)))
 
     def test_2pdfs_oneexists(self):
         self.addHeaders("From", "To", "Subject")
         self.attachText("Some basic textual content")
         filename = self.attachPDF("Some PDF content")
         filename2 = self.attachPDF("Some More PDF content")
-        self.assertFalse(os.path.exists(filename))
-        self.assertFalse(os.path.exists(filename2))
+        self.assertFalse(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename)))
+        self.assertFalse(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename2)))
 
-        touch(filename)
+        touch(os.path.join(DEFAULT_OUTPUT_DIR, filename))
         self.assertEqual(0, self.invokeEmail2PDF())
         self.assertTrue(self.existsByTime())
 
-        self.assertTrue(os.path.exists(filename))
-        dirName, baseName = os.path.split(filename)
-        rootName, unused_extension = os.path.splitext(baseName)
-        uniqueName = os.path.join(dirName, rootName + "_1.pdf")
-        self.assertTrue(os.path.exists(uniqueName))
+        self.assertTrue(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename)))
+        rootName, unused_extension = os.path.splitext(filename)
+        uniqueName = rootName + "_1.pdf"
+        self.assertTrue(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, uniqueName)))
 
-        self.assertTrue(os.path.exists(filename2))
-        dirName2, baseName2 = os.path.split(filename2)
-        rootName2, unused_extension2 = os.path.splitext(baseName2)
-        uniqueName2 = os.path.join(dirName2, rootName2 + "_1.pdf")
-        self.assertFalse(os.path.exists(uniqueName2))
+        self.assertTrue(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, filename2)))
+        rootName2, unused_extension2 = os.path.splitext(filename2)
+        uniqueName2 = rootName2 + "_1.pdf"
+        self.assertFalse(os.path.exists(os.path.join(DEFAULT_OUTPUT_DIR, uniqueName2)))
 
 if __name__ == '__main__':
     unittest.main()
