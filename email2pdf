@@ -130,9 +130,7 @@ def handle_message_body(input_email, header_info, output_file_name):
                 imageBase64 = imagePart.get_payload(decode=False)
                 imageBase64 = re.sub("[\r\n\t]", "", imageBase64)
                 imageDecoded = imagePart.get_payload(decode=True)
-                m = magic.open(magic.MAGIC_MIME_TYPE)
-                m.load()
-                mimeType = m.buffer(imageDecoded)
+                mimeType = get_mime_type(imageDecoded)
                 return "data:" + mimeType + ";base64," + imageBase64
             else:
                 raise WarningException("Could not find image cid " + matchobj.group(1) + " in email content.")
@@ -226,6 +224,20 @@ def get_header_info(email):
             header_info = header_info + '<b>' + header + '</b>: ' + email[header] + '<br/>'
 
     return header_info + '<br/>'
+
+# There are various different magic libraries floating around for Python, and
+# this function abstracts that out. The first clause is for `pip3 install
+# python-magic`, and the second is for the Ubuntu package python3-magic.
+
+def get_mime_type(bufferData):
+    if 'from_buffer' in dir(magic):
+        mimeType = str(magic.from_buffer(bufferData, True))
+    else:
+        m = magic.open(magic.MAGIC_MIME_TYPE)
+        m.load()
+        mimeType = m.buffer(bufferData)
+
+    return mimeType
 
 # Idea for this error handling strategy from here:
 # http://stackoverflow.com/a/16787722/27641
