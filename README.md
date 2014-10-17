@@ -40,7 +40,7 @@ build-essential && make builddeb` to build a Debian package.
   [`control`](https://github.com/andrewferrier/email2pdf/blob/master/debian/DEBIAN/control)
   file.
 
-### OSX (instructions not yet complete)
+### OSX
 
 * Install [Homebrew](http://brew.sh/)
 * `brew install python3`
