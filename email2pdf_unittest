@@ -177,6 +177,15 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         finally:
             os.unlink(f_path)
 
+    def test_plaincontent_timedfileexist(self):
+        self.setPlainContent("Hello!")
+        filename1 = self.getTimeStamp(self.timeAtStart) + ".pdf"
+        filename2 = self.getTimeStamp(self.timeAtStart) + "_1.pdf"
+        touch(os.path.join(self.workingDir, filename1))
+        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertTrue(os.path.join(self.workingDir, filename1))
+        self.assertTrue(os.path.join(self.workingDir, filename2))
+
     def test_verbose(self):
         self.setPlainContent("Hello!")
         self.assertEqual(0, self.invokeEmail2PDF(extraParams=['-v'], sysErrExpected=True))

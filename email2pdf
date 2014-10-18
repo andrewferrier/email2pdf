@@ -71,13 +71,14 @@ def main():
 
     if args.outputFile:
         output_file_name = args.outputFile
+        if os.path.isfile(output_file_name):
+            raise FatalException("Output file " + output_file_name + " already exists. Aborting.")
     else:
         output_file_name = os.path.join(output_directory, datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf")
+        output_file_name = get_unique_version(output_file_name)
 
     logger.info("Output file name is: " + output_file_name)
 
-    if os.path.isfile(output_file_name):
-        raise FatalException("Output file " + output_file_name + " already exists. Aborting.")
 
     if args.inputFile.strip() == "-":
         data = ""
