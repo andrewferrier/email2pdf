@@ -4,7 +4,6 @@ from datetime import datetime
 from email.header import decode_header
 from subprocess import Popen, PIPE
 from sys import platform as _platform
-import abc
 import argparse
 import email
 import io
@@ -245,7 +244,10 @@ def get_mime_type(bufferData):
 
 
 class ExitCodeException(Exception):
-    __metaclass__ = abc.ABCMeta
+    def __new__(cls, *args, **kwargs):
+        if cls is ExitCodeException:
+            raise NotImplementedError("ExitCodeException class may not be instantiated directly.")
+        return Exception.__new__(cls, *args, **kwargs)
 
     def __init__(self, message):
         super().__init__()
@@ -254,10 +256,9 @@ class ExitCodeException(Exception):
     def __str__(self):
         return repr(self._message)
 
-    @abc.abstractmethod
     def getExitCode(self):
         """Return the exit code for this exception"""
-        return
+        pass
 
 
 class FatalException(ExitCodeException):
