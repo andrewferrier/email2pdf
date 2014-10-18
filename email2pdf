@@ -25,15 +25,13 @@ def main():
                         "delivered from a MTA. If set to '-' (which is the default), it " +
                         "reads from stdin.")
 
-    output_options = parser.add_mutually_exclusive_group()
-
-    output_options.add_argument("-o", "--outputFile",
-                                help="Output file you wish to write to. Should " +
-                                "include the complete path, otherwise it " +
-                                "defaults to the current directory. If this is " +
-                                "not specified, email2pdf picks a date & " +
-                                "time-based filename and puts the file in the " +
-                                "directory specified by --outputDirectory.")
+    parser.add_argument("-o", "--outputFile",
+                        help="Output file you wish to write to. Should " +
+                        "include the complete path, otherwise it " +
+                        "defaults to the current directory. If this is " +
+                        "not specified, email2pdf picks a date & " +
+                        "time-based filename and puts the file in the " +
+                        "directory specified by --outputDirectory.")
 
     parser.add_argument("-d", "--outputDirectory", default=os.getcwd(),
                         help="Output directory when --outputFile is not specified. Defaults to the " +
