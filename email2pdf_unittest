@@ -23,7 +23,7 @@ examineDir = '/tmp'
 examineDir = tempfile.mkdtemp(dir=examineDir)
 print("Output examination directory: " + examineDir)
 
-error_log = open('email2pdf_unittest_stderr.log', "w")
+error_log = open(os.path.join(examineDir, 'email2pdf_unittest_stderr.log'), "w")
 
 
 def touch(fname):
