@@ -42,7 +42,7 @@ class BaseTestClasses:
 
         def existsByTime(self, path=None):
             if path is None:
-                path=self.workingDir
+                path = self.workingDir
 
             oneSecondLater = self.timeAtStart + timedelta(0, 1)
             return os.path.exists(os.path.join(path, self.getTimeStamp(self.timeAtStart) + ".pdf")) or \

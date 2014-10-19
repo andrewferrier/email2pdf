@@ -76,7 +76,6 @@ def main():
 
     logger.info("Output file name is: " + output_file_name)
 
-
     if args.inputFile.strip() == "-":
         data = ""
         for line in sys.stdin:
@@ -226,6 +225,7 @@ def get_header_info(email):
 # There are various different magic libraries floating around for Python, and
 # this function abstracts that out. The first clause is for `pip3 install
 # python-magic`, and the second is for the Ubuntu package python3-magic.
+
 
 def get_mime_type(bufferData):
     if 'from_buffer' in dir(magic):
