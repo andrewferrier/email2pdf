@@ -23,6 +23,7 @@ HEADER_MAPPING = {'Author': 'From',
                   'Title': 'Subject',
                   'X-email2pdf-To': 'To'}
 
+
 def main():
     parser = argparse.ArgumentParser(description="Converts emails to PDFs. " +
                                      "See https://github.com/andrewferrier/email2pdf for more information.")
@@ -190,7 +191,7 @@ def add_update_pdf_metadata(filename, updateDictionary):
     def addPrefix(value):
         return '/' + value
 
-    fullUpdateDictionary = { addPrefix(k): v for k, v in updateDictionary.items() }
+    fullUpdateDictionary = {addPrefix(k): v for k, v in updateDictionary.items()}
 
     with open(filename, 'rb') as input_file:
         pdf_input = PdfFileReader(input_file)
