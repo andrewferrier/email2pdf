@@ -45,5 +45,4 @@ build-essential && make builddeb` to build a Debian package.
 * Install [Homebrew](http://brew.sh/)
 * `brew install python3`
 * `brew install libmagic`
-* `pip3 install reportlab`
-* `pip3 install python-magic`
+* `pip3 install reportlab python-magic pypdf2`

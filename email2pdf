@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
+from PyPDF2 import PdfFileReader, PdfFileWriter
+from PyPDF2.generic import NameObject, createStringObject
 from datetime import datetime
 from email.header import decode_header
+from itertools import chain
 from subprocess import Popen, PIPE
 from sys import platform as _platform
 import argparse
@@ -14,7 +17,11 @@ import os
 import os.path
 import re
 import sys
+import tempfile
 
+HEADER_MAPPING = {'Author': 'From',
+                  'Title': 'Subject',
+                  'X-email2pdf-To': 'To'}
 
 def main():
     parser = argparse.ArgumentParser(description="Converts emails to PDFs. " +
@@ -90,7 +97,7 @@ def main():
 
     number_of_pdf_parts = handle_pdf_parts(input_email, output_directory)
 
-    header_info = get_header_info(input_email)
+    header_info = get_formatted_header_info(input_email)
     logger.info("Header info is: " + header_info)
 
     if not args.headers:
@@ -145,6 +152,15 @@ def handle_message_body(input_email, header_info, output_file_name):
     if p.returncode > 0:
         raise FatalException("wkhtmltopdf failed with exit code " + str(p.returncode))
 
+    add_metadata_obj = {}
+
+    for key in HEADER_MAPPING:
+        if HEADER_MAPPING[key] in input_email:
+            add_metadata_obj[key] = input_email[HEADER_MAPPING[key]]
+
+    if add_metadata_obj:
+        add_update_pdf_metadata(output_file_name, add_metadata_obj)
+
 
 def handle_pdf_parts(input_email, output_directory):
     parts = find_all_parts(input_email, "application/pdf")
@@ -168,6 +184,40 @@ def handle_pdf_parts(input_email, output_directory):
             output_file.write(payload)
 
     return len(parts)
+
+
+def add_update_pdf_metadata(filename, updateDictionary):
+    def addPrefix(value):
+        return '/' + value
+
+    fullUpdateDictionary = { addPrefix(k): v for k, v in updateDictionary.items() }
+
+    with open(filename, 'rb') as input_file:
+        pdf_input = PdfFileReader(input_file)
+        pdf_output = PdfFileWriter()
+
+        for page in range(pdf_input.getNumPages()):
+            pdf_output.addPage(pdf_input.getPage(page))
+
+        infoDict = pdf_output._info.getObject()
+
+        info = pdf_input.documentInfo
+
+        fullUpdateDictionary = dict(chain(info.items(), fullUpdateDictionary.items()))
+
+        for key in fullUpdateDictionary:
+            if fullUpdateDictionary[key] is not None:
+                infoDict.update({NameObject(key): createStringObject(fullUpdateDictionary[key])})
+            else:
+                infoDict.update({NameObject(key): None})
+
+        unused_f_handle, temp_file_name = tempfile.mkstemp(prefix="email2pdf_add_update_pdf_metadata", suffix=".pdf")
+
+        with open(temp_file_name, 'wb') as file_out:
+            pdf_output.write(file_out)
+
+    os.unlink(filename)
+    os.rename(temp_file_name, filename)
 
 
 def extract_part_filename(part):
@@ -211,7 +261,7 @@ def find_all_parts(message, content_type):
     return parts
 
 
-def get_header_info(email):
+def get_formatted_header_info(email):
     HEADERS = ('Subject', 'From', 'To', 'Date')
 
     header_info = ""
