@@ -174,6 +174,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual("from@example.org", self.getMetadataField(path, "Author"))
         self.assertEqual("to@example.org", self.getMetadataField(path, "X-email2pdf-To"))
         self.assertEqual("Subject of the email", self.getMetadataField(path, "Title"))
+        self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
 
     def test_noheaders_metadata(self):
         self.setPlainContent("Hello!")
@@ -183,6 +184,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual(None, self.getMetadataField(path, "Author"))
         self.assertEqual(None, self.getMetadataField(path, "X-email2pdf-To"))
         self.assertEqual('', self.getMetadataField(path, "Title"))
+        self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
 
     def test_plaincontent_headers(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")

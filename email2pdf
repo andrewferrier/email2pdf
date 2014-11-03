@@ -159,8 +159,9 @@ def handle_message_body(input_email, header_info, output_file_name):
         if HEADER_MAPPING[key] in input_email:
             add_metadata_obj[key] = input_email[HEADER_MAPPING[key]]
 
-    if add_metadata_obj:
-        add_update_pdf_metadata(output_file_name, add_metadata_obj)
+    add_metadata_obj['Producer'] = 'email2pdf'
+
+    add_update_pdf_metadata(output_file_name, add_metadata_obj)
 
 
 def handle_pdf_parts(input_email, output_directory):
