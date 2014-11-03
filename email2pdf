@@ -50,7 +50,7 @@ def main():
                         "attachments. The default is to parse both the body and detach attachments.")
 
     parser.add_argument("--headers", action='store_true',
-                        help="Add basic email headers to the PDF. The default is not to do this.")
+                        help="Add basic email headers to the first PDF page. The default is not to do this.")
 
     parser.add_argument('-v', '--verbose', action='count', default=0,
                         help="Make the output more verbose. This affects both the output logged to " +
