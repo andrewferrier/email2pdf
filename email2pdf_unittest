@@ -20,11 +20,19 @@ import tempfile
 import time
 import unittest
 
-examineDir = '/tmp'
-examineDir = tempfile.mkdtemp(dir=examineDir)
-print("Output examination directory: " + examineDir)
+def setUpModule():
+    global examineDir
+    global error_log
 
-error_log = open(os.path.join(examineDir, 'email2pdf_unittest_stderr.log'), "w")
+    examineDir = '/tmp'
+    examineDir = tempfile.mkdtemp(dir=examineDir)
+    print("Output examination directory: " + examineDir)
+
+    error_log = open(os.path.join(examineDir, 'email2pdf_unittest_stderr.log'), "w")
+
+
+def tearDownModule():
+    close(error_log)
 
 
 def touch(fname):
@@ -199,8 +207,8 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         path = os.path.join(examineDir, "plaincontent_noheaders_metadata.pdf")
         self.assertEqual(0, self.invokeEmail2PDF(outputFile=path))
         self.assertTrue(os.path.exists(path))
-        self.assertEqual(None, self.getMetadataField(path, "Author"))
-        self.assertEqual(None, self.getMetadataField(path, "X-email2pdf-To"))
+        self.assertIsNone(self.getMetadataField(path, "Author"))
+        self.assertIsNone(self.getMetadataField(path, "X-email2pdf-To"))
         self.assertEqual('', self.getMetadataField(path, "Title"))
         self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
 
