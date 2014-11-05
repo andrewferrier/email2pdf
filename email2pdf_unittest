@@ -132,6 +132,11 @@ class BaseTestClasses:
                 else:
                     return None
 
+        def find_mount_point(self, path):
+            while not os.path.ismount(path):
+                path=os.path.dirname(path)
+            return path
+
         def tearDown(self):
             shutil.rmtree(self.workingDir)
 
@@ -175,6 +180,18 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual("to@example.org", self.getMetadataField(path, "X-email2pdf-To"))
         self.assertEqual("Subject of the email", self.getMetadataField(path, "Title"))
         self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
+
+    def test_plaincontent_metadata_differentmount(self):
+        self.addHeaders("from@example.org")
+        self.setPlainContent("Hello!")
+        mountPoint2 = tempfile.mkdtemp(dir='/var/tmp')
+        if(self.find_mount_point(mountPoint2) != self.find_mount_point(tempfile.tempdir)):
+            path = os.path.join(mountPoint2, "plaincontent_metadata_differentmount.pdf")
+            self.assertEqual(0, self.invokeEmail2PDF(outputFile=path))
+            self.assertTrue(os.path.exists(path))
+            self.assertEqual("from@example.org", self.getMetadataField(path, "Author"))
+        else:
+            self.skipTest(mountPoint2 + " and " + tempfile.tempdir + " are on the same mountpoint, test not relevant.")
 
     def test_noheaders_metadata(self):
         self.setPlainContent("Hello!")

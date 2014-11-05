@@ -16,6 +16,7 @@ import magic
 import os
 import os.path
 import re
+import shutil
 import sys
 import tempfile
 
@@ -218,8 +219,7 @@ def add_update_pdf_metadata(filename, updateDictionary):
         with open(temp_file_name, 'wb') as file_out:
             pdf_output.write(file_out)
 
-    os.unlink(filename)
-    os.rename(temp_file_name, filename)
+    shutil.move(temp_file_name, filename)
 
 
 def extract_part_filename(part):
