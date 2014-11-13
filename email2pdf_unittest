@@ -96,8 +96,9 @@ class BaseTestClasses:
         def attachText(self, content):
             self.msg.attach(MIMEText(content, 'plain'))
 
-        def attachPDF(self, string, fileSuffix="pdf", mainContentType="application", subContentType="pdf"):
-            unused_f_handle, file_name = tempfile.mkstemp(prefix="email2pdf_unittest_file", suffix="." + fileSuffix)
+        def attachPDF(self, string, filePrefix="email2pdf_unittest_file", fileSuffix="pdf",
+                      mainContentType="application", subContentType="pdf"):
+            unused_f_handle, file_name = tempfile.mkstemp(prefix=filePrefix, suffix="." + fileSuffix)
 
             try:
                 cv = canvas.Canvas(file_name)
@@ -403,6 +404,26 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         rootName2, unused_extension2 = os.path.splitext(filename2)
         uniqueName2 = rootName2 + "_1.pdf"
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, uniqueName2)))
+
+    def test_pdf_adddate(self):
+        self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
+        self.attachText("Some basic textual content")
+        filename = self.attachPDF("Some PDF content")
+        filename2 = self.attachPDF("Some PDF content", filePrefix="unittest_file_2014-01-01")
+        filename3 = self.attachPDF("Some PDF content", filePrefix="unittest_2014-01-01_file")
+        filename4 = self.attachPDF("Some PDF content", filePrefix="2014-01-01_unittest_file")
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename)))
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename2)))
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename3)))
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename4)))
+
+        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--add-prefix-date']))
+        self.assertTrue(self.existsByTime())
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename)))
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename2)))
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename3)))
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename4)))
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, datetime.now().strftime("%Y-%m-%d-") + filename)))
 
 if __name__ == '__main__':
     unittest.main()
