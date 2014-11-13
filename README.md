@@ -1,12 +1,16 @@
 # email2pdf
 
-Python script to convert emails to PDF from the command-line. Type `email2pdf
---help` for more information on usage and options available.
+Python script to convert emails to PDF from the command-line. email2pdf acts
+in place of a [mail delivery
+agent](http://en.wikipedia.org/wiki/Mail_delivery_agent) - it won't retrieve
+emails for you, but it will take them from standard input as an MDA will and
+'deliver' them to PDF files. Type `email2pdf --help` for more information on
+usage and options available.
 
 ## Dependencies
 
-* [wkhtmltopdf](http://wkhtmltopdf.org/) - if on Ubuntu, install the `.deb` from
-  http://wkhtmltopdf.org/ rather than using apt-get to minimise the
+* [wkhtmltopdf](http://wkhtmltopdf.org/) - if on Ubuntu, install the `.deb`
+  from http://wkhtmltopdf.org/ rather than using apt-get to minimise the
   dependencies you need to install (in particular, to avoid needing a package
   manager).
 
