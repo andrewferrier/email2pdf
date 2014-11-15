@@ -125,10 +125,10 @@ class BaseTestClasses:
             finally:
                 os.unlink(file_name)
 
-        def attachImage(self, imageId):
+        def attachImage(self, content_id):
             with open('jpeg444.jpg', 'rb') as image_file:
                 image = MIMEImage(image_file.read())
-                image.add_header('Content-ID', imageId)
+                image.add_header('Content-ID', content_id)
                 self.msg.attach(image)
 
         def getMetadataField(self, pdfFilename, fieldName):
