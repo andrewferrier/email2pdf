@@ -50,9 +50,15 @@ def main():
                         help="Output directory when --outputFile is not specified. Defaults to the " +
                         "current directory.")
 
-    parser.add_argument("--no-body", dest='body', action='store_false',
+    body_attachment_options = parser.add_mutually_exclusive_group()
+
+    body_attachment_options.add_argument("--no-body", dest='body', action='store_false',
                         help="Don't parse the body of the email and print it to PDF, just detach relevant " +
                         "attachments. The default is to parse both the body and detach attachments.")
+
+    body_attachment_options.add_argument("--no-attachments", dest='attachments', action='store_false',
+                        help="Don't detach the recognized attachment types (PDF and images), just print the body of " +
+                        "the email to PDF.")
 
     parser.add_argument("--headers", action='store_true',
                         help="Add basic email headers to the first PDF page. The default is not to do this.")
@@ -66,7 +72,7 @@ def main():
                         help="Make the output more verbose. This affects both the output logged to " +
                         "syslog, as well as output to the console.")
 
-    parser.set_defaults(body=True, headers=False)
+    parser.set_defaults(body=True, attachments=True, headers=False)
     args = parser.parse_args()
 
     if args.verbose > 1:
@@ -117,9 +123,12 @@ def main():
     else:
         parts_already_used = []
 
-    number_of_parts = handle_attachments(input_email, output_directory, args.add_prefix_date, parts_already_used)
+    if args.attachments:
+        number_of_attachments = handle_attachments(input_email, output_directory, args.add_prefix_date, parts_already_used)
+    else:
+        number_of_attachments = 0
 
-    if (not args.body) and number_of_parts == 0:
+    if (not args.body) and number_of_attachments == 0:
         raise WarningException("Didn't print body (on request) or extract any attachments.")
 
     if warning_pending:
