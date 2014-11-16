@@ -382,7 +382,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(path))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
-    def test_embeddedImage2(self):
+    def test_embeddedImageCIDUnderscore(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         imageFilename = self.attachImage('<my_id>')
         self.attachHTML('<img src=cid:my_id>')
@@ -390,7 +390,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
-    def test_embeddedImage3(self):
+    def test_embeddedImageExtraHTMLContent(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         imageFilename = self.attachImage('myid')
         self.attachHTML('<p><img src="blah.jpg"><li></li><img src="cid:myid"></p>')
@@ -398,7 +398,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
-    def test_embeddedImage4(self):
+    def test_embeddedImageUpperCaseHTMLContent(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         imageFilename = self.attachImage('myid')
         self.attachHTML('<IMG SRC="cid:myid">')
