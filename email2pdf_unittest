@@ -125,11 +125,27 @@ class BaseTestClasses:
             finally:
                 os.unlink(file_name)
 
-        def attachImage(self, content_id):
-            with open('jpeg444.jpg', 'rb') as image_file:
+        def attachImage(self, content_id=None, jpeg=True, content_type=None):
+            if jpeg:
+                realFilename = 'jpeg444.jpg'
+                fileSuffix = 'jpg'
+            else:
+                realFilename = 'basi2c16.png'
+                fileSuffix = 'png'
+
+            unused_f_handle, file_name = tempfile.mkstemp(prefix="email2pdf_unittest_image", suffix="." + fileSuffix)
+            unused_path, basic_file_name = os.path.split(file_name)
+
+            with open(realFilename, 'rb') as image_file:
                 image = MIMEImage(image_file.read())
-                image.add_header('Content-ID', content_id)
+                if content_id:
+                    image.add_header('Content-ID', content_id)
+                if content_type:
+                    self.replace_header(image, 'Content-Type', content_type)
+                self.replace_header(image, 'Content-Disposition', 'attachment; filename="%s"' % basic_file_name)
                 self.msg.attach(image)
+
+            return basic_file_name
 
         def getMetadataField(self, pdfFilename, fieldName):
             with open(pdfFilename, 'rb') as file_input:
@@ -145,6 +161,10 @@ class BaseTestClasses:
             while not os.path.ismount(path):
                 path=os.path.dirname(path)
             return path
+
+        def replace_header(self, mimeBase, header, value):
+            mimeBase.__delitem__(header)
+            mimeBase.add_header(header, value)
 
         def tearDown(self):
             shutil.rmtree(self.workingDir)
@@ -324,34 +344,98 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
-    def test_embeddedImageEmail(self):
+    def test_embeddedImage(self):
         path = os.path.join(examineDir, "embeddedImage.pdf")
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
-        self.attachImage('myid')
+        imageFilename = self.attachImage('myid')
         self.attachHTML('<img src=cid:myid>')
         self.assertEqual(0, self.invokeEmail2PDF(outputFile=path))
         self.assertTrue(os.path.exists(path))
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
-    def test_embeddedImageEmail2(self):
+    def test_embeddedImage2(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
-        self.attachImage('<my_id>')
+        imageFilename = self.attachImage('<my_id>')
         self.attachHTML('<img src=cid:my_id>')
         self.assertEqual(0, self.invokeEmail2PDF())
         self.assertTrue(self.existsByTime())
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
-    def test_embeddedImageEmail3(self):
+    def test_embeddedImage3(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
-        self.attachImage('myid')
+        imageFilename = self.attachImage('myid')
         self.attachHTML('<p><img src="blah.jpg"><li></li><img src="cid:myid"></p>')
         self.assertEqual(0, self.invokeEmail2PDF())
         self.assertTrue(self.existsByTime())
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
-    def test_embeddedImageEmail4(self):
+    def test_embeddedImage4(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
-        self.attachImage('myid')
+        imageFilename = self.attachImage('myid')
         self.attachHTML('<IMG SRC="cid:myid">')
         self.assertEqual(0, self.invokeEmail2PDF())
         self.assertTrue(self.existsByTime())
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
+
+    def test_embeddedImageAsOctetStream(self):
+        self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
+        imageFilename = self.attachImage('myid', content_type="application/octet-stream")
+        self.attachHTML('<IMG SRC="cid:myid">')
+        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertTrue(self.existsByTime())
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
+
+    def test_oneEmbeddedOneNotImage(self):
+        self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
+        imageFilename = self.attachImage('myid')
+        imageFilename2 = self.attachImage()
+        self.attachHTML('<IMG SRC="cid:myid">')
+        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertTrue(self.existsByTime())
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename2)))
+
+    def test_nonEmbeddedImageJPEG(self):
+        self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
+        self.attachText("Hello!")
+        imageFilename = self.attachImage(jpeg=True)
+        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertTrue(self.existsByTime())
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
+
+    def test_nonEmbeddedImageJPEGAddPrefixDate(self):
+        self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
+        self.attachText("Hello!")
+        imageFilename = self.attachImage(jpeg=True)
+        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--add-prefix-date']))
+        self.assertTrue(self.existsByTime())
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, datetime.now().strftime("%Y-%m-%d-") + imageFilename)))
+
+    def test_nonEmbeddedImageJPEGAsOctetStream(self):
+        self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
+        self.attachText("Hello!")
+        imageFilename = self.attachImage(jpeg=True, content_type='application/octet-stream')
+        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertTrue(self.existsByTime())
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
+
+    def test_nonEmbeddedImagePNG(self):
+        self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
+        self.attachText("Hello!")
+        imageFilename = self.attachImage(jpeg=False)
+        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertTrue(self.existsByTime())
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
+
+    def test_nonEmbeddedImageAndPDF(self):
+        self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
+        self.attachText("Hello!")
+        imageFilename = self.attachImage()
+        filename = self.attachPDF("Some PDF content")
+        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertTrue(self.existsByTime())
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
     def test_somethingElseAsOctetStream(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")

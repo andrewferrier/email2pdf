@@ -9,6 +9,7 @@ from subprocess import Popen, PIPE
 from sys import platform as _platform
 import argparse
 import email
+import functools
 import io
 import logging
 import logging.handlers
@@ -24,6 +25,9 @@ HEADER_MAPPING = {'Author': 'From',
                   'Title': 'Subject',
                   'X-email2pdf-To': 'To'}
 
+MIME_TYPES_ATTACHMENTS = [ 'application/pdf', 'image/jpeg', 'image/png' ]
+
+MIME_TYPES_EXTENSIONS = [ '.pdf', '.jpeg', '.jpg', '.png' ]
 
 def main():
     parser = argparse.ArgumentParser(description="Converts emails to PDFs. " +
@@ -102,8 +106,6 @@ def main():
 
     input_email = email.message_from_string(data)
 
-    number_of_pdf_parts = handle_pdf_parts(input_email, output_directory, args.add_prefix_date)
-
     header_info = get_formatted_header_info(input_email)
     logger.info("Header info is: " + header_info)
 
@@ -111,8 +113,13 @@ def main():
         header_info = ""
 
     if args.body:
-        handle_message_body(input_email, header_info, output_file_name)
-    elif number_of_pdf_parts == 0:
+        parts_already_used = handle_message_body(input_email, header_info, output_file_name)
+    else:
+        parts_already_used = []
+
+    number_of_parts = handle_attachments(input_email, output_directory, args.add_prefix_date, parts_already_used)
+
+    if (not args.body) and number_of_parts == 0:
         raise WarningException("Didn't print body (on request) or extract any attachments.")
 
     if warning_pending:
@@ -120,6 +127,8 @@ def main():
 
 
 def handle_message_body(input_email, header_info, output_file_name):
+    cid_parts_used = []
+
     part = find_part_by_content_type(input_email, "text/html")
     if part is None:
         part = find_part_by_content_type(input_email, "text/plain")
@@ -133,7 +142,7 @@ def handle_message_body(input_email, header_info, output_file_name):
         logger.info("Determined email is HTML.")
         payload = part.get_payload(decode=True)
 
-        def cid_replace(matchobj):
+        def cid_replace(cid_parts_used, matchobj):
             logger.debug("Looking for image for cid " + matchobj.group(1))
             imagePart = find_part_by_content_id(input_email, matchobj.group(1))
             if imagePart is not None:
@@ -142,12 +151,13 @@ def handle_message_body(input_email, header_info, output_file_name):
                 imageBase64 = re.sub("[\r\n\t]", "", imageBase64)
                 imageDecoded = imagePart.get_payload(decode=True)
                 mimeType = get_mime_type(imageDecoded)
+                cid_parts_used.append(imagePart)
                 return "data:" + mimeType + ";base64," + imageBase64
             else:
                 raise WarningException("Could not find image cid " + matchobj.group(1) + " in email content.")
                 return "broken"
 
-        payload = bytes(re.sub('cid:([\w_-]+)', cid_replace, str(payload, encoding='utf-8')), 'UTF-8')
+        payload = bytes(re.sub('cid:([\w_-]+)', functools.partial(cid_replace, cid_parts_used), str(payload, encoding='utf-8')), 'UTF-8')
 
     payload = bytes(header_info, 'UTF-8') + payload
 
@@ -169,19 +179,29 @@ def handle_message_body(input_email, header_info, output_file_name):
 
     add_update_pdf_metadata(output_file_name, add_metadata_obj)
 
+    return cid_parts_used
 
-def handle_pdf_parts(input_email, output_directory, add_prefix_date):
-    parts = find_all_parts(input_email, "application/pdf")
-    maybeParts = find_all_parts(input_email, "application/octet-stream")
 
-    for maybePart in maybeParts:
-        filename = extract_part_filename(maybePart)
-        unused_base, ext = os.path.splitext(filename)
-        if ext.lower() == '.pdf':
-            parts.append(maybePart)
+def handle_attachments(input_email, output_directory, add_prefix_date, parts_to_ignore):
+    parts = []
+
+    for content_type in MIME_TYPES_ATTACHMENTS:
+        parts.extend(find_all_parts(input_email, content_type))
+
+    for part in input_email.walk():
+        if part not in parts:
+            filename = extract_part_filename(part)
+            if filename is not None:
+                unused_base, ext = os.path.splitext(filename)
+                if ext.lower() in MIME_TYPES_EXTENSIONS:
+                    parts.append(part)
+
+    for part in parts_to_ignore:
+        parts.remove(part)
 
     for part in parts:
         filename = extract_part_filename(part)
+        assert(filename is not None)
 
         if add_prefix_date:
             if not re.search("\d\d\d\d[-_]\d\d[-_]\d\d", filename):
@@ -234,9 +254,12 @@ def add_update_pdf_metadata(filename, updateDictionary):
 
 def extract_part_filename(part):
     filename = part.get_filename()
-    if decode_header(filename)[0][1] is not None:
-        filename = str(decode_header(filename)[0][0]).decode(decode_header(filename)[0][1])
-    return filename
+    if filename is not None:
+        if decode_header(filename)[0][1] is not None:
+            filename = str(decode_header(filename)[0][0]).decode(decode_header(filename)[0][1])
+        return filename
+    else:
+        return None
 
 
 def get_unique_version(filename):
