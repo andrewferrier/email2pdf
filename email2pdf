@@ -110,10 +110,10 @@ def main():
 
     input_email = email.message_from_string(data)
 
-    header_info = get_formatted_header_info(input_email)
-    logger.info("Header info is: " + header_info)
-
-    if not args.headers:
+    if args.headers:
+        header_info = get_formatted_header_info(input_email)
+        logger.info("Header info is: " + header_info)
+    else:
         header_info = ""
 
     if args.body:
