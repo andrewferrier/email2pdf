@@ -34,17 +34,15 @@ def main():
                                      "See https://github.com/andrewferrier/email2pdf for more information.")
 
     parser.add_argument("-i", "--inputFile", default="-",
-                        help="File containing input email you wish to read - in raw form " +
+                        help="File containing input email you wish to read in raw form " +
                         "delivered from a MTA. If set to '-' (which is the default), it " +
                         "reads from stdin.")
 
     parser.add_argument("-o", "--outputFile",
-                        help="Output file you wish to write to. Should " +
-                        "include the complete path, otherwise it " +
-                        "defaults to the current directory. If this is " +
-                        "not specified, email2pdf picks a date & " +
-                        "time-based filename and puts the file in the " +
-                        "directory specified by --outputDirectory.")
+                        help="Output file you wish to print the body of the email to as PDF. Should " +
+                        "include the complete path, otherwise it defaults to the current directory. If " +
+                        "this option is not specified, email2pdf picks a date & time-based filename and puts " +
+                        "the file in the directory specified by --outputDirectory.")
 
     parser.add_argument("-d", "--outputDirectory", default=os.getcwd(),
                         help="Output directory when --outputFile is not specified. Defaults to the " +
@@ -64,13 +62,13 @@ def main():
                         help="Add basic email headers to the first PDF page. The default is not to do this.")
 
     parser.add_argument("--add-prefix-date", dest="add_prefix_date", action="store_true",
-                        help="Add an ISO-8601 prefix date (e.g. YYYY-MM-DD-) to any attachment filename " +
+                        help="Prepend an ISO-8601 prefix date (e.g. YYYY-MM-DD-) to any attachment filename " +
                         "that doesn't have one. Will search through the whole filename for an existing " +
-                        "date - if not found, it prepends one.")
+                        "date in that format - if not found, it prepends one.")
 
     parser.add_argument('-v', '--verbose', action='count', default=0,
                         help="Make the output more verbose. This affects both the output logged to " +
-                        "syslog, as well as output to the console.")
+                        "syslog, as well as output to the console. Using this twice makes it doubly verbose.")
 
     parser.set_defaults(body=True, attachments=True, headers=False)
     args = parser.parse_args()
