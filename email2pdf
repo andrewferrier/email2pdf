@@ -83,6 +83,8 @@ def main():
         sysLogHandler.setLevel(logging.INFO)
         sysErrHandler.setLevel(logging.WARNING)
 
+    logger.info("Options used are: " + str(args))
+
     output_directory = os.path.normpath(args.outputDirectory)
 
     if not os.path.exists(output_directory):
