@@ -54,7 +54,7 @@ def main():
     body_attachment_options = parser.add_mutually_exclusive_group()
 
     body_attachment_options.add_argument("--no-body", dest='body', action='store_false',
-                        help="Don't parse the body of the email and print it to PDF, just detach relevant " +
+                        help="Don't parse the body of the email and print it to PDF, just detach recognized " +
                         "attachments. The default is to parse both the body and detach attachments.")
 
     body_attachment_options.add_argument("--no-attachments", dest='attachments', action='store_false',
