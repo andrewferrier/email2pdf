@@ -422,6 +422,15 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
+    def test_embeddedImageUrlInHTML(self):
+        path = os.path.join(examineDir, "embeddedImageUrlInHTML.pdf")
+        self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
+        self.attachHTML('<p>Should display two repeated images below:</p><img border="0" src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/jpeg444.jpg"><IMG SRC="cid:jpeg444.JPG">')
+        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path))
+        self.assertTrue(os.path.exists(path))
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, "jpeg444.jpg")))
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, "jpeg444.JPG")))
+
     def test_oneEmbeddedOneNotImage(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         imageFilename = self.attachImage('myid')

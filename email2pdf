@@ -4,10 +4,12 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 from PyPDF2.generic import NameObject, createStringObject
 from datetime import datetime
 from email.header import decode_header
+from html.parser import HTMLParser
 from itertools import chain
 from subprocess import Popen, PIPE
 from sys import platform as _platform
 import argparse
+import base64
 import email
 import functools
 import io
@@ -20,6 +22,7 @@ import re
 import shutil
 import sys
 import tempfile
+import urllib.request
 
 HEADER_MAPPING = {'Author': 'From',
                   'Title': 'Subject',
@@ -152,9 +155,12 @@ def handle_message_body(input_email, header_info, output_file_name):
         payload = part.get_payload(decode=True)
 
         def cid_replace(cid_parts_used, matchobj):
-            logger.debug("Looking for image for cid " + matchobj.group(1))
-            imagePart = find_part_by_content_id(input_email, matchobj.group(1))
+            cid = matchobj.group(1)
+
+            logger.debug("Looking for image for cid " + cid)
+            imagePart = find_part_by_content_id(input_email, cid)
             if imagePart is not None:
+                logger.info("Found cid image for " + cid + " in imagePart")
                 assert(imagePart['Content-Transfer-Encoding'] == 'base64')
                 imageBase64 = imagePart.get_payload(decode=False)
                 imageBase64 = re.sub("[\r\n\t]", "", imageBase64)
@@ -163,10 +169,22 @@ def handle_message_body(input_email, header_info, output_file_name):
                 cid_parts_used.append(imagePart)
                 return "data:" + mimeType + ";base64," + imageBase64
             else:
-                raise WarningException("Could not find image cid " + matchobj.group(1) + " in email content.")
-                return "broken"
+                parser = FindIMGURL(cid)
+                parser.feed(str(payload, encoding='utf-8'))
+                url = parser.get_url()
 
-        payload = bytes(re.sub('cid:([\w_-]+)', functools.partial(cid_replace, cid_parts_used), str(payload, encoding='utf-8')), 'UTF-8')
+                if url:
+                    logger.info("Found cid image for " + cid + " with URL " + url)
+                    response = urllib.request.urlopen(url)
+                    data = response.read()
+                    imageBase64 = str(base64.b64encode(data), 'utf-8')
+                    mimeType = get_mime_type(data)
+                    return "data:" + mimeType + ";base64," + imageBase64
+                else:
+                    raise WarningException("Could not find image cid " + matchobj.group(1) + " in email content.")
+                    return "broken"
+
+        payload = bytes(re.sub('cid:([\w\._-]+)', functools.partial(cid_replace, cid_parts_used), str(payload, encoding='utf-8')), 'UTF-8')
 
     payload = bytes(header_info, 'UTF-8') + payload
 
@@ -323,13 +341,27 @@ def get_formatted_header_info(email):
 
 def get_mime_type(bufferData):
     if 'from_buffer' in dir(magic):
-        mimeType = str(magic.from_buffer(bufferData, True))
+        mimeType = str(magic.from_buffer(bufferData, mime=True), 'utf-8')
     else:
         m = magic.open(magic.MAGIC_MIME_TYPE)
         m.load()
         mimeType = m.buffer(bufferData)
 
     return mimeType
+
+
+class FindIMGURL(HTMLParser):
+    def __init__(self, image_filename):
+        super().__init__()
+        self.image_filename = image_filename
+
+    def handle_starttag(self, tag, attrs):
+        for (name, value) in attrs:
+            if name == 'src' and value.lower().find("cid") == -1 and value.lower().endswith(self.image_filename.lower()):
+                self.url = value
+
+    def get_url(self):
+        return self.url
 
 # Idea for this error handling strategy from here:
 # http://stackoverflow.com/a/16787722/27641
