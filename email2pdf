@@ -323,7 +323,7 @@ def get_formatted_header_info(email):
 
 def get_mime_type(bufferData):
     if 'from_buffer' in dir(magic):
-        mimeType = str(magic.from_buffer(bufferData, True))
+        mimeType = str(magic.from_buffer(bufferData, mime=True), 'utf-8')
     else:
         m = magic.open(magic.MAGIC_MIME_TYPE)
         m.load()
