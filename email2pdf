@@ -176,7 +176,7 @@ def handle_message_body(input_email, header_info, output_file_name):
                '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = p.communicate(input=payload)
     if p.returncode > 0:
-        raise FatalException("wkhtmltopdf failed with exit code " + str(p.returncode))
+        raise FatalException("wkhtmltopdf failed with exit code " + str(p.returncode) + ", error: " + str(error, 'utf-8'))
 
     add_metadata_obj = {}
 
