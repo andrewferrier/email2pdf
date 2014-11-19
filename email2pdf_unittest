@@ -367,7 +367,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
     def test_remoteImageDoesntExist(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachHTML('<img src="http://abc.por">')
-        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path))
+        self.assertEqual(0, self.invokeEmail2PDF())
         self.assertTrue(self.existsByTime())
 
     def test_embeddedImage(self):
