@@ -119,7 +119,9 @@ def main():
         header_info = ""
 
     if args.body:
-        parts_already_used = handle_message_body(input_email, header_info, output_file_name)
+        (payload, parts_already_used) = handle_message_body(input_email, header_info)
+        logger.debug("Final payload before PDFing: " + str(payload, encoding='utf-8'))
+        output_body_pdf(input_email, payload, output_file_name)
     else:
         parts_already_used = []
 
@@ -135,7 +137,7 @@ def main():
         sys.exit(warning_pending.getExitCode())
 
 
-def handle_message_body(input_email, header_info, output_file_name):
+def handle_message_body(input_email, header_info):
     cid_parts_used = []
 
     part = find_part_by_content_type(input_email, "text/html")
@@ -170,8 +172,10 @@ def handle_message_body(input_email, header_info, output_file_name):
 
     payload = bytes(header_info, 'UTF-8') + payload
 
-    logger.debug("Final payload before PDFing: " + str(payload, encoding='utf-8'))
+    return (payload, cid_parts_used)
 
+
+def output_body_pdf(input_email, payload, output_file_name):
     p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore',
                '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = p.communicate(input=payload)
@@ -187,8 +191,6 @@ def handle_message_body(input_email, header_info, output_file_name):
     add_metadata_obj['Producer'] = 'email2pdf'
 
     add_update_pdf_metadata(output_file_name, add_metadata_obj)
-
-    return cid_parts_used
 
 
 def handle_attachments(input_email, output_directory, add_prefix_date, parts_to_ignore):
