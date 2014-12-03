@@ -125,7 +125,7 @@ class BaseTestClasses:
             finally:
                 os.unlink(file_name)
 
-        def attachImage(self, content_id=None, jpeg=True, content_type=None):
+        def attachImage(self, content_id=None, jpeg=True, content_type=None, inline=False):
             if jpeg:
                 realFilename = 'jpeg444.jpg'
                 fileSuffix = 'jpg'
@@ -142,10 +142,17 @@ class BaseTestClasses:
                     image.add_header('Content-ID', content_id)
                 if content_type:
                     self.replace_header(image, 'Content-Type', content_type)
-                self.replace_header(image, 'Content-Disposition', 'attachment; filename="%s"' % basic_file_name)
+
+                if inline:
+                    self.replace_header(image, 'Content-Disposition', 'inline')
+                else:
+                    self.replace_header(image, 'Content-Disposition', 'attachment; filename="%s"' % basic_file_name)
                 self.msg.attach(image)
 
-            return basic_file_name
+            if inline:
+                return None
+            else:
+                return basic_file_name
 
         def getMetadataField(self, pdfFilename, fieldName):
             with open(pdfFilename, 'rb') as file_input:
@@ -369,6 +376,29 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.attachHTML('<img src="http://abc.por">')
         self.assertEqual(0, self.invokeEmail2PDF())
         self.assertTrue(self.existsByTime())
+
+    def test_inlineImageNoBody(self):
+        self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
+        self.attachImage('myid', inline=True)
+        self.attachHTML('<img src=cid:myid>')
+        self.assertNotEqual(0, self.invokeEmail2PDF(extraParams=['--no-body'], sysErrExpected=True))
+        self.assertFalse(self.existsByTime())
+
+    def test_inlineImage(self):
+        self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
+        self.attachImage('myid', inline=True)
+        self.attachHTML('<img src=cid:myid>')
+        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertTrue(self.existsByTime())
+
+    def test_inlineImageAndPDF(self):
+        self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
+        self.attachImage('myid', inline=True)
+        self.attachHTML('<img src=cid:myid>')
+        pdfFileName = self.attachPDF("Some PDF content")
+        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--no-body']))
+        self.assertFalse(self.existsByTime())
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, pdfFileName)))
 
     def test_embeddedImage(self):
         path = os.path.join(examineDir, "embeddedImage.pdf")
