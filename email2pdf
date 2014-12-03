@@ -118,12 +118,11 @@ def main():
     else:
         header_info = ""
 
+    (payload, parts_already_used) = handle_message_body(input_email, header_info)
+
     if args.body:
-        (payload, parts_already_used) = handle_message_body(input_email, header_info)
         logger.debug("Final payload before PDFing: " + str(payload, encoding='utf-8'))
         output_body_pdf(input_email, payload, output_file_name)
-    else:
-        parts_already_used = []
 
     if args.attachments:
         number_of_attachments = handle_attachments(input_email, output_directory, args.add_prefix_date, parts_already_used)
