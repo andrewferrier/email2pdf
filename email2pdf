@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 
-from PyPDF2 import PdfFileReader, PdfFileWriter
-from PyPDF2.generic import NameObject, createStringObject
+from bs4 import BeautifulSoup
 from datetime import datetime
 from email.header import decode_header
 from itertools import chain
+from PyPDF2.generic import NameObject, createStringObject
+from PyPDF2 import PdfFileReader, PdfFileWriter
 from subprocess import Popen, PIPE
 from sys import platform as _platform
 import argparse
 import email
 import functools
 import io
+import requests
 import logging
 import logging.handlers
 import magic
@@ -120,9 +122,15 @@ def main():
 
     (payload, parts_already_used) = handle_message_body(input_email, header_info)
 
+    payload = str(payload, 'utf-8')
+
+    logger.debug("Payload after handle_message_body: " + payload)
+
+    payload = remove_invalid_urls(payload)
+
     if args.body:
-        logger.debug("Final payload before PDFing: " + str(payload, encoding='utf-8'))
-        output_body_pdf(input_email, payload, output_file_name)
+        logger.debug("Final payload before output_body_pdf: " + payload)
+        output_body_pdf(input_email, bytes(payload, 'UTF-8'), output_file_name)
 
     if args.attachments:
         number_of_attachments = handle_attachments(input_email, output_directory, args.add_prefix_date, parts_already_used)
@@ -190,6 +198,25 @@ def output_body_pdf(input_email, payload, output_file_name):
     add_metadata_obj['Producer'] = 'email2pdf'
 
     add_update_pdf_metadata(output_file_name, add_metadata_obj)
+
+
+def remove_invalid_urls(payload):
+    soup = BeautifulSoup(payload)
+
+    for img in soup.find_all('img'):
+        src = img['src']
+        if not (src.lower().startswith('data')):
+            logger.debug("Getting img URL " + src)
+
+            try:
+                response = requests.get(src)
+            except:
+                logger.warn("Could not retrieve img URL " + src + ", replacing with blank.")
+                del img['src']
+        else:
+            logger.debug("Ignoring URL " + src)
+
+    return str(soup)
 
 
 def handle_attachments(input_email, output_directory, add_prefix_date, parts_to_ignore):

@@ -1,9 +1,9 @@
 Package: email2pdf
-Version: 0.5.2
+Version: 0.6
 Section: base
 Priority: optional
 Architecture: all
-Depends: python3, python3-pypdf2, python3-magic, python3-reportlab, wkhtmltox
+Depends: python3, python3-bs4, python3-pypdf2, python3-magic, python3-reportlab, wkhtmltox
 Recommends: getmail
 Maintainer: Andrew Ferrier <andrew.ferrier@example.com>
 Description: MDA which converts email to PDF
