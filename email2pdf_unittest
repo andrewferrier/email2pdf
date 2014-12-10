@@ -22,17 +22,10 @@ import unittest
 
 def setUpModule():
     global examineDir
-    global error_log
 
     examineDir = '/tmp'
     examineDir = tempfile.mkdtemp(dir=examineDir)
     print("Output examination directory: " + examineDir)
-
-    error_log = open(os.path.join(examineDir, 'email2pdf_unittest_stderr.log'), "w")
-
-
-def tearDownModule():
-    error_log.close()
 
 
 def touch(fname):
