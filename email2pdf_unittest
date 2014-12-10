@@ -85,14 +85,19 @@ class BaseTestClasses:
             options.extend(sys.argv[1:])
             options.extend(extraParams)
 
-            if sysErrExpected:
-                p = Popen(options, stdin=PIPE, stderr=error_log)
-            else:
-                p = Popen(options, stdin=PIPE)
+            p = Popen(options, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
-            output = p.communicate(input=bytes(textMessage, 'UTF-8'))
+            output, error = p.communicate(input=bytes(textMessage, 'UTF-8'))
             p.wait()
-            return p.returncode
+
+            if sysErrExpected:
+                self.assertNotEqual(bytes("", "UTF-8"), error)
+            else:
+                self.assertEqual(bytes("", "UTF-8"), error)
+
+            self.assertEqual(bytes("", "UTF-8"), output)
+
+            return (p.returncode, output, error)
 
         def setPlainContent(self, content):
             self.msg.set_default_type("text/plain")
@@ -183,34 +188,34 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.msg = Message()
 
     def test_dontPrintBody(self):
-        self.assertEqual(1, self.invokeEmail2PDF(extraParams=['--no-body'], sysErrExpected=True))
+        self.assertEqual(1, self.invokeEmail2PDF(extraParams=['--no-body'], sysErrExpected=True)[0])
         self.assertFalse(self.existsByTime())
 
     def test_noheaders(self):
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
     def test_simple(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
     def test_nosubject(self):
         self.addHeaders("from@example.org", "to@example.org")
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
     def test_plaincontent(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.setPlainContent("Hello!")
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
     def test_plaincontent_metadata(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.setPlainContent("Hello!")
         path = os.path.join(examineDir, "plaincontent_metadata.pdf")
-        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path))
+        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
         self.assertTrue(os.path.exists(path))
         self.assertEqual("from@example.org", self.getMetadataField(path, "Author"))
         self.assertEqual("to@example.org", self.getMetadataField(path, "X-email2pdf-To"))
@@ -223,7 +228,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         mountPoint2 = tempfile.mkdtemp(dir='/var/tmp')
         if(self.find_mount_point(mountPoint2) != self.find_mount_point(tempfile.tempdir)):
             path = os.path.join(mountPoint2, "plaincontent_metadata_differentmount.pdf")
-            self.assertEqual(0, self.invokeEmail2PDF(outputFile=path))
+            self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
             self.assertTrue(os.path.exists(path))
             self.assertEqual("from@example.org", self.getMetadataField(path, "Author"))
         else:
@@ -232,7 +237,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
     def test_noheaders_metadata(self):
         self.setPlainContent("Hello!")
         path = os.path.join(examineDir, "plaincontent_noheaders_metadata.pdf")
-        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path))
+        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
         self.assertTrue(os.path.exists(path))
         self.assertIsNone(self.getMetadataField(path, "Author"))
         self.assertIsNone(self.getMetadataField(path, "X-email2pdf-To"))
@@ -242,23 +247,23 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
     def test_plaincontent_headers(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.setPlainContent("Hello!")
-        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--headers']))
+        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--headers'])[0])
         self.assertTrue(self.existsByTime())
 
     def test_plaincontent_trailingslash(self):
         self.setPlainContent("Hello!")
-        self.assertEqual(0, self.invokeEmail2PDF(outputDirectory="/tmp/"))
+        self.assertEqual(0, self.invokeEmail2PDF(outputDirectory="/tmp/")[0])
         self.assertTrue(self.existsByTime("/tmp/"))
 
     def test_plaincontent_dirnotexist(self):
         self.setPlainContent("Hello!")
-        self.assertEqual(2, self.invokeEmail2PDF(outputDirectory="/notexist/", sysErrExpected=True))
+        self.assertEqual(2, self.invokeEmail2PDF(outputDirectory="/notexist/", sysErrExpected=True)[0])
 
     def test_plaincontent_fileexist(self):
         self.setPlainContent("Hello!")
         unused_f_handle, f_path = tempfile.mkstemp()
         try:
-            self.assertEqual(2, self.invokeEmail2PDF(outputFile=f_path, sysErrExpected=True))
+            self.assertEqual(2, self.invokeEmail2PDF(outputFile=f_path, sysErrExpected=True)[0])
         finally:
             os.unlink(f_path)
 
@@ -267,17 +272,17 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         filename1 = self.getTimeStamp(self.timeAtStart) + ".pdf"
         filename2 = self.getTimeStamp(self.timeAtStart) + "_1.pdf"
         touch(os.path.join(self.workingDir, filename1))
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(os.path.join(self.workingDir, filename1))
         self.assertTrue(os.path.join(self.workingDir, filename2))
 
     def test_verbose(self):
         self.setPlainContent("Hello!")
-        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['-v'], sysErrExpected=True))
+        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['-v'], sysErrExpected=True)[0])
 
     def test_veryverbose(self):
         self.setPlainContent("Hello!")
-        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['-vv'], sysErrExpected=True))
+        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['-vv'], sysErrExpected=True)[0])
 
 
 class TestMIME(BaseTestClasses.Email2PDFTestCase):
@@ -286,24 +291,24 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.msg = MIMEMultipart()
 
     def test_noheaders(self):
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
     def test_simple(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
     def test_nosubject(self):
         self.addHeaders("from@example.org", "to@example.org")
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
     def test_plain(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachText("Some basic textual content")
         filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
@@ -311,7 +316,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachText("Some basic textual content")
         filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
-        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--no-body']))
+        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--no-body'])[0])
         self.assertFalse(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
@@ -321,7 +326,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
         filename2 = self.attachPDF("Some PDF content")
         filename3 = self.attachImage()
-        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--no-attachments']))
+        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--no-attachments'])[0])
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename2)))
@@ -333,33 +338,33 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
         filename2 = self.attachPDF("Some PDF content")
         filename3 = self.attachImage()
-        self.assertNotEqual(0, self.invokeEmail2PDF(sysErrExpected=True, extraParams=['--no-body', '--no-attachments']))
+        self.assertNotEqual(0, self.invokeEmail2PDF(sysErrExpected=True, extraParams=['--no-body', '--no-attachments'])[0])
 
     def test_html(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachHTML("<p>Some basic textual content</p>")
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
     def test_htmlEntitiesCurrency(self):
         path = os.path.join(examineDir, "htmlEntitiesCurrency.pdf")
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachHTML(b'<span>Pounds: \xc2\xa37.14, Another Pounds: &#163;7.14</span>'.decode('utf-8'))
-        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path))
+        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
         self.assertTrue(os.path.exists(path))
 
     def test_plainandhtml(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachText("Some basic textual content")
         self.attachHTML("<p>Some basic textual content</p>")
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
     def test_pdf(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachText("Some basic textual content")
         filename = self.attachPDF("Some PDF content")
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
@@ -367,28 +372,28 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachText("Some basic textual content")
         filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
     def test_remoteImageDoesntExist(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachHTML('<img src="http://abc.por">')
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
     def test_inlineImageNoBody(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachImage('myid', inline=True)
         self.attachHTML('<img src=cid:myid>')
-        self.assertNotEqual(0, self.invokeEmail2PDF(extraParams=['--no-body'], sysErrExpected=True))
+        self.assertNotEqual(0, self.invokeEmail2PDF(extraParams=['--no-body'], sysErrExpected=True)[0])
         self.assertFalse(self.existsByTime())
 
     def test_inlineImage(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachImage('myid', inline=True)
         self.attachHTML('<img src=cid:myid>')
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
     def test_inlineImageAndPDF(self):
@@ -396,7 +401,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.attachImage('myid', inline=True)
         self.attachHTML('<img src=cid:myid>')
         pdfFileName = self.attachPDF("Some PDF content")
-        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--no-body']))
+        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--no-body'])[0])
         self.assertFalse(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, pdfFileName)))
 
@@ -405,7 +410,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         imageFilename = self.attachImage('myid')
         self.attachHTML('<img src=cid:myid>')
-        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path))
+        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
         self.assertTrue(os.path.exists(path))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -414,7 +419,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         imageFilename = self.attachImage('myid', jpeg=False)
         self.attachHTML('<img src=cid:myid>')
-        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path))
+        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
         self.assertTrue(os.path.exists(path))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -422,7 +427,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         imageFilename = self.attachImage('<my_id>')
         self.attachHTML('<img src=cid:my_id>')
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -430,7 +435,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         imageFilename = self.attachImage('myid')
         self.attachHTML('<p><img src="blah.jpg"><li></li><img src="cid:myid"></p>')
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -438,7 +443,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         imageFilename = self.attachImage('myid')
         self.attachHTML('<IMG SRC="cid:myid">')
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -446,7 +451,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         imageFilename = self.attachImage('myid')
         self.attachHTML('<IMG SRC="cid:myid">')
-        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--no-attachments']))
+        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--no-attachments'])[0])
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -454,7 +459,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         imageFilename = self.attachImage('myid', content_type="application/octet-stream")
         self.attachHTML('<IMG SRC="cid:myid">')
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -463,7 +468,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         imageFilename = self.attachImage('myid')
         imageFilename2 = self.attachImage()
         self.attachHTML('<IMG SRC="cid:myid">')
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename2)))
@@ -472,7 +477,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachText("Hello!")
         imageFilename = self.attachImage(jpeg=True)
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -480,7 +485,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachText("Hello!")
         imageFilename = self.attachImage(jpeg=True)
-        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--add-prefix-date']))
+        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--add-prefix-date'])[0])
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, datetime.now().strftime("%Y-%m-%d-") + imageFilename)))
 
@@ -488,7 +493,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachText("Hello!")
         imageFilename = self.attachImage(jpeg=True, content_type='application/octet-stream')
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -496,7 +501,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachText("Hello!")
         imageFilename = self.attachImage(jpeg=False)
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -505,7 +510,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.attachText("Hello!")
         imageFilename = self.attachImage()
         filename = self.attachPDF("Some PDF content")
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
@@ -515,7 +520,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.attachText("Some basic textual content")
         filename = self.attachPDF("Some PDF content", fileSuffix="xyz", mainContentType="application",
                                   subContentType="octet-stream")
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename)))
 
@@ -527,7 +532,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename2)))
 
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename2)))
@@ -539,7 +544,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename)))
 
         touch(os.path.join(self.workingDir, filename))
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
@@ -557,7 +562,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename2)))
 
         touch(os.path.join(self.workingDir, filename))
-        self.assertEqual(0, self.invokeEmail2PDF())
+        self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
@@ -582,7 +587,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename3)))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename4)))
 
-        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--add-prefix-date']))
+        self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--add-prefix-date'])[0])
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename2)))
