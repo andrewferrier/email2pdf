@@ -11,13 +11,12 @@ from email.mime.text import MIMEText
 from email.utils import formatdate
 from PyPDF2 import PdfFileReader
 from reportlab.pdfgen import canvas
-from subprocess import Popen, PIPE, DEVNULL
+from subprocess import Popen, PIPE
 
 import os
 import shutil
 import sys
 import tempfile
-import time
 import unittest
 
 
@@ -344,9 +343,9 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
     def test_plainNoBodyNoAttachments(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         self.attachText("Some basic textual content")
-        filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
-        filename2 = self.attachPDF("Some PDF content")
-        filename3 = self.attachImage()
+        self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
+        self.attachPDF("Some PDF content")
+        self.attachImage()
         self.assertNotEqual(0, self.invokeEmail2PDF(sysErrExpected=True, extraParams=['--no-body', '--no-attachments'])[0])
 
     def test_html(self):
