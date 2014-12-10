@@ -39,6 +39,7 @@ class BaseTestClasses:
             self.timeAtStart = datetime.now()
             self.workingDir = '/tmp'
             self.workingDir = tempfile.mkdtemp(dir=self.workingDir)
+            self.command = os.path.normpath(os.path.join(os.getcwd(), 'email2pdf'))
 
         def getTimeStamp(self, myTime):
             return myTime.strftime("%Y-%m-%dT%H-%M-%S")
@@ -65,21 +66,23 @@ class BaseTestClasses:
 
         def invokeEmail2PDF(self, outputDirectory=None, sysErrExpected=False, outputFile=None,
                             extraParams=[]):
-            if outputDirectory is None:
-                outputDirectory = self.workingDir
-
             textMessage = self.msg.as_string()
 
-            options = ['./email2pdf', '-d', outputDirectory]
+            options = [self.command]
+
+            if outputDirectory:
+                options.extend(['-d', outputDirectory])
 
             if outputFile:
-                options.append('-o')
-                options.append(outputFile)
+                options.extend(['-o', outputFile])
 
             options.extend(sys.argv[1:])
             options.extend(extraParams)
 
-            p = Popen(options, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            if outputDirectory is None:
+                p = Popen(options, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=self.workingDir)
+            else:
+                p = Popen(options, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
             output, error = p.communicate(input=bytes(textMessage, 'UTF-8'))
             p.wait()
@@ -244,10 +247,22 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual(0, self.invokeEmail2PDF(extraParams=['--headers'])[0])
         self.assertTrue(self.existsByTime())
 
+    def test_plaincontent_notrailingslash(self):
+        self.setPlainContent("Hello!")
+        self.assertEqual(0, self.invokeEmail2PDF(outputDirectory="/tmp")[0])
+        self.assertTrue(self.existsByTime("/tmp"))
+
     def test_plaincontent_trailingslash(self):
         self.setPlainContent("Hello!")
         self.assertEqual(0, self.invokeEmail2PDF(outputDirectory="/tmp/")[0])
         self.assertTrue(self.existsByTime("/tmp/"))
+
+    def test_plaincontent_outputfileoverrides(self):
+        path = os.path.join(examineDir, "outputFileOverrides.pdf")
+        self.setPlainContent("Hello!")
+        self.assertEqual(0, self.invokeEmail2PDF(outputDirectory="/tmp", outputFile=path)[0])
+        self.assertFalse(self.existsByTime("/tmp"))
+        self.assertTrue(os.path.exists(path))
 
     def test_plaincontent_dirnotexist(self):
         self.setPlainContent("Hello!")
