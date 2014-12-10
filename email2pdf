@@ -27,9 +27,10 @@ HEADER_MAPPING = {'Author': 'From',
                   'Title': 'Subject',
                   'X-email2pdf-To': 'To'}
 
-MIME_TYPES_ATTACHMENTS = [ 'application/pdf', 'image/jpeg', 'image/png' ]
+MIME_TYPES_ATTACHMENTS = ['application/pdf', 'image/jpeg', 'image/png']
 
-MIME_TYPES_EXTENSIONS = [ '.pdf', '.jpeg', '.jpg', '.png' ]
+MIME_TYPES_EXTENSIONS = ['.pdf', '.jpeg', '.jpg', '.png']
+
 
 def main():
     parser = argparse.ArgumentParser(description="Converts emails to PDFs. " +
@@ -53,12 +54,12 @@ def main():
     body_attachment_options = parser.add_mutually_exclusive_group()
 
     body_attachment_options.add_argument("--no-body", dest='body', action='store_false',
-                        help="Don't parse the body of the email and print it to PDF, just detach recognized " +
-                        "attachments. The default is to parse both the body and detach attachments.")
+                                         help="Don't parse the body of the email and print it to PDF, just detach recognized " +
+                                         "attachments. The default is to parse both the body and detach attachments.")
 
     body_attachment_options.add_argument("--no-attachments", dest='attachments', action='store_false',
-                        help="Don't detach the recognized attachment types (PDF and images), just print the body of " +
-                        "the email to PDF.")
+                                         help="Don't detach the recognized attachment types (PDF and images), " +
+                                         "just print the body of the email to PDF.")
 
     parser.add_argument("--headers", action='store_true',
                         help="Add basic email headers to the first PDF page. The default is not to do this.")
@@ -175,7 +176,8 @@ def handle_message_body(input_email, header_info):
                 raise WarningException("Could not find image cid " + matchobj.group(1) + " in email content.")
                 return "broken"
 
-        payload = bytes(re.sub('cid:([\w_-]+)', functools.partial(cid_replace, cid_parts_used), str(payload, encoding='utf-8')), 'UTF-8')
+        payload = bytes(re.sub('cid:([\w_-]+)', functools.partial(cid_replace, cid_parts_used),
+                               str(payload, encoding='utf-8')), 'UTF-8')
 
     payload = bytes(header_info, 'UTF-8') + payload
 

@@ -20,6 +20,7 @@ import tempfile
 import time
 import unittest
 
+
 def setUpModule():
     global examineDir
 
@@ -164,7 +165,7 @@ class BaseTestClasses:
 
         def find_mount_point(self, path):
             while not os.path.ismount(path):
-                path=os.path.dirname(path)
+                path = os.path.dirname(path)
             return path
 
         def replace_header(self, mimeBase, header, value):
@@ -443,7 +444,8 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
     def test_embeddedImageExtraHTMLContent(self):
         self.addHeaders("from@example.org", "to@example.org", "Subject of the email")
         imageFilename = self.attachImage('myid')
-        self.attachHTML('<p><img src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/basi2c16.png"><li></li><img src="cid:myid"></p>')
+        self.attachHTML('<p><img src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/basi2c16.png">' +
+                        '<li></li><img src="cid:myid"></p>')
         self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
