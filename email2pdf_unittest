@@ -36,9 +36,7 @@ def touch(fname):
 class BaseTestClasses:
     class Email2PDFTestCase(unittest.TestCase):
         def setUp(self):
-            self.timeAtStart = datetime.now()
-            self.workingDir = '/tmp'
-            self.workingDir = tempfile.mkdtemp(dir=self.workingDir)
+            self.workingDir = tempfile.mkdtemp(dir='/tmp')
             self.command = os.path.normpath(os.path.join(os.getcwd(), 'email2pdf'))
             self.checkedByTime = False
 
@@ -82,6 +80,7 @@ class BaseTestClasses:
             options.extend(sys.argv[1:])
             options.extend(extraParams)
 
+            self.timeAtStart = datetime.now()
             if outputDirectory is None:
                 p = Popen(options, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=self.workingDir)
             else:
@@ -292,8 +291,8 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
 
     def test_plaincontent_timedfileexist(self):
         self.setPlainContent("Hello!")
-        filename1 = self.getTimeStamp(self.timeAtStart) + ".pdf"
-        filename2 = self.getTimeStamp(self.timeAtStart) + "_1.pdf"
+        filename1 = self.getTimeStamp(datetime.now()) + ".pdf"
+        filename2 = self.getTimeStamp(datetime.now()) + "_1.pdf"
         touch(os.path.join(self.workingDir, filename1))
         self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(os.path.join(self.workingDir, filename1))
