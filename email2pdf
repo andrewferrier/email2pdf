@@ -122,8 +122,6 @@ def main():
 
     (payload, parts_already_used) = handle_message_body(input_email, header_info)
 
-    payload = str(payload, 'utf-8')
-
     logger.debug("Payload after handle_message_body: " + payload)
 
     payload = remove_invalid_urls(payload)
@@ -153,12 +151,14 @@ def handle_message_body(input_email, header_info):
         if part is None:
             raise FatalException("Cannot find an appropriate payload in email.")
         else:
-            logger.info("Determined email is Text.")
             payload = part.get_payload(decode=True)
+            charset = input_email.get_content_charset()
+            logger.info("Determined email is plain text with charset " + str(charset))
             payload = bytes("<html><body><pre>\n", 'UTF-8') + payload + bytes("\n</pre></body></html>", 'UTF-8')
     else:
-        logger.info("Determined email is HTML.")
         payload = part.get_payload(decode=True)
+        charset = part.get_charset()
+        logger.info("Determined email is HTML with charset " + str(charset))
 
         def cid_replace(cid_parts_used, matchobj):
             logger.debug("Looking for image for cid " + matchobj.group(1))
@@ -179,6 +179,11 @@ def handle_message_body(input_email, header_info):
                                str(payload, encoding='utf-8')), 'UTF-8')
 
     payload = bytes(header_info, 'UTF-8') + payload
+
+    if not charset:
+        charset='UTF-8'
+
+    payload = str(payload, charset)
 
     return (payload, cid_parts_used)
 
