@@ -406,7 +406,7 @@ def handle_uncaught_exception(exctype, value, trace):
         warning_pending = value
         logger.warn(value)
     else:
-        logger.error(value)
+        logger.error(str(value))
         oldHook(exctype, value, trace)
 
 sys.excepthook, oldHook = handle_uncaught_exception, sys.excepthook
