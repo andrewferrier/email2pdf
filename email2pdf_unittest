@@ -17,6 +17,7 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 import unittest
 
 
@@ -39,11 +40,14 @@ class BaseTestClasses:
             self.workingDir = '/tmp'
             self.workingDir = tempfile.mkdtemp(dir=self.workingDir)
             self.command = os.path.normpath(os.path.join(os.getcwd(), 'email2pdf'))
+            self.checkedByTime = False
 
         def getTimeStamp(self, myTime):
             return myTime.strftime("%Y-%m-%dT%H-%M-%S")
 
         def existsByTime(self, path=None):
+            self.checkedByTime = True
+
             if path is None:
                 path = self.workingDir
 
@@ -177,6 +181,9 @@ class BaseTestClasses:
 
         def tearDown(self):
             shutil.rmtree(self.workingDir)
+
+            if self.checkedByTime:
+                time.sleep(1)
 
 
 class TestBasic(BaseTestClasses.Email2PDFTestCase):
