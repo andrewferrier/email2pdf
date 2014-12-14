@@ -1,5 +1,5 @@
 Package: email2pdf
-Version: 0.6
+Version: 0.6.1
 Section: base
 Priority: optional
 Architecture: all
