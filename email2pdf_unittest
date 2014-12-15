@@ -34,6 +34,13 @@ def touch(fname):
     open(fname, 'w').close()
 
 
+def timerange(start_time, end_time):
+    start_time = start_time.replace(microsecond=0)
+    end_time = end_time.replace(microsecond=0)
+    for n in range(int ((end_time - start_time).seconds) + 1):
+        yield start_time + timedelta(0, n)
+
+
 class BaseTestClasses:
     class Email2PDFTestCase(unittest.TestCase):
         def setUp(self):
@@ -57,8 +64,13 @@ class BaseTestClasses:
             if path is None:
                 path = self.workingDir
 
-            return os.path.exists(os.path.join(path, self.getTimeStamp(self.timeInvoked) + ".pdf")) or \
-                os.path.exists(os.path.join(path, self.getTimeStamp(self.timeCompleted) + ".pdf"))
+            found = False
+
+            for single_time in timerange(self.timeInvoked, self.timeCompleted):
+                if os.path.exists(os.path.join(path, self.getTimeStamp(single_time) + ".pdf")):
+                    found = True
+
+            return found
 
         def sleepUntilNextSecond(self):
             sleepUntil = self.timeCompleted + timedelta(0, 1)
