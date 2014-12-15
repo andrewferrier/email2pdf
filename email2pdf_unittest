@@ -78,11 +78,20 @@ class BaseTestClasses:
 
             self.msg['Date'] = formatdate()
 
-        def invokeEmail2PDF(self, outputDirectory=None, sysErrExpected=False, outputFile=None,
+        def invokeEmail2PDF(self, inputFile=False, outputDirectory=None, sysErrExpected=False, outputFile=None,
                             extraParams=[]):
             textMessage = self.msg.as_string()
 
             options = [self.command]
+
+            if inputFile:
+                inputFile_handle = tempfile.NamedTemporaryFile()
+                options.extend(['-i', inputFile_handle.name])
+                myStdin = None
+                myInput = None
+            else:
+                myStdin = PIPE
+                myInput = input=bytes(textMessage, 'UTF-8')
 
             if outputDirectory:
                 options.extend(['-d', outputDirectory])
@@ -95,11 +104,13 @@ class BaseTestClasses:
 
             self.timeInvoked = datetime.now()
             if outputDirectory is None:
-                p = Popen(options, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=self.workingDir)
+                myCwd = self.workingDir
             else:
-                p = Popen(options, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                myCwd = None
 
-            output, error = p.communicate(input=bytes(textMessage, 'UTF-8'))
+            p = Popen(options, stdin=myStdin, stdout=PIPE, stderr=PIPE, cwd=myCwd)
+
+            output, error = p.communicate(myInput)
             p.wait()
             self.timeCompleted = datetime.now()
 
@@ -109,6 +120,9 @@ class BaseTestClasses:
                 self.assertEqual(bytes("", "UTF-8"), error)
 
             self.assertEqual(bytes("", "UTF-8"), output)
+
+            if inputFile:
+                inputFile_handle.close()
 
             return (p.returncode, output, error)
 
@@ -215,6 +229,11 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
     def test_simple(self):
         self.addHeaders()
         self.assertEqual(0, self.invokeEmail2PDF()[0])
+        self.assertTrue(self.existsByTime())
+
+    def test_simple_withinputfile(self):
+        self.addHeaders()
+        self.assertEqual(0, self.invokeEmail2PDF(inputFile=True)[0])
         self.assertTrue(self.existsByTime())
 
     def test_nosubject(self):
