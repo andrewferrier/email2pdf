@@ -24,10 +24,18 @@ import unittest
 
 def setUpModule():
     global examineDir
+    global isOnline
 
     examineDir = '/tmp'
     examineDir = tempfile.mkdtemp(dir=examineDir)
     print("Output examination directory: " + examineDir)
+
+    ONLINE_URL = "https://raw.githubusercontent.com/andrewferrier/email2pdf/master"
+    try:
+        requests.get(ONLINE_URL)
+        isOnline = True
+    except:
+        isOnline = False
 
 
 def touch(fname):
@@ -47,13 +55,6 @@ class BaseTestClasses:
             self.workingDir = tempfile.mkdtemp(dir='/tmp')
             self.command = os.path.normpath(os.path.join(os.getcwd(), 'email2pdf'))
             self.checkedByTime = False
-
-            ONLINE_URL = "https://raw.githubusercontent.com/andrewferrier/email2pdf/master"
-            try:
-                requests.get(ONLINE_URL)
-                self.isOnline = True
-            except:
-                self.isOnline = False
 
         def getTimeStamp(self, myTime):
             return myTime.strftime("%Y-%m-%dT%H-%M-%S")
@@ -444,7 +445,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
     def test_remoteImageDoesExist(self):
-        if self.isOnline:
+        if isOnline:
             path = os.path.join(examineDir, "remoteImageDoesExist.pdf")
             self.addHeaders()
             self.attachHTML('<img src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/basi2c16.png">')
@@ -518,7 +519,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
     def test_embeddedImageExtraHTMLContent(self):
-        if self.isOnline:
+        if isOnline:
             self.addHeaders()
             imageFilename = self.attachImage('myid')
             self.attachHTML('<p><img src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/basi2c16.png">' +
