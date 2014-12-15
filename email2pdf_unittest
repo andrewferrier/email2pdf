@@ -45,7 +45,7 @@ def touch(fname):
 def timerange(start_time, end_time):
     start_time = start_time.replace(microsecond=0)
     end_time = end_time.replace(microsecond=0)
-    for n in range(int ((end_time - start_time).seconds) + 1):
+    for n in range(int((end_time - start_time).seconds) + 1):
         yield start_time + timedelta(0, n)
 
 
@@ -104,7 +104,7 @@ class BaseTestClasses:
                 myInput = None
             else:
                 myStdin = PIPE
-                myInput = input=bytes(textMessage, 'UTF-8')
+                myInput = bytes(textMessage, 'UTF-8')
 
             if outputDirectory:
                 options.extend(['-d', outputDirectory])
