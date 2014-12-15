@@ -14,6 +14,7 @@ from reportlab.pdfgen import canvas
 from subprocess import Popen, PIPE
 
 import os
+import requests
 import shutil
 import sys
 import tempfile
@@ -39,6 +40,13 @@ class BaseTestClasses:
             self.workingDir = tempfile.mkdtemp(dir='/tmp')
             self.command = os.path.normpath(os.path.join(os.getcwd(), 'email2pdf'))
             self.checkedByTime = False
+
+            ONLINE_URL = "https://raw.githubusercontent.com/andrewferrier/email2pdf/master"
+            try:
+                requests.get(ONLINE_URL)
+                self.isOnline = True
+            except:
+                self.isOnline = False
 
         def getTimeStamp(self, myTime):
             return myTime.strftime("%Y-%m-%dT%H-%M-%S")
@@ -399,11 +407,14 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
     def test_remoteImageDoesExist(self):
-        path = os.path.join(examineDir, "remoteImageDoesExist.pdf")
-        self.addHeaders()
-        self.attachHTML('<img src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/basi2c16.png">')
-        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
-        self.assertTrue(os.path.exists(path))
+        if self.isOnline:
+            path = os.path.join(examineDir, "remoteImageDoesExist.pdf")
+            self.addHeaders()
+            self.attachHTML('<img src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/basi2c16.png">')
+            self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
+            self.assertTrue(os.path.exists(path))
+        else:
+            self.skipTest("Not online.")
 
     def test_remoteImageDoesntExist(self):
         path = os.path.join(examineDir, "remoteImageDoesntExist.pdf")
@@ -470,13 +481,16 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
     def test_embeddedImageExtraHTMLContent(self):
-        self.addHeaders()
-        imageFilename = self.attachImage('myid')
-        self.attachHTML('<p><img src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/basi2c16.png">' +
-                        '<li></li><img src="cid:myid"></p>')
-        self.assertEqual(0, self.invokeEmail2PDF()[0])
-        self.assertTrue(self.existsByTime())
-        self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
+        if self.isOnline:
+            self.addHeaders()
+            imageFilename = self.attachImage('myid')
+            self.attachHTML('<p><img src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/basi2c16.png">' +
+                            '<li></li><img src="cid:myid"></p>')
+            self.assertEqual(0, self.invokeEmail2PDF()[0])
+            self.assertTrue(self.existsByTime())
+            self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
+        else:
+            self.skipTest("Not online.")
 
     def test_embeddedImageUpperCaseHTMLContent(self):
         self.addHeaders()
