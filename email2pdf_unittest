@@ -57,9 +57,14 @@ class BaseTestClasses:
             if path is None:
                 path = self.workingDir
 
-            oneSecondLater = self.timeAtStart + timedelta(0, 1)
-            return os.path.exists(os.path.join(path, self.getTimeStamp(self.timeAtStart) + ".pdf")) or \
-                os.path.exists(os.path.join(path, self.getTimeStamp(oneSecondLater) + ".pdf"))
+            return os.path.exists(os.path.join(path, self.getTimeStamp(self.timeInvoked) + ".pdf")) or \
+                os.path.exists(os.path.join(path, self.getTimeStamp(self.timeCompleted) + ".pdf"))
+
+        def sleepUntilNextSecond(self):
+            sleepUntil = self.timeCompleted + timedelta(0, 1)
+            sleepUntil = sleepUntil.replace(microsecond=0)
+            while datetime.now() < sleepUntil:
+                time.sleep(0.1)
 
         def addHeaders(self, frm="from@example.org", to="to@example.org", subject="Subject of the email"):
             if(subject):
@@ -88,7 +93,7 @@ class BaseTestClasses:
             options.extend(sys.argv[1:])
             options.extend(extraParams)
 
-            self.timeAtStart = datetime.now()
+            self.timeInvoked = datetime.now()
             if outputDirectory is None:
                 p = Popen(options, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=self.workingDir)
             else:
@@ -96,6 +101,7 @@ class BaseTestClasses:
 
             output, error = p.communicate(input=bytes(textMessage, 'UTF-8'))
             p.wait()
+            self.timeCompleted = datetime.now()
 
             if sysErrExpected:
                 self.assertNotEqual(bytes("", "UTF-8"), error)
@@ -190,7 +196,7 @@ class BaseTestClasses:
             shutil.rmtree(self.workingDir)
 
             if self.checkedByTime:
-                time.sleep(1)
+                self.sleepUntilNextSecond()
 
 
 class TestBasic(BaseTestClasses.Email2PDFTestCase):
