@@ -1,4 +1,4 @@
-TEMPDIR := $(shell mktemp -d)
+TEMPDIR := $(shell mktemp -t tmp.XXXXXX -d)
 
 builddeb:
 	cp -R debian/DEBIAN/ $(TEMPDIR)
@@ -13,7 +13,10 @@ builddeb:
 	fakeroot dpkg-deb --build $(TEMPDIR) .
 
 unittest:
-	./email2pdf_unittest
+	python3 -m unittest discover
+
+unittest_test:
+	python3 -m unittest discover -f -v
 
 clean:
 	rm -f *.deb
