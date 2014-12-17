@@ -1,4 +1,4 @@
-TEMPDIR := $(shell mktemp -d)
+TEMPDIR := $(shell mktemp -t tmp.XXXXXX -d)
 
 builddeb:
 	cp -R debian/DEBIAN/ $(TEMPDIR)
