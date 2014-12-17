@@ -15,6 +15,9 @@ builddeb:
 unittest:
 	python3 -m unittest discover
 
+unittest_test:
+	python3 -m unittest discover -f -v
+
 clean:
 	rm -f *.deb
 	rm -f *.log
