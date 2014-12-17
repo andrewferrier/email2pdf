@@ -21,44 +21,43 @@ import tempfile
 import time
 import unittest
 
-
-def setUpModule():
-    global examineDir
-    global isOnline
-
-    examineDir = '/tmp'
-    examineDir = tempfile.mkdtemp(dir=examineDir)
-    print("Output examination directory: " + examineDir)
-
-    print("Checking if online... ", end="")
-    sys.stdout.flush()
-    ONLINE_URL = "https://raw.githubusercontent.com/andrewferrier/email2pdf/master"
-    try:
-        requests.get(ONLINE_URL, timeout=1)
-        isOnline = True
-        print("Yes.")
-    except:
-        isOnline = False
-        print("No.")
-
-
-def touch(fname):
-    open(fname, 'w').close()
-
-
-def timerange(start_time, end_time):
-    start_time = start_time.replace(microsecond=0)
-    end_time = end_time.replace(microsecond=0)
-    for n in range(int((end_time - start_time).seconds) + 1):
-        yield start_time + timedelta(0, n)
-
-
 class BaseTestClasses:
     class Email2PDFTestCase(unittest.TestCase):
+        isOnline = False
+        isOnlineDefined = False
+        examineDir = None
+
         def setUp(self):
             self.workingDir = tempfile.mkdtemp(dir='/tmp')
             self.command = os.path.normpath(os.path.join(os.getcwd(), 'email2pdf'))
             self.checkedByTime = False
+            self.checkOnline()
+            self.checkExamineDir()
+
+        @classmethod
+        def checkExamineDir(cls):
+            if BaseTestClasses.Email2PDFTestCase.examineDir is None:
+                BaseTestClasses.Email2PDFTestCase.examineDir = '/tmp'
+                BaseTestClasses.Email2PDFTestCase.examineDir = tempfile.mkdtemp(dir=BaseTestClasses.Email2PDFTestCase.examineDir)
+                print("Output examination directory: " + BaseTestClasses.Email2PDFTestCase.examineDir)
+
+        @classmethod
+        def checkOnline(cls):
+            if(not BaseTestClasses.Email2PDFTestCase.isOnlineDefined):
+                print("Checking if online... ", end="")
+                sys.stdout.flush()
+                ONLINE_URL = "https://raw.githubusercontent.com/andrewferrier/email2pdf/master"
+                try:
+                    requests.get(ONLINE_URL, timeout=1)
+                    BaseTestClasses.Email2PDFTestCase.isOnline = True
+                    print("Yes.")
+                except:
+                    BaseTestClasses.Email2PDFTestCase.isOnline = False
+                    print("No.")
+
+                BaseTestClasses.Email2PDFTestCase.isOnlineDefined = True
+
+            return BaseTestClasses.Email2PDFTestCase.isOnline
 
         def getTimeStamp(self, myTime):
             return myTime.strftime("%Y-%m-%dT%H-%M-%S")
@@ -71,7 +70,7 @@ class BaseTestClasses:
 
             found = False
 
-            for single_time in timerange(self.timeInvoked, self.timeCompleted):
+            for single_time in self.timerange(self.timeInvoked, self.timeCompleted):
                 if os.path.exists(os.path.join(path, self.getTimeStamp(single_time) + ".pdf")):
                     found = True
 
@@ -213,6 +212,15 @@ class BaseTestClasses:
                 else:
                     return None
 
+        def touch(self, fname):
+            open(fname, 'w').close()
+
+        def timerange(self, start_time, end_time):
+            start_time = start_time.replace(microsecond=0)
+            end_time = end_time.replace(microsecond=0)
+            for n in range(int((end_time - start_time).seconds) + 1):
+                yield start_time + timedelta(0, n)
+
         def find_mount_point(self, path):
             while not os.path.ismount(path):
                 path = os.path.dirname(path)
@@ -265,7 +273,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
 
     def test_plaincontent_poundsign_iso88591(self):
         self.addHeaders()
-        path = os.path.join(examineDir, "plaincontent_poundsign_iso88591.pdf")
+        path = os.path.join(self.examineDir, "plaincontent_poundsign_iso88591.pdf")
         self.setPlainContent("Hello - this email costs \xa35!", charset="ISO-8859-1")
         self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
         self.assertTrue(os.path.exists(path))
@@ -273,7 +281,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
     def test_plaincontent_metadata(self):
         self.addHeaders()
         self.setPlainContent("Hello!")
-        path = os.path.join(examineDir, "plaincontent_metadata.pdf")
+        path = os.path.join(self.examineDir, "plaincontent_metadata.pdf")
         self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
         self.assertTrue(os.path.exists(path))
         self.assertEqual("from@example.org", self.getMetadataField(path, "Author"))
@@ -295,7 +303,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
 
     def test_noheaders_metadata(self):
         self.setPlainContent("Hello!")
-        path = os.path.join(examineDir, "plaincontent_noheaders_metadata.pdf")
+        path = os.path.join(self.examineDir, "plaincontent_noheaders_metadata.pdf")
         self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
         self.assertTrue(os.path.exists(path))
         self.assertIsNone(self.getMetadataField(path, "Author"))
@@ -320,7 +328,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime("/tmp/"))
 
     def test_plaincontent_outputfileoverrides(self):
-        path = os.path.join(examineDir, "outputFileOverrides.pdf")
+        path = os.path.join(self.examineDir, "outputFileOverrides.pdf")
         self.setPlainContent("Hello!")
         self.assertEqual(0, self.invokeEmail2PDF(outputDirectory="/tmp", outputFile=path)[0])
         self.assertFalse(self.existsByTime("/tmp"))
@@ -342,7 +350,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.setPlainContent("Hello!")
         filename1 = self.getTimeStamp(datetime.now()) + ".pdf"
         filename2 = self.getTimeStamp(datetime.now()) + "_1.pdf"
-        touch(os.path.join(self.workingDir, filename1))
+        self.touch(os.path.join(self.workingDir, filename1))
         self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(os.path.join(self.workingDir, filename1))
         self.assertTrue(os.path.join(self.workingDir, filename2))
@@ -418,7 +426,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
 
     def test_htmlEntitiesCurrency(self):
-        path = os.path.join(examineDir, "htmlEntitiesCurrency.pdf")
+        path = os.path.join(self.examineDir, "htmlEntitiesCurrency.pdf")
         self.addHeaders()
         self.attachHTML(b'<span>Pounds: \xc2\xa37.14, Another Pounds: &#163;7.14</span>'.decode('utf-8'))
         self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
@@ -448,8 +456,8 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
     def test_remoteImageDoesExist(self):
-        if isOnline:
-            path = os.path.join(examineDir, "remoteImageDoesExist.pdf")
+        if self.isOnline:
+            path = os.path.join(self.examineDir, "remoteImageDoesExist.pdf")
             self.addHeaders()
             self.attachHTML('<img src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/basi2c16.png">')
             self.assertEqual(0, self.invokeEmail2PDF(outputFile=path)[0])
@@ -458,8 +466,8 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
             self.skipTest("Not online.")
 
     def test_remoteImageDoesntExist(self):
-        if isOnline:
-            path = os.path.join(examineDir, "remoteImageDoesntExist.pdf")
+        if self.isOnline:
+            path = os.path.join(self.examineDir, "remoteImageDoesntExist.pdf")
             self.addHeaders()
             self.attachHTML('<img src="http://abc.por/blah.jpg">')
             self.assertEqual(0, self.invokeEmail2PDF(outputFile=path, sysErrExpected=True)[0])
@@ -468,7 +476,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
             self.skipTest("Not online.")
 
     def test_remoteImageDoesntExistWithPDF(self):
-        if isOnline:
+        if self.isOnline:
             self.addHeaders()
             self.attachHTML('<img src="http://abc.por/blah.jpg">')
             filename = self.attachPDF("Some PDF content")
@@ -502,7 +510,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, pdfFileName)))
 
     def test_embeddedImage(self):
-        path = os.path.join(examineDir, "embeddedImage.pdf")
+        path = os.path.join(self.examineDir, "embeddedImage.pdf")
         self.addHeaders()
         imageFilename = self.attachImage('myid')
         self.attachHTML('<img src=cid:myid>')
@@ -511,7 +519,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
     def test_embeddedImagePNG(self):
-        path = os.path.join(examineDir, "embeddedImagePNG.pdf")
+        path = os.path.join(self.examineDir, "embeddedImagePNG.pdf")
         self.addHeaders()
         imageFilename = self.attachImage('myid', jpeg=False)
         self.attachHTML('<img src=cid:myid>')
@@ -528,7 +536,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
     def test_embeddedImageExtraHTMLContent(self):
-        if isOnline:
+        if self.isOnline:
             self.addHeaders()
             imageFilename = self.attachImage('myid')
             self.attachHTML('<p><img src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/basi2c16.png">' +
@@ -643,7 +651,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         filename = self.attachPDF("Some PDF content")
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename)))
 
-        touch(os.path.join(self.workingDir, filename))
+        self.touch(os.path.join(self.workingDir, filename))
         self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
@@ -661,7 +669,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename2)))
 
-        touch(os.path.join(self.workingDir, filename))
+        self.touch(os.path.join(self.workingDir, filename))
         self.assertEqual(0, self.invokeEmail2PDF()[0])
         self.assertTrue(self.existsByTime())
 
