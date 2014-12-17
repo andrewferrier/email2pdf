@@ -13,7 +13,7 @@ builddeb:
 	fakeroot dpkg-deb --build $(TEMPDIR) .
 
 unittest:
-	./email2pdf_unittest
+	python3 -m unittest discover
 
 clean:
 	rm -f *.deb

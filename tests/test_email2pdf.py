@@ -30,12 +30,16 @@ def setUpModule():
     examineDir = tempfile.mkdtemp(dir=examineDir)
     print("Output examination directory: " + examineDir)
 
+    print("Checking if online... ", end="")
+    sys.stdout.flush()
     ONLINE_URL = "https://raw.githubusercontent.com/andrewferrier/email2pdf/master"
     try:
-        requests.get(ONLINE_URL)
+        requests.get(ONLINE_URL, timeout=1)
         isOnline = True
+        print("Yes.")
     except:
         isOnline = False
+        print("No.")
 
 
 def touch(fname):
@@ -112,7 +116,6 @@ class BaseTestClasses:
             if outputFile:
                 options.extend(['-o', outputFile])
 
-            options.extend(sys.argv[1:])
             options.extend(extraParams)
 
             self.timeInvoked = datetime.now()
