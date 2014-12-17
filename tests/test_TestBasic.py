@@ -4,7 +4,7 @@ from email.message import Message
 import os
 import tempfile
 
-from tests.BaseTestClasses import BaseTestClasses
+from tests import BaseTestClasses
 
 class TestBasic(BaseTestClasses.Email2PDFTestCase):
     def setUp(self):

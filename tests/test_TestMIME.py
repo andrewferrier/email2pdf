@@ -3,7 +3,7 @@ from email.mime.multipart import MIMEMultipart
 
 import os
 
-from tests.BaseTestClasses import BaseTestClasses
+from tests import BaseTestClasses
 
 class TestMIME(BaseTestClasses.Email2PDFTestCase):
     def setUp(self):
