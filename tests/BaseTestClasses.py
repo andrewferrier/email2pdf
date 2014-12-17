@@ -47,7 +47,7 @@ class BaseTestClasses:
                     requests.get(ONLINE_URL, timeout=1)
                     BaseTestClasses.Email2PDFTestCase.isOnline = True
                     print("Yes.")
-                except:
+                except requests.exceptions.RequestException as e:
                     BaseTestClasses.Email2PDFTestCase.isOnline = False
                     print("No.")
 
