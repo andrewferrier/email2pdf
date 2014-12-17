@@ -458,19 +458,25 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
             self.skipTest("Not online.")
 
     def test_remoteImageDoesntExist(self):
-        path = os.path.join(examineDir, "remoteImageDoesntExist.pdf")
-        self.addHeaders()
-        self.attachHTML('<img src="http://abc.por/blah.jpg">')
-        self.assertEqual(0, self.invokeEmail2PDF(outputFile=path, sysErrExpected=True)[0])
-        self.assertTrue(os.path.exists(path))
+        if isOnline:
+            path = os.path.join(examineDir, "remoteImageDoesntExist.pdf")
+            self.addHeaders()
+            self.attachHTML('<img src="http://abc.por/blah.jpg">')
+            self.assertEqual(0, self.invokeEmail2PDF(outputFile=path, sysErrExpected=True)[0])
+            self.assertTrue(os.path.exists(path))
+        else:
+            self.skipTest("Not online.")
 
     def test_remoteImageDoesntExistWithPDF(self):
-        self.addHeaders()
-        self.attachHTML('<img src="http://abc.por/blah.jpg">')
-        filename = self.attachPDF("Some PDF content")
-        self.assertEqual(0, self.invokeEmail2PDF(sysErrExpected=True)[0])
-        self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
+        if isOnline:
+            self.addHeaders()
+            self.attachHTML('<img src="http://abc.por/blah.jpg">')
+            filename = self.attachPDF("Some PDF content")
+            self.assertEqual(0, self.invokeEmail2PDF(sysErrExpected=True)[0])
+            self.assertTrue(self.existsByTime())
+            self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
+        else:
+            self.skipTest("Not online.")
 
     def test_inlineImageNoBody(self):
         self.addHeaders()
