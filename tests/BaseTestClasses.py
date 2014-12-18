@@ -18,8 +18,7 @@ import time
 import unittest
 
 class Email2PDFTestCase(unittest.TestCase):
-    isOnline = False
-    isOnlineDefined = False
+    isOnline = None
     examineDir = None
 
     def setUp(self):
@@ -37,7 +36,7 @@ class Email2PDFTestCase(unittest.TestCase):
 
     @classmethod
     def checkOnline(cls):
-        if(not Email2PDFTestCase.isOnlineDefined):
+        if Email2PDFTestCase.isOnline is None:
             print("Checking if online... ", end="")
             sys.stdout.flush()
             ONLINE_URL = "https://raw.githubusercontent.com/andrewferrier/email2pdf/master"
@@ -48,8 +47,6 @@ class Email2PDFTestCase(unittest.TestCase):
             except requests.exceptions.RequestException as e:
                 Email2PDFTestCase.isOnline = False
                 print("No.")
-
-            Email2PDFTestCase.isOnlineDefined = True
 
         return Email2PDFTestCase.isOnline
 
