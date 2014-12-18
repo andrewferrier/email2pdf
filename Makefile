@@ -1,6 +1,7 @@
 TEMPDIR := $(shell mktemp -t tmp.XXXXXX -d)
 
 builddeb:
+	sudo apt-get install build-essential
 	cp -R debian/DEBIAN/ $(TEMPDIR)
 	mkdir -p $(TEMPDIR)/usr/bin
 	mkdir -p $(TEMPDIR)/usr/share/doc/email2pdf
