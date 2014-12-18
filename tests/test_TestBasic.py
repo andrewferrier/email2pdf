@@ -97,11 +97,12 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime("/tmp/"))
 
     def test_plaincontent_outputfileoverrides(self):
-        path = os.path.join(self.examineDir, "outputFileOverrides.pdf")
+        filename = os.path.join(self.examineDir, "outputFileOverrides.pdf")
+        pathname = tempfile.mkdtemp(dir='/tmp')
         self.setPlainContent("Hello!")
-        self.assertEqual(0, self.invokeEmail2PDF(outputDirectory="/tmp", outputFile=path)[0])
-        self.assertFalse(self.existsByTime("/tmp"))
-        self.assertTrue(os.path.exists(path))
+        self.assertEqual(0, self.invokeEmail2PDF(outputDirectory=pathname, outputFile=filename)[0])
+        self.assertFalse(self.existsByTime(pathname))
+        self.assertTrue(os.path.exists(filename))
 
     def test_plaincontent_dirnotexist(self):
         self.setPlainContent("Hello!")

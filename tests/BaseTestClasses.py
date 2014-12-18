@@ -25,7 +25,6 @@ class Email2PDFTestCase(unittest.TestCase):
     def setUp(self):
         self.workingDir = tempfile.mkdtemp(dir='/tmp')
         self.command = os.path.normpath(os.path.join(os.getcwd(), 'email2pdf'))
-        self.checkedByTime = False
         self.checkOnline()
         self.checkExamineDir()
 
@@ -58,8 +57,6 @@ class Email2PDFTestCase(unittest.TestCase):
         return myTime.strftime("%Y-%m-%dT%H-%M-%S")
 
     def existsByTime(self, path=None):
-        self.checkedByTime = True
-
         if path is None:
             path = self.workingDir
 
@@ -70,12 +67,6 @@ class Email2PDFTestCase(unittest.TestCase):
                 found = True
 
         return found
-
-    def sleepUntilNextSecond(self):
-        sleepUntil = self.timeCompleted + timedelta(0, 1)
-        sleepUntil = sleepUntil.replace(microsecond=0)
-        while datetime.now() < sleepUntil:
-            time.sleep(0.1)
 
     def addHeaders(self, frm="from@example.org", to="to@example.org", subject="Subject of the email"):
         if(subject):
@@ -227,6 +218,3 @@ class Email2PDFTestCase(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.workingDir)
-
-        if self.checkedByTime:
-            self.sleepUntilNextSecond()
