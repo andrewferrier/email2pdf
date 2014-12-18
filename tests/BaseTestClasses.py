@@ -135,9 +135,9 @@ class Email2PDFTestCase(unittest.TestCase):
     def attachText(self, content):
         self.msg.attach(MIMEText(content, 'plain'))
 
-    def attachPDF(self, string, filePrefix="email2pdf_unittest_file", fileSuffix="pdf",
-                  mainContentType="application", subContentType="pdf"):
-        unused_f_handle, file_name = tempfile.mkstemp(prefix=filePrefix, suffix="." + fileSuffix)
+    def attachPDF(self, string, filePrefix="email2pdf_unittest_file",
+                  extension="pdf", mainContentType="application", subContentType="pdf"):
+        unused_f_handle, file_name = tempfile.mkstemp(prefix=filePrefix, suffix="." + extension)
 
         try:
             cv = canvas.Canvas(file_name)
@@ -156,13 +156,13 @@ class Email2PDFTestCase(unittest.TestCase):
         finally:
             os.unlink(file_name)
 
-    def attachImage(self, content_id=None, jpeg=True, content_type=None, inline=False):
+    def attachImage(self, content_id=None, jpeg=True, content_type=None, inline=False, extension=None):
         if jpeg:
             realFilename = 'tests/jpeg444.jpg'
-            fileSuffix = 'jpg'
+            fileSuffix = 'jpg' if not extension else extension
         else:
             realFilename = 'tests/basi2c16.png'
-            fileSuffix = 'png'
+            fileSuffix = 'png' if not extension else extension
 
         unused_f_handle, file_name = tempfile.mkstemp(prefix="email2pdf_unittest_image", suffix="." + fileSuffix)
         unused_path, basic_file_name = os.path.split(file_name)
@@ -184,6 +184,13 @@ class Email2PDFTestCase(unittest.TestCase):
             return None
         else:
             return basic_file_name
+
+    def attachAttachment(self, mainContentType, subContentType, data, file_name):
+        part = MIMEBase(mainContentType, subContentType)
+        part.set_payload(data)
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(file_name))
+        self.msg.attach(part)
 
     def getMetadataField(self, pdfFilename, fieldName):
         with open(pdfFilename, 'rb') as file_input:

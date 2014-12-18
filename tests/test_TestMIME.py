@@ -27,24 +27,6 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
 
-    def test_plain(self):
-        self.addHeaders()
-        self.attachText("Some basic textual content")
-        filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
-        (rc, output, error) = self.invokeEmail2PDF()
-        self.assertEqual(0, rc)
-        self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
-
-    def test_plainNoBody(self):
-        self.addHeaders()
-        self.attachText("Some basic textual content")
-        filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
-        (rc, output, error) = self.invokeEmail2PDF(extraParams=['--no-body'])
-        self.assertEqual(0, rc)
-        self.assertFalse(self.existsByTime())
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
-
     def test_plainNoAttachments(self):
         self.addHeaders()
         self.attachText("Some basic textual content")
@@ -96,15 +78,6 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders()
         self.attachText("Some basic textual content")
         filename = self.attachPDF("Some PDF content")
-        (rc, output, error) = self.invokeEmail2PDF()
-        self.assertEqual(0, rc)
-        self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
-
-    def test_pdfAsOctetStream(self):
-        self.addHeaders()
-        self.attachText("Some basic textual content")
-        filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
@@ -271,15 +244,6 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, datetime.now().strftime("%Y-%m-%d-") + imageFilename)))
 
-    def test_nonEmbeddedImageJPEGAsOctetStream(self):
-        self.addHeaders()
-        self.attachText("Hello!")
-        imageFilename = self.attachImage(jpeg=True, content_type='application/octet-stream')
-        (rc, output, error) = self.invokeEmail2PDF()
-        self.assertEqual(0, rc)
-        self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
-
     def test_nonEmbeddedImagePNG(self):
         self.addHeaders()
         self.attachText("Hello!")
@@ -299,16 +263,6 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
-
-    def test_somethingElseAsOctetStream(self):
-        self.addHeaders()
-        self.attachText("Some basic textual content")
-        filename = self.attachPDF("Some PDF content", fileSuffix="xyz", mainContentType="application",
-                                  subContentType="octet-stream")
-        (rc, output, error) = self.invokeEmail2PDF()
-        self.assertEqual(0, rc)
-        self.assertTrue(self.existsByTime())
-        self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename)))
 
     def test_2pdfs(self):
         self.addHeaders()

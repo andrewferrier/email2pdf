@@ -256,18 +256,7 @@ def remove_invalid_urls(payload):
 def handle_attachments(input_email, output_directory, add_prefix_date, parts_to_ignore):
     logger = logging.getLogger("email2pdf")
 
-    parts = []
-
-    for content_type in MIME_TYPES_ATTACHMENTS:
-        parts.extend(find_all_parts(input_email, content_type))
-
-    for part in input_email.walk():
-        if part not in parts:
-            filename = extract_part_filename(part)
-            if filename is not None:
-                unused_base, ext = os.path.splitext(filename)
-                if ext.lower() in MIME_TYPES_EXTENSIONS:
-                    parts.append(part)
+    parts = find_all_parts(input_email)
 
     for part in parts_to_ignore:
         parts.remove(part)
@@ -359,12 +348,23 @@ def find_part_by_content_id(message, content_id):
     return None
 
 
-def find_all_parts(message, content_type):
+def find_all_parts(message):
     parts = []
 
     for part in message.walk():
-        if part.get_content_type() == content_type:
+        if part.get_content_type() in MIME_TYPES_ATTACHMENTS:
             parts.append(part)
+        elif not part.is_multipart():
+            mime_type_from_payload = get_mime_type(part.get_payload(decode=True))
+
+            if mime_type_from_payload in MIME_TYPES_ATTACHMENTS:
+                parts.append(part)
+        else:
+            filename = extract_part_filename(part)
+            if filename is not None:
+                unused_base, ext = os.path.splitext(filename)
+                if ext.lower() in MIME_TYPES_EXTENSIONS:
+                    parts.append(part)
 
     return parts
 
