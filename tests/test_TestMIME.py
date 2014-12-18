@@ -125,7 +125,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.attachImage('myid', inline=True)
         self.attachHTML('<img src=cid:myid>')
         (rc, output, error) = self.invokeEmail2PDF(extraParams=['--no-body'])
-        self.assertNotEqual(0, rc)
+        self.assertEqual(1, rc)
         self.assertFalse(self.existsByTime())
         self.assertRegex(error, "body.*or.*attachments")
 
@@ -148,6 +148,16 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertTrue(os.path.exists(path))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
+
+    def test_embeddedImageInvalidCID(self):
+        self.addHeaders()
+        imageFilename = self.attachImage('myid')
+        self.attachHTML('<img src=cid:myid2>')
+        (rc, output, error) = self.invokeEmail2PDF()
+        self.assertEqual(1, rc)
+        self.assertRegex(error, "(?i)could not find image")
+        self.assertTrue(self.existsByTime())
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
     def test_embeddedImagePNG(self):
         path = os.path.join(self.examineDir, "embeddedImagePNG.pdf")
