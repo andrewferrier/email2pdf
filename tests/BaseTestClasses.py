@@ -141,12 +141,8 @@ class Email2PDFTestCase(unittest.TestCase):
             cv.drawString(0, 500, string)
             cv.save()
 
-            part = MIMEBase(mainContentType, subContentType)
             openHandle = open(file_name, "rb")
-            part.set_payload(openHandle.read())
-            encoders.encode_base64(part)
-            part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(file_name))
-            self.msg.attach(part)
+            self.attachAttachment(mainContentType, subContentType, openHandle.read(), file_name)
             openHandle.close()
 
             return os.path.basename(file_name)
