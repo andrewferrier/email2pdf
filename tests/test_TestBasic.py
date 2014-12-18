@@ -22,24 +22,28 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
+        self.assertEqual('', error)
 
     def test_simple(self):
         self.addHeaders()
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
+        self.assertEqual('', error)
 
     def test_simple_withinputfile(self):
         self.addHeaders()
         (rc, output, error) = self.invokeEmail2PDF(inputFile=True)
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
+        self.assertEqual('', error)
 
     def test_nosubject(self):
         self.addHeaders("from@example.org", "to@example.org", None)
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
+        self.assertEqual('', error)
 
     def test_plaincontent(self):
         self.addHeaders()
@@ -47,6 +51,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
+        self.assertEqual('', error)
 
     def test_plaincontent_poundsign_iso88591(self):
         self.addHeaders()
@@ -54,6 +59,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.setPlainContent("Hello - this email costs \xa35!", charset="ISO-8859-1")
         (rc, output, error) = self.invokeEmail2PDF(outputFile=path)
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
 
     def test_plaincontent_metadata(self):
@@ -62,6 +68,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         path = os.path.join(self.examineDir, "plaincontent_metadata.pdf")
         (rc, output, error) = self.invokeEmail2PDF(outputFile=path)
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
         self.assertEqual("from@example.org", self.getMetadataField(path, "Author"))
         self.assertEqual("to@example.org", self.getMetadataField(path, "X-email2pdf-To"))
@@ -76,6 +83,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
             path = os.path.join(mountPoint2, "plaincontent_metadata_differentmount.pdf")
             (rc, output, error) = self.invokeEmail2PDF(outputFile=path)
             self.assertEqual(0, rc)
+            self.assertEqual('', error)
             self.assertTrue(os.path.exists(path))
             self.assertEqual("from@example.org", self.getMetadataField(path, "Author"))
         else:
@@ -86,6 +94,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         path = os.path.join(self.examineDir, "plaincontent_noheaders_metadata.pdf")
         (rc, output, error) = self.invokeEmail2PDF(outputFile=path)
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
         self.assertIsNone(self.getMetadataField(path, "Author"))
         self.assertIsNone(self.getMetadataField(path, "X-email2pdf-To"))
@@ -97,18 +106,21 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.setPlainContent("Hello!")
         (rc, output, error) = self.invokeEmail2PDF(extraParams=['--headers'])
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
 
     def test_plaincontent_notrailingslash(self):
         self.setPlainContent("Hello!")
         (rc, output, error) = self.invokeEmail2PDF(outputDirectory="/tmp")
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(self.existsByTime("/tmp"))
 
     def test_plaincontent_trailingslash(self):
         self.setPlainContent("Hello!")
         (rc, output, error) = self.invokeEmail2PDF(outputDirectory="/tmp")
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(self.existsByTime("/tmp/"))
 
     def test_plaincontent_outputfileoverrides(self):
@@ -117,6 +129,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.setPlainContent("Hello!")
         (rc, output, error) = self.invokeEmail2PDF(outputDirectory=pathname, outputFile=filename)
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertFalse(self.existsByTime(pathname))
         self.assertTrue(os.path.exists(filename))
 
@@ -143,6 +156,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.touch(os.path.join(self.workingDir, filename1))
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(os.path.join(self.workingDir, filename1))
         self.assertTrue(os.path.join(self.workingDir, filename2))
 

@@ -16,6 +16,7 @@ class AttachmentDetection(BaseTestClasses.Email2PDFTestCase):
         filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
@@ -25,6 +26,7 @@ class AttachmentDetection(BaseTestClasses.Email2PDFTestCase):
         filename = self.attachPDF("Some PDF content", extension="pdf")
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
@@ -34,6 +36,7 @@ class AttachmentDetection(BaseTestClasses.Email2PDFTestCase):
         filename = self.attachPDF("Some PDF content", extension="xyz", mainContentType="application", subContentType="octet-stream")
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
@@ -43,6 +46,7 @@ class AttachmentDetection(BaseTestClasses.Email2PDFTestCase):
         filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
         (rc, output, error) = self.invokeEmail2PDF(extraParams=['--no-body'])
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertFalse(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
 
@@ -52,6 +56,7 @@ class AttachmentDetection(BaseTestClasses.Email2PDFTestCase):
         imageFilename = self.attachImage(jpeg=True, content_type="application/octet-stream")
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -61,6 +66,7 @@ class AttachmentDetection(BaseTestClasses.Email2PDFTestCase):
         imageFilename = self.attachImage(jpeg=True, extension="blah")
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -70,6 +76,7 @@ class AttachmentDetection(BaseTestClasses.Email2PDFTestCase):
         imageFilename = self.attachImage(jpeg=True, content_type="application/octet-stream", extension="xyz")
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
@@ -79,5 +86,6 @@ class AttachmentDetection(BaseTestClasses.Email2PDFTestCase):
         self.attachAttachment("application", "data", "some data in some format", "somefile.xyz")
         (rc, output, error) = self.invokeEmail2PDF()
         self.assertEqual(0, rc)
+        self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, "somefile.xyz")))
