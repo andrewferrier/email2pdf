@@ -1,7 +1,7 @@
 # email2pdf
 
-Python script to convert emails to PDF from the command-line. email2pdf acts
-in place of a [mail delivery
+email2pdf is a Python script to convert emails to PDF from the command-line.
+email2pdf acts in place of a [mail delivery
 agent](http://en.wikipedia.org/wiki/Mail_delivery_agent) - it won't retrieve
 emails for you, but it will take them from standard input as an MDA will and
 'deliver' them to PDF files. Type `email2pdf --help` for more information on
@@ -31,12 +31,43 @@ usage and options available.
   This will ensure that getmail is invoked hourly to fetch email, and log its
   output to syslog.
 
-## Building & Packaging for Debian
+* Others - there are some other Python library dependencies. The Debian
+  packaging (see below) will set the dependencies on the package
+  appropriately. For OS X, please install dependencies as shown in the
+  'Developing & Hacking' section below.
 
-Some basic Debian packaging is included. Simply run `sudo apt-get install
-build-essential && make builddeb` to build a Debian package.
+## Building & Packaging
+
+All the supplied build and packaging is based on a
+[Makefile](https://github.com/andrewferrier/email2pdf/blob/master/Makefile).
+You'll need `make` if you don't have it (`sudo apt-get install make` on
+Ubuntu/Debian, `brew install make` on OS X).
+
+### Debian
+
+Some basic Debian packaging is included. Simply run `make builddeb` to build a
+Debian package.
+
+### Docker
+
+There is some experimental packaging for [Docker](https://www.docker.com/)
+also. You can run the following `make` targets:
+
+* `builddocker` - build a Docker image.
+
+* `rundocker_interactive` - build and start a Docker image, at the `bash`
+  prompt.
+
+* `rundocker_unittest` - build and start the Docker image, run the entire unit
+  test suite, and exit.
 
 ## Developing & Hacking
+
+### Unit Tests
+
+All the unit tests are in the `tests/` directory. You can run them from the
+Makefile using the `unittest` or `unittest_test` targets (the second is more
+verbose, and stops on failing tests).
 
 ### Debian
 
