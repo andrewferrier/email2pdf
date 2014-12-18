@@ -80,8 +80,7 @@ class Email2PDFTestCase(unittest.TestCase):
 
         self.msg['Date'] = formatdate()
 
-    def invokeEmail2PDF(self, inputFile=False, outputDirectory=None, sysErrExpected=False, outputFile=None,
-                        extraParams=[]):
+    def invokeEmail2PDF(self, inputFile=False, outputDirectory=None, outputFile=None, extraParams=[]):
         textMessage = self.msg.as_string()
 
         options = [self.command]
@@ -115,12 +114,10 @@ class Email2PDFTestCase(unittest.TestCase):
         p.wait()
         self.timeCompleted = datetime.now()
 
-        if sysErrExpected:
-            self.assertNotEqual(bytes("", "UTF-8"), error)
-        else:
-            self.assertEqual(bytes("", "UTF-8"), error)
+        output = str(output, "utf-8")
+        error = str(error, "utf-8")
 
-        self.assertEqual(bytes("", "UTF-8"), output)
+        self.assertEqual("", output)
 
         if inputFile:
             inputFile_handle.close()
