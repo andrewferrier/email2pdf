@@ -119,7 +119,7 @@ def main():
     if args.outputFile:
         output_file_name = args.outputFile
         if os.path.isfile(output_file_name):
-            raise FatalException("Output file " + output_file_name + " already exists. Aborting.")
+            raise FatalException("Output file " + output_file_name + " already exists.")
     else:
         output_file_name = os.path.join(output_directory, datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf")
         output_file_name = get_unique_version(output_file_name)
@@ -160,10 +160,7 @@ def main():
         number_of_attachments = 0
 
     if (not args.body) and number_of_attachments == 0:
-        raise WarningException("Didn't print body (on request) or extract any attachments.")
-
-    if warning_pending:
-        sys.exit(warning_pending.getExitCode())
+        warning("Didn't print body (on request) or extract any attachments.")
 
 
 def handle_message_body(input_email, header_info):
@@ -198,7 +195,7 @@ def handle_message_body(input_email, header_info):
                 cid_parts_used.append(imagePart)
                 return "data:" + mimeType + ";base64," + imageBase64
             else:
-                raise WarningException("Could not find image cid " + matchobj.group(1) + " in email content.")
+                warning("Could not find image cid " + matchobj.group(1) + " in email content.")
                 return "broken"
 
         payload = bytes(re.sub('cid:([\w_-]+)', functools.partial(cid_replace, cid_parts_used),
@@ -395,54 +392,36 @@ def get_mime_type(bufferData):
 
     return mimeType
 
-# Idea for this error handling strategy from here:
-# http://stackoverflow.com/a/16787722/27641
+warning_pending = False
 
 
-class ExitCodeException(Exception):
-    def __new__(cls, *args, **kwargs):
-        if cls is ExitCodeException:
-            raise NotImplementedError("ExitCodeException class may not be instantiated directly.")
-        return Exception.__new__(cls, *args, **kwargs)
+def warning(message):
+    global warning_pending
+    logger = logging.getLogger("email2pdf")
+    logger.warn(message)
+    warning_pending = True
 
-    def __init__(self, message):
-        super().__init__()
-        self._message = message
+
+class FatalException(Exception):
+    def __init__(self, value):
+        self.value = value
 
     def __str__(self):
-        return repr(self._message)
-
-    def getExitCode(self):
-        """Return the exit code for this exception"""
-        pass
-
-
-class FatalException(ExitCodeException):
-    def getExitCode(self):
-        return 2
-
-
-class WarningException(ExitCodeException):
-    def getExitCode(self):
-        return 1
-
-
-def handle_uncaught_exception(exctype, value, trace):
-    logger = logging.getLogger("email2pdf")
-    if isinstance(value, FatalException):
-        logger.error(value)
-        sys.exit(value.getExitCode())
-    elif isinstance(value, WarningException):
-        global warning_pending
-        warning_pending = value
-        logger.warn(value)
-    else:
-        logger.error(str(value))
-        oldHook(exctype, value, trace)
-
-sys.excepthook, oldHook = handle_uncaught_exception, sys.excepthook
-
-warning_pending = None
+        return repr(self.value)
 
 if __name__ == "__main__":
-    main()
+    logger = logging.getLogger("email2pdf")
+
+    try:
+        main()
+    except FatalException as e:
+        logger.error(e.value)
+        sys.exit(2)
+    except:
+        logger.error(str(sys.exc_info()[0], 'utf-8'))
+        logger.error(sys.exc_info()[1])
+        logger.error(str(sys.exc_info()[2], 'utf-8'))
+        sys.exit(3)
+
+    if warning_pending:
+        sys.exit(1)
