@@ -158,10 +158,10 @@ class Email2PDFTestCase(unittest.TestCase):
 
     def attachImage(self, content_id=None, jpeg=True, content_type=None, inline=False):
         if jpeg:
-            realFilename = 'jpeg444.jpg'
+            realFilename = 'tests/jpeg444.jpg'
             fileSuffix = 'jpg'
         else:
-            realFilename = 'basi2c16.png'
+            realFilename = 'tests/basi2c16.png'
             fileSuffix = 'png'
 
         unused_f_handle, file_name = tempfile.mkstemp(prefix="email2pdf_unittest_image", suffix="." + fileSuffix)
