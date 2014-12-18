@@ -129,14 +129,6 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(self.existsByTime())
         self.assertRegex(error, "body.*or.*attachments")
 
-    def test_inlineImage(self):
-        self.addHeaders()
-        self.attachImage('myid', inline=True)
-        self.attachHTML('<img src=cid:myid>')
-        (rc, output, error) = self.invokeEmail2PDF()
-        self.assertEqual(0, rc)
-        self.assertTrue(self.existsByTime())
-
     def test_inlineImageAndPDF(self):
         self.addHeaders()
         self.attachImage('myid', inline=True)
