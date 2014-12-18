@@ -14,8 +14,8 @@ import requests
 import shutil
 import sys
 import tempfile
-import time
 import unittest
+
 
 class Email2PDFTestCase(unittest.TestCase):
     isOnline = None
@@ -44,7 +44,7 @@ class Email2PDFTestCase(unittest.TestCase):
                 requests.get(ONLINE_URL, timeout=1)
                 Email2PDFTestCase.isOnline = True
                 print("Yes.")
-            except requests.exceptions.RequestException as e:
+            except requests.exceptions.RequestException:
                 Email2PDFTestCase.isOnline = False
                 print("No.")
 

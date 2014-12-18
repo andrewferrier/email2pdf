@@ -5,6 +5,7 @@ import os
 
 from tests import BaseTestClasses
 
+
 class TestMIME(BaseTestClasses.Email2PDFTestCase):
     def setUp(self):
         super(TestMIME, self).setUp()

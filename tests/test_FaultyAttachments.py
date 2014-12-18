@@ -1,9 +1,9 @@
-from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 
 import os
 
 from tests import BaseTestClasses
+
 
 class AttachmentDetection(BaseTestClasses.Email2PDFTestCase):
     def setUp(self):

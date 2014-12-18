@@ -6,6 +6,7 @@ import tempfile
 
 from tests import BaseTestClasses
 
+
 class TestBasic(BaseTestClasses.Email2PDFTestCase):
     def setUp(self):
         super(TestBasic, self).setUp()

@@ -207,7 +207,7 @@ def handle_message_body(input_email, header_info):
     payload = bytes(header_info, 'UTF-8') + payload
 
     if not charset:
-        charset='UTF-8'
+        charset = 'UTF-8'
 
     payload = str(payload, charset)
 
