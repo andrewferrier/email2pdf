@@ -399,7 +399,7 @@ if __name__ == "__main__":
 
     sysLogHandler = logging.handlers.SysLogHandler(address=sysLogAddress)
     sysLogHandler.setLevel(logging.INFO)
-    sysLogFormatter = logging.Formatter('%(pathname)s[' + str(os.getpid()) + '] %(levelname)s %(lineno)s: %(message)s')
+    sysLogFormatter = logging.Formatter('%(pathname)s[%(process)d] %(levelname)s %(lineno)d %(message)s')
     sysLogHandler.setFormatter(sysLogFormatter)
     logger.addHandler(sysLogHandler)
 
