@@ -80,4 +80,4 @@ verbose, and stops on failing tests).
 * Install [Homebrew](http://brew.sh/)
 * `brew install python3`
 * `brew install libmagic`
-* `pip3 install reportlab python-magic pypdf2 beautifulsoup4`
+* `pip3 install reportlab python-magic pypdf2 beautifulsoup4 lxml`
