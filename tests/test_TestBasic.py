@@ -13,34 +13,34 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.msg = Message()
 
     def test_dontPrintBody(self):
-        (rc, output, error) = self.invokeEmail2PDF(extraParams=['--no-body'])
+        (rc, output, error) = self.invokeAsSubprocess(extraParams=['--no-body'])
         self.assertEqual(1, rc)
         self.assertFalse(self.existsByTime())
         self.assertRegex(error, "body.*or.*attachments")
 
     def test_noheaders(self):
-        (rc, output, error) = self.invokeEmail2PDF()
+        (rc, output, error) = self.invokeAsSubprocess()
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
 
     def test_simple(self):
         self.addHeaders()
-        (rc, output, error) = self.invokeEmail2PDF()
+        (rc, output, error) = self.invokeAsSubprocess()
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
 
     def test_simple_withinputfile(self):
         self.addHeaders()
-        (rc, output, error) = self.invokeEmail2PDF(inputFile=True)
+        (rc, output, error) = self.invokeAsSubprocess(inputFile=True)
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
 
     def test_nosubject(self):
         self.addHeaders("from@example.org", "to@example.org", None)
-        (rc, output, error) = self.invokeEmail2PDF()
+        (rc, output, error) = self.invokeAsSubprocess()
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
@@ -48,7 +48,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
     def test_plaincontent(self):
         self.addHeaders()
         self.setPlainContent("Hello!")
-        (rc, output, error) = self.invokeEmail2PDF()
+        (rc, output, error) = self.invokeAsSubprocess()
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
@@ -57,7 +57,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders()
         path = os.path.join(self.examineDir, "plaincontent_poundsign_iso88591.pdf")
         self.setPlainContent("Hello - this email costs \xa35!", charset="ISO-8859-1")
-        (rc, output, error) = self.invokeEmail2PDF(outputFile=path)
+        (rc, output, error) = self.invokeAsSubprocess(outputFile=path)
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
@@ -66,7 +66,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.addHeaders()
         self.setPlainContent("Hello!")
         path = os.path.join(self.examineDir, "plaincontent_metadata.pdf")
-        (rc, output, error) = self.invokeEmail2PDF(outputFile=path)
+        (rc, output, error) = self.invokeAsSubprocess(outputFile=path)
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
@@ -81,7 +81,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         mountPoint2 = tempfile.mkdtemp(dir='/var/tmp')
         if(self.find_mount_point(mountPoint2) != self.find_mount_point(tempfile.tempdir)):
             path = os.path.join(mountPoint2, "plaincontent_metadata_differentmount.pdf")
-            (rc, output, error) = self.invokeEmail2PDF(outputFile=path)
+            (rc, output, error) = self.invokeAsSubprocess(outputFile=path)
             self.assertEqual(0, rc)
             self.assertEqual('', error)
             self.assertTrue(os.path.exists(path))
@@ -92,7 +92,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
     def test_noheaders_metadata(self):
         self.setPlainContent("Hello!")
         path = os.path.join(self.examineDir, "plaincontent_noheaders_metadata.pdf")
-        (rc, output, error) = self.invokeEmail2PDF(outputFile=path)
+        (rc, output, error) = self.invokeAsSubprocess(outputFile=path)
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
@@ -104,21 +104,21 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
     def test_plaincontent_headers(self):
         self.addHeaders()
         self.setPlainContent("Hello!")
-        (rc, output, error) = self.invokeEmail2PDF(extraParams=['--headers'])
+        (rc, output, error) = self.invokeAsSubprocess(extraParams=['--headers'])
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
 
     def test_plaincontent_notrailingslash(self):
         self.setPlainContent("Hello!")
-        (rc, output, error) = self.invokeEmail2PDF(outputDirectory="/tmp")
+        (rc, output, error) = self.invokeAsSubprocess(outputDirectory="/tmp")
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime("/tmp"))
 
     def test_plaincontent_trailingslash(self):
         self.setPlainContent("Hello!")
-        (rc, output, error) = self.invokeEmail2PDF(outputDirectory="/tmp")
+        (rc, output, error) = self.invokeAsSubprocess(outputDirectory="/tmp")
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime("/tmp/"))
@@ -127,7 +127,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         filename = os.path.join(self.examineDir, "outputFileOverrides.pdf")
         pathname = tempfile.mkdtemp(dir='/tmp')
         self.setPlainContent("Hello!")
-        (rc, output, error) = self.invokeEmail2PDF(outputDirectory=pathname, outputFile=filename)
+        (rc, output, error) = self.invokeAsSubprocess(outputDirectory=pathname, outputFile=filename)
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertFalse(self.existsByTime(pathname))
@@ -135,7 +135,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
 
     def test_plaincontent_dirnotexist(self):
         self.setPlainContent("Hello!")
-        (rc, output, error) = self.invokeEmail2PDF(outputDirectory="/notexist/")
+        (rc, output, error) = self.invokeAsSubprocess(outputDirectory="/notexist/")
         self.assertEqual(2, rc)
         self.assertRegex(error, "(?i)directory.*exist")
 
@@ -143,7 +143,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.setPlainContent("Hello!")
         unused_f_handle, f_path = tempfile.mkstemp()
         try:
-            (rc, output, error) = self.invokeEmail2PDF(outputFile=f_path)
+            (rc, output, error) = self.invokeAsSubprocess(outputFile=f_path)
             self.assertEqual(2, rc)
             self.assertRegex(error, "file.*exist")
         finally:
@@ -154,7 +154,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         filename1 = self.getTimeStamp(datetime.now()) + ".pdf"
         filename2 = self.getTimeStamp(datetime.now()) + "_1.pdf"
         self.touch(os.path.join(self.workingDir, filename1))
-        (rc, output, error) = self.invokeEmail2PDF()
+        (rc, output, error) = self.invokeAsSubprocess()
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(os.path.join(self.workingDir, filename1))
@@ -162,12 +162,12 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
 
     def test_verbose(self):
         self.setPlainContent("Hello!")
-        (rc, output, error) = self.invokeEmail2PDF(extraParams=['-v'])
+        (rc, output, error) = self.invokeAsSubprocess(extraParams=['-v'])
         self.assertEqual(0, rc)
         self.assertNotEqual('', error)
 
     def test_veryverbose(self):
         self.setPlainContent("Hello!")
-        (rc, output, error) = self.invokeEmail2PDF(extraParams=['-vv'])
+        (rc, output, error) = self.invokeAsSubprocess(extraParams=['-vv'])
         self.assertEqual(0, rc)
         self.assertNotEqual('', error)
