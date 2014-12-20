@@ -380,7 +380,7 @@ warning_pending = False
 def warning(message):
     global warning_pending
     logger = logging.getLogger("email2pdf")
-    logger.warn(message)
+    logger.warning(message)
     warning_pending = True
 
 
