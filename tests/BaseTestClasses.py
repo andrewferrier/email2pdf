@@ -78,18 +78,20 @@ class Email2PDFTestCase(unittest.TestCase):
         self.msg['Date'] = formatdate()
 
     def invokeAsSubprocess(self, inputFile=False, outputDirectory=None, outputFile=None, extraParams=[]):
-        textMessage = self.msg.as_string()
+        bytesMessage = bytes(self.msg.as_string(), 'UTF-8')
 
         options = [self.command]
 
         if inputFile:
             inputFile_handle = tempfile.NamedTemporaryFile()
             options.extend(['-i', inputFile_handle.name])
+            inputFile_handle.write(bytesMessage)
+            inputFile_handle.flush()
             myStdin = None
             myInput = None
         else:
             myStdin = PIPE
-            myInput = bytes(textMessage, 'UTF-8')
+            myInput = bytesMessage
 
         if outputDirectory:
             options.extend(['-d', outputDirectory])
