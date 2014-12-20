@@ -31,7 +31,7 @@ MIME_TYPES_ATTACHMENTS = set(['application/pdf', 'image/jpeg', 'image/png'])
 MIME_TYPES_EXTENSIONS = set(['.pdf', '.jpeg', '.jpg', '.png'])
 
 
-def main():
+def main(argv):
     logger = logging.getLogger('email2pdf')
 
     parser = argparse.ArgumentParser(description="Converts emails to PDFs. " +
@@ -75,7 +75,7 @@ def main():
                         "syslog, as well as output to the console. Using this twice makes it doubly verbose.")
 
     parser.set_defaults(body=True, attachments=True, headers=False)
-    args = parser.parse_args()
+    args = parser.parse_args(argv[1:])
 
     if args.verbose > 1:
         sysLogHandler.setLevel(logging.DEBUG)
@@ -410,7 +410,7 @@ if __name__ == "__main__":
     logger.addHandler(sysErrHandler)
 
     try:
-        main()
+        main(sys.argv)
     except FatalException as e:
         logger.error(e.value)
         sys.exit(2)
