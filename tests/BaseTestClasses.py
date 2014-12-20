@@ -9,6 +9,9 @@ from email.utils import formatdate
 from reportlab.pdfgen import canvas
 from subprocess import Popen, PIPE
 
+import io
+import logging
+import inspect
 import os
 import requests
 import shutil
@@ -49,6 +52,12 @@ class Email2PDFTestCase(unittest.TestCase):
                 print("No.")
 
         return Email2PDFTestCase.isOnline
+
+    def getOriginalScriptPath(self):
+        module_path = inspect.getfile(inspect.currentframe())
+        module_path = os.path.join(os.path.dirname(os.path.dirname(module_path)), 'email2pdf')
+
+        return module_path
 
     def getTimeStamp(self, myTime):
         return myTime.strftime("%Y-%m-%dT%H-%M-%S")
@@ -127,6 +136,45 @@ class Email2PDFTestCase(unittest.TestCase):
             inputFile_handle.close()
 
         return (p.returncode, output, error)
+
+    def invokeDirectly(self, outputDirectory=None, outputFile=None, extraParams=[]):
+        import importlib.machinery
+        module_path = self.getOriginalScriptPath()
+        loader = importlib.machinery.SourceFileLoader('email2pdf', module_path)
+        email2pdf = loader.load_module()
+
+        with tempfile.NamedTemporaryFile() as inputFile_handle:
+            options = [module_path, '-i', inputFile_handle.name]
+            inputFile_handle.write(bytes(self.msg.as_string(), 'UTF-8'))
+            inputFile_handle.flush()
+
+            if outputDirectory:
+                options.extend(['-d', outputDirectory])
+            else:
+                options.extend(['-d', self.workingDir])
+
+            if outputFile:
+                options.extend(['-o', outputFile])
+
+            options.extend(extraParams)
+
+            logger = logging.getLogger('email2pdf')
+
+            stream = io.StringIO()
+            handler = logging.StreamHandler(stream)
+            log = logging.getLogger('email2pdf')
+            log.addHandler(handler)
+
+            self.timeInvoked = datetime.now()
+            email2pdf.main(options, None, handler)
+            self.timeCompleted = datetime.now()
+
+            log.removeHandler(handler)
+            handler.close()
+
+            error = stream.getvalue()
+
+            return (None, None, error)
 
     def setPlainContent(self, content, charset='UTF-8'):
         self.msg.set_default_type("text/plain")
