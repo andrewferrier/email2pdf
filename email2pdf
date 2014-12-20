@@ -31,7 +31,7 @@ MIME_TYPES_ATTACHMENTS = set(['application/pdf', 'image/jpeg', 'image/png'])
 MIME_TYPES_EXTENSIONS = set(['.pdf', '.jpeg', '.jpg', '.png'])
 
 
-def main(argv):
+def main(argv, sysLogHandler, sysErrHandler):
     logger = logging.getLogger('email2pdf')
 
     parser = argparse.ArgumentParser(description="Converts emails to PDFs. " +
@@ -77,15 +77,21 @@ def main(argv):
     parser.set_defaults(body=True, attachments=True, headers=False)
     args = parser.parse_args(argv[1:])
 
-    if args.verbose > 1:
-        sysLogHandler.setLevel(logging.DEBUG)
-        sysErrHandler.setLevel(logging.DEBUG)
-    elif args.verbose == 1:
-        sysLogHandler.setLevel(logging.DEBUG)
-        sysErrHandler.setLevel(logging.INFO)
-    else:
-        sysLogHandler.setLevel(logging.INFO)
-        sysErrHandler.setLevel(logging.WARNING)
+    if(sysLogHandler):
+        if args.verbose > 1:
+            sysLogHandler.setLevel(logging.DEBUG)
+        elif args.verbose == 1:
+            sysLogHandler.setLevel(logging.DEBUG)
+        else:
+            sysLogHandler.setLevel(logging.INFO)
+
+    if sysErrHandler:
+        if args.verbose > 1:
+            sysErrHandler.setLevel(logging.DEBUG)
+        elif args.verbose == 1:
+            sysErrHandler.setLevel(logging.INFO)
+        else:
+            sysErrHandler.setLevel(logging.WARNING)
 
     logger.info("Options used are: " + str(args))
 
@@ -410,7 +416,7 @@ if __name__ == "__main__":
     logger.addHandler(sysErrHandler)
 
     try:
-        main(sys.argv)
+        main(sys.argv, sysLogHandler, sysErrHandler)
     except FatalException as e:
         logger.error(e.value)
         sys.exit(2)
