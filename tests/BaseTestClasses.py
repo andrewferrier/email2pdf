@@ -158,8 +158,6 @@ class Email2PDFTestCase(unittest.TestCase):
 
             options.extend(extraParams)
 
-            logger = logging.getLogger('email2pdf')
-
             stream = io.StringIO()
             handler = logging.StreamHandler(stream)
             log = logging.getLogger('email2pdf')
