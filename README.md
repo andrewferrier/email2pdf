@@ -85,4 +85,4 @@ There is a code coverage target in the Makefile. You'll need to have the
 * Install [Homebrew](http://brew.sh/)
 * `brew install python3`
 * `brew install libmagic`
-* `pip3 install reportlab python-magic pypdf2 beautifulsoup4 lxml`
+* `pip3 install reportlab python-magic pypdf2 beautifulsoup4 lxml pdfminer3k`
