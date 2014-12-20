@@ -1,6 +1,6 @@
 TEMPDIR := $(shell mktemp -t tmp.XXXXXX -d)
 
-builddeb:
+builddeb: stylecheck
 	sudo apt-get install build-essential
 	cp -R debian/DEBIAN/ $(TEMPDIR)
 	mkdir -p $(TEMPDIR)/usr/bin
@@ -27,6 +27,9 @@ unittest:
 
 unittest_test:
 	python3 -m unittest discover -f -v
+
+stylecheck:
+	flake8 --max-line-length=132 .
 
 clean:
 	rm -f *.deb
