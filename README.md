@@ -69,6 +69,11 @@ All the unit tests are in the `tests/` directory. You can run them from the
 Makefile using the `unittest` or `unittest_test` targets (the second is more
 verbose, and stops on failing tests).
 
+### Code Coverage
+
+There is a code coverage target in the Makefile. You'll need to have the
+`coverage` Python module installed (`pip3 install coverage`) to run it.
+
 ### Debian
 
 * Install all the package dependencies listed in the

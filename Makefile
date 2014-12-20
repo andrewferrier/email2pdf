@@ -31,6 +31,11 @@ unittest_test:
 stylecheck:
 	flake8 --max-line-length=132 .
 
+coverage:
+	rm -r cover/
+	nosetests tests/test_Direct.py --with-coverage --cover-package=email2pdf --cover-erase --cover-html
+	open cover/email2pdf.html
+
 clean:
 	rm -f *.deb
 	rm -f *.log
