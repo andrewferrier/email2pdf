@@ -110,14 +110,6 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual('', self.getMetadataField(path, "Title"))
         self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
 
-    def test_plaincontent_headers(self):
-        self.addHeaders()
-        self.setPlainContent("Hello!")
-        (rc, output, error) = self.invokeAsSubprocess(extraParams=['--headers'])
-        self.assertEqual(0, rc)
-        self.assertEqual('', error)
-        self.assertTrue(self.existsByTime())
-
     def test_plaincontent_notrailingslash(self):
         self.setPlainContent("Hello!")
         (rc, output, error) = self.invokeAsSubprocess(outputDirectory="/tmp")

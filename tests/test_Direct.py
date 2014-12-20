@@ -28,3 +28,10 @@ class Direct(BaseTestClasses.Email2PDFTestCase):
         with self.assertRaisesRegex(Exception, "file.*exist"):
             self.invokeDirectly(outputFile=f_path)
         os.unlink(f_path)
+
+    def test_plaincontent_headers(self):
+        self.addHeaders()
+        self.setPlainContent("Hello!")
+        error = self.invokeDirectly(extraParams=['--headers'])
+        self.assertEqual('', error)
+        self.assertTrue(self.existsByTime())
