@@ -172,7 +172,7 @@ class Email2PDFTestCase(unittest.TestCase):
 
             error = stream.getvalue()
 
-            return (None, None, error)
+            return error
 
     def setPlainContent(self, content, charset='UTF-8'):
         self.msg.set_default_type("text/plain")
