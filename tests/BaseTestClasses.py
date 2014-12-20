@@ -54,16 +54,21 @@ class Email2PDFTestCase(unittest.TestCase):
         return myTime.strftime("%Y-%m-%dT%H-%M-%S")
 
     def existsByTime(self, path=None):
+        if self.getTimedFilename(path):
+            return True
+        else:
+            return False
+
+    def getTimedFilename(self, path=None):
         if path is None:
             path = self.workingDir
 
-        found = False
-
         for single_time in self.timerange(self.timeInvoked, self.timeCompleted):
-            if os.path.exists(os.path.join(path, self.getTimeStamp(single_time) + ".pdf")):
-                found = True
+            filename = os.path.join(path, self.getTimeStamp(single_time) + ".pdf")
+            if os.path.exists(filename):
+                return filename
 
-        return found
+        return None
 
     def addHeaders(self, frm="from@example.org", to="to@example.org", subject="Subject of the email"):
         if(subject):

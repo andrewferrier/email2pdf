@@ -31,12 +31,21 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
 
-    def test_simple_withinputfile(self):
+    def test_withinputfile(self):
         self.addHeaders()
         (rc, output, error) = self.invokeAsSubprocess(inputFile=True)
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
+
+    def test_withinputfile_metadata(self):
+        self.addHeaders()
+        (rc, output, error) = self.invokeAsSubprocess(inputFile=True)
+        self.assertEqual(0, rc)
+        self.assertEqual('', error)
+        timedFilename = self.getTimedFilename()
+        self.assertTrue(os.path.exists(timedFilename))
+        self.assertEqual("from@example.org", self.getMetadataField(timedFilename, "Author"))
 
     def test_nosubject(self):
         self.addHeaders("from@example.org", "to@example.org", None)
