@@ -1,6 +1,6 @@
 TEMPDIR := $(shell mktemp -t tmp.XXXXXX -d)
 
-builddeb: stylecheck
+builddeb:
 	sudo apt-get install build-essential
 	cp -R debian/DEBIAN/ $(TEMPDIR)
 	mkdir -p $(TEMPDIR)/usr/bin
@@ -12,6 +12,10 @@ builddeb: stylecheck
 	fakeroot chmod -R u=rwX,go=rX $(TEMPDIR)
 	fakeroot chmod -R u+x $(TEMPDIR)/usr/bin
 	fakeroot dpkg-deb --build $(TEMPDIR) .
+
+buildpdfminer3k:
+	docker build -t "andrewferrier/pdfminer3k" docker/pdfminer3kdeb
+	docker run -i -v ${PWD}:/pdfminer3k andrewferrier/pdfminer3k sh -c 'cp /tmp/python3-pdfminer3k*.deb /pdfminer3k'
 
 builddocker: buildpdfminer3k
 	docker build -t andrewferrier/email2pdf .
@@ -36,10 +40,8 @@ coverage:
 	nosetests tests/test_Direct.py --with-coverage --cover-package=email2pdf --cover-erase --cover-html
 	open cover/email2pdf.html
 
+alltests: unittest stylecheck coverage
+
 clean:
 	rm -f *.deb
 	rm -f *.log
-
-buildpdfminer3k:
-	docker build -t "andrewferrier/pdfminer3k" docker/pdfminer3kdeb
-	docker run -i -v ${PWD}:/pdfminer3k andrewferrier/pdfminer3k sh -c 'cp /tmp/python3-pdfminer3k*.deb /pdfminer3k'
