@@ -13,7 +13,7 @@ builddeb: stylecheck
 	fakeroot chmod -R u+x $(TEMPDIR)/usr/bin
 	fakeroot dpkg-deb --build $(TEMPDIR) .
 
-builddocker:
+builddocker: buildpdfminer3k
 	docker build -t andrewferrier/email2pdf .
 
 rundocker_interactive: builddocker
@@ -39,3 +39,7 @@ coverage:
 clean:
 	rm -f *.deb
 	rm -f *.log
+
+buildpdfminer3k:
+	docker build -t "andrewferrier/pdfminer3k" docker/pdfminer3kdeb
+	docker run -i -v ${PWD}:/pdfminer3k andrewferrier/pdfminer3k sh -c 'cp /tmp/python3-pdfminer3k*.deb /pdfminer3k'
