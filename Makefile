@@ -14,13 +14,13 @@ builddeb: stylecheck
 	fakeroot dpkg-deb --build $(TEMPDIR) .
 
 builddocker:
-	docker build -t "email2pdf" .
+	docker build -t andrewferrier/email2pdf .
 
 rundocker_interactive: builddocker
-	docker run -i -t email2pdf /sbin/my_init -- bash -l
+	docker run -i -t andrewferrier/email2pdf /sbin/my_init -- bash -l
 
 rundocker_unittest: builddocker
-	docker run -i -t email2pdf /sbin/my_init -- bash -c 'cd /tmp/email2pdf && make unittest'
+	docker run -i -t andrewferrier/email2pdf /sbin/my_init -- bash -c 'cd /tmp/email2pdf && make unittest'
 
 unittest:
 	python3 -m unittest discover
