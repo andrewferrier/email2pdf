@@ -43,7 +43,7 @@ All the supplied build and packaging is based on a
 You'll need `make` if you don't have it (`sudo apt-get install make` on
 Ubuntu/Debian, `brew install make` on OS X).
 
-### Debian
+### Debian/Ubuntu
 
 Some basic Debian packaging is included. Simply run `make builddeb` to build a
 Debian package.
@@ -74,11 +74,14 @@ verbose, and stops on failing tests).
 There is a code coverage target in the Makefile. You'll need to have the
 `coverage` Python module installed (`pip3 install coverage`) to run it.
 
-### Debian
+### Debian/Ubuntu
 
 * Install all the package dependencies listed in the
   [`control`](https://github.com/andrewferrier/email2pdf/blob/master/debian/DEBIAN/control)
-  file.
+  file. In addition, to run the unit tests, you will need to install
+  `python3-reportlab` and `python3-pdfminer3k`. The second is not a standard
+  Debian/Ubuntu package, but there is a supplied Makefile target which will
+  create it for you using a Docker container - run `make buildpdfminer3k`.
 
 ### OSX
 
