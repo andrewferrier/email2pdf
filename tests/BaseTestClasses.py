@@ -254,14 +254,17 @@ class Email2PDFTestCase(unittest.TestCase):
     def getPDFText(self, filename):
         rsrcmgr = PDFResourceManager()
         with io.StringIO() as retstr:
-            device = TextConverter(rsrcmgr, retstr, laparams=LAParams())
-            fp = open(filename, 'rb')
-            pagenos = set()
-            process_pdf(rsrcmgr, device, fp, pagenos, maxpages=0, password="", caching=True, check_extractable=True)
-            fp.close()
-            device.close()
-            string = retstr.getvalue()
-            return string
+            try:
+                device = TextConverter(rsrcmgr, retstr, laparams=LAParams())
+                fp = open(filename, 'rb')
+                pagenos = set()
+                process_pdf(rsrcmgr, device, fp, pagenos, maxpages=0, password="", caching=True, check_extractable=True)
+                fp.close()
+                device.close()
+                string = retstr.getvalue()
+                return string
+            except:
+                return None
 
     def touch(self, fname):
         open(fname, 'w').close()
