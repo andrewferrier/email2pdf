@@ -44,6 +44,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename2)))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename3)))
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
 
     def test_plainNoBodyNoAttachments(self):
         self.addHeaders()
@@ -63,6 +64,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
 
     def test_htmlEntitiesCurrency(self):
         path = os.path.join(self.examineDir, "htmlEntitiesCurrency.pdf")
@@ -72,15 +74,17 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
+        self.assertRegex(self.getPDFText(path), "Pounds: £7.14, Another Pounds: £7.14")
 
     def test_plainandhtml(self):
         self.addHeaders()
         self.attachText("Some basic textual content")
-        self.attachHTML("<p>Some basic textual content</p>")
+        self.attachHTML("<p>Some basic HTML content</p>")
         (rc, output, error) = self.invokeAsSubprocess()
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic HTML content")
 
     def test_pdf(self):
         self.addHeaders()
@@ -91,6 +95,8 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some PDF content")
 
     def test_remoteImageDoesExist(self):
         if self.isOnline:
@@ -148,6 +154,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertFalse(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, pdfFileName)))
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, pdfFileName)), "Some PDF content")
 
     def test_embeddedImage(self):
         path = os.path.join(self.examineDir, "embeddedImage.pdf")
@@ -256,6 +263,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
 
     def test_nonEmbeddedImageJPEGAddPrefixDate(self):
         self.addHeaders()
@@ -266,6 +274,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, datetime.now().strftime("%Y-%m-%d-") + imageFilename)))
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
 
     def test_nonEmbeddedImagePNG(self):
         self.addHeaders()
@@ -276,6 +285,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
 
     def test_nonEmbeddedImageAndPDF(self):
         self.addHeaders()
@@ -288,6 +298,8 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some PDF content")
 
     def test_2pdfs(self):
         self.addHeaders()
@@ -302,6 +314,9 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename2)))
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some PDF content")
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename2)), "Some More PDF content")
 
     def test_pdf_exists(self):
         self.addHeaders()
@@ -320,6 +335,10 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         uniqueName = rootName + "_1.pdf"
 
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, uniqueName)))
+
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
+        self.assertIsNone(self.getPDFText(os.path.join(self.workingDir, filename)))
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, uniqueName)), "Some PDF content")
 
     def test_2pdfs_oneexists(self):
         self.addHeaders()
@@ -345,6 +364,11 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         uniqueName2 = rootName2 + "_1.pdf"
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, uniqueName2)))
 
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
+        self.assertIsNone(self.getPDFText(os.path.join(self.workingDir, filename)))
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, uniqueName)), "Some PDF content")
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename2)), "Some More PDF content")
+
     def test_pdf_adddate(self):
         self.addHeaders()
         self.attachText("Some basic textual content")
@@ -366,3 +390,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename3)))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename4)))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, datetime.now().strftime("%Y-%m-%d-") + filename)))
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename2)), "Some PDF content")
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename3)), "Some PDF content")
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename4)), "Some PDF content")
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, datetime.now().strftime("%Y-%m-%d-") + filename)), "Some PDF content")
