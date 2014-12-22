@@ -6,6 +6,9 @@ from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.utils import formatdate
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfinterp import PDFResourceManager, process_pdf
 from reportlab.pdfgen import canvas
 from subprocess import Popen, PIPE
 
@@ -247,6 +250,20 @@ class Email2PDFTestCase(unittest.TestCase):
                 return documentInfo[key]
             else:
                 return None
+
+    def getPDFText(self, filename):
+        try:
+            with io.StringIO() as retstr:
+                with open(filename, 'rb') as fp:
+                    rsrcmgr = PDFResourceManager()
+                    device = TextConverter(rsrcmgr, retstr, laparams=LAParams())
+                    pagenos = set()
+                    process_pdf(rsrcmgr, device, fp, pagenos, maxpages=0, password="", caching=True, check_extractable=True)
+                    device.close()
+                    string = retstr.getvalue()
+                    return string
+        except:
+            return None
 
     def touch(self, fname):
         open(fname, 'w').close()

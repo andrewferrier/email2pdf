@@ -61,6 +61,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
 
     def test_plaincontent_poundsign_iso88591(self):
         self.addHeaders()
@@ -70,6 +71,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
+        self.assertRegex(self.getPDFText(path), "Hello - this email costs \xa35!")
 
     def test_plaincontent_metadata(self):
         self.addHeaders()
@@ -83,6 +85,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual("to@example.org", self.getMetadataField(path, "X-email2pdf-To"))
         self.assertEqual("Subject of the email", self.getMetadataField(path, "Title"))
         self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
+        self.assertRegex(self.getPDFText(path), "Hello!")
 
     def test_plaincontent_metadata_differentmount(self):
         self.addHeaders("from@example.org")
@@ -95,6 +98,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
             self.assertEqual('', error)
             self.assertTrue(os.path.exists(path))
             self.assertEqual("from@example.org", self.getMetadataField(path, "Author"))
+            self.assertRegex(self.getPDFText(path), "Hello!")
         else:
             self.skipTest(mountPoint2 + " and " + tempfile.tempdir + " are on the same mountpoint, test not relevant.")
 
@@ -109,6 +113,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertIsNone(self.getMetadataField(path, "X-email2pdf-To"))
         self.assertEqual('', self.getMetadataField(path, "Title"))
         self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
+        self.assertRegex(self.getPDFText(path), "Hello!")
 
     def test_plaincontent_notrailingslash(self):
         self.setPlainContent("Hello!")
@@ -116,6 +121,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime("/tmp"))
+        self.assertRegex(self.getPDFText(self.getTimedFilename("/tmp/")), "Hello!")
 
     def test_plaincontent_trailingslash(self):
         self.setPlainContent("Hello!")
@@ -123,6 +129,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime("/tmp/"))
+        self.assertRegex(self.getPDFText(self.getTimedFilename("/tmp/")), "Hello!")
 
     def test_plaincontent_outputfileoverrides(self):
         filename = os.path.join(self.examineDir, "outputFileOverrides.pdf")
@@ -133,6 +140,7 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertFalse(self.existsByTime(pathname))
         self.assertTrue(os.path.exists(filename))
+        self.assertRegex(self.getPDFText(filename), "Hello!")
 
     def test_plaincontent_dirnotexist(self):
         self.setPlainContent("Hello!")
@@ -160,15 +168,21 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(os.path.join(self.workingDir, filename1))
         self.assertTrue(os.path.join(self.workingDir, filename2))
+        self.assertIsNone(self.getPDFText(os.path.join(self.workingDir, filename1)))
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename2)), "Hello!")
 
     def test_verbose(self):
         self.setPlainContent("Hello!")
         (rc, output, error) = self.invokeAsSubprocess(extraParams=['-v'])
         self.assertEqual(0, rc)
         self.assertNotEqual('', error)
+        self.assertTrue(self.existsByTime())
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
 
     def test_veryverbose(self):
         self.setPlainContent("Hello!")
         (rc, output, error) = self.invokeAsSubprocess(extraParams=['-vv'])
         self.assertEqual(0, rc)
         self.assertNotEqual('', error)
+        self.assertTrue(self.existsByTime())
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")

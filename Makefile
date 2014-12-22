@@ -1,6 +1,6 @@
 TEMPDIR := $(shell mktemp -t tmp.XXXXXX -d)
 
-builddeb: stylecheck
+builddeb:
 	sudo apt-get install build-essential
 	cp -R debian/DEBIAN/ $(TEMPDIR)
 	mkdir -p $(TEMPDIR)/usr/bin
@@ -13,14 +13,18 @@ builddeb: stylecheck
 	fakeroot chmod -R u+x $(TEMPDIR)/usr/bin
 	fakeroot dpkg-deb --build $(TEMPDIR) .
 
-builddocker:
-	docker build -t "email2pdf" .
+buildpdfminer3k:
+	docker build -t "andrewferrier/pdfminer3k" docker/pdfminer3kdeb
+	docker run -i -v ${PWD}:/pdfminer3k andrewferrier/pdfminer3k sh -c 'cp /tmp/python3-pdfminer3k*.deb /pdfminer3k'
+
+builddocker: buildpdfminer3k
+	docker build -t andrewferrier/email2pdf .
 
 rundocker_interactive: builddocker
-	docker run -i -t email2pdf /sbin/my_init -- bash -l
+	docker run -i -t andrewferrier/email2pdf /sbin/my_init -- bash -l
 
 rundocker_unittest: builddocker
-	docker run -i -t email2pdf /sbin/my_init -- bash -c 'cd /tmp/email2pdf && make unittest'
+	docker run -i -t andrewferrier/email2pdf /sbin/my_init -- bash -c 'cd /tmp/email2pdf && make unittest'
 
 unittest:
 	python3 -m unittest discover
@@ -35,6 +39,8 @@ coverage:
 	rm -r cover/
 	nosetests tests/test_Direct.py --with-coverage --cover-package=email2pdf --cover-erase --cover-html
 	open cover/email2pdf.html
+
+alltests: unittest stylecheck coverage
 
 clean:
 	rm -f *.deb

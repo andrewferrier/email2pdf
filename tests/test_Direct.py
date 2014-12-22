@@ -35,3 +35,8 @@ class Direct(BaseTestClasses.Email2PDFTestCase):
         error = self.invokeDirectly(extraParams=['--headers'])
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
+        pdfText = self.getPDFText(self.getTimedFilename())
+        self.assertRegex(pdfText, "Subject")
+        self.assertRegex(pdfText, "From")
+        self.assertRegex(pdfText, "To")
+        self.assertRegex(pdfText, "Hello")
