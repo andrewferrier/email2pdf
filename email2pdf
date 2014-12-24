@@ -34,7 +34,11 @@ MIME_TYPES_EXTENSIONS = set(['.pdf', '.jpeg', '.jpg', '.png'])
 def main(argv, sysLogHandler, sysErrHandler):
     logger = logging.getLogger('email2pdf')
 
-    parser = argparse.ArgumentParser(description="Converts emails to PDFs. " +
+    class ArgumentParser(argparse.ArgumentParser):
+        def error(self, message):
+            raise FatalException(message)
+
+    parser = ArgumentParser(description="Converts emails to PDFs. " +
                                      "See https://github.com/andrewferrier/email2pdf for more information.")
 
     parser.add_argument("-i", "--inputFile", default="-",
