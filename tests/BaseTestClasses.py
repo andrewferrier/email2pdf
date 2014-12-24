@@ -27,6 +27,9 @@ class Email2PDFTestCase(unittest.TestCase):
     isOnline = None
     examineDir = None
 
+    NONEXIST_IMG = 'http://www.andrewferrier.com/nonexist.jpg'
+    EXIST_IMG = 'https://raw.githubusercontent.com/andrewferrier/email2pdf/master/tests/basi2c16.png'
+
     def setUp(self):
         self.workingDir = tempfile.mkdtemp(dir='/tmp')
         self.command = os.path.normpath(os.path.join(os.getcwd(), 'email2pdf'))

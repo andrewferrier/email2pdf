@@ -102,7 +102,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         if self.isOnline:
             path = os.path.join(self.examineDir, "remoteImageDoesExist.pdf")
             self.addHeaders()
-            self.attachHTML('<img src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/basi2c16.png">')
+            self.attachHTML('<img src="' + self.EXIST_IMG + '">')
             (rc, output, error) = self.invokeAsSubprocess(outputFile=path)
             self.assertEqual(0, rc)
             self.assertEqual('', error)
@@ -114,7 +114,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         if self.isOnline:
             path = os.path.join(self.examineDir, "remoteImageDoesntExist.pdf")
             self.addHeaders()
-            self.attachHTML('<img src="http://abc.por/blah.jpg">')
+            self.attachHTML('<img src="' + self.NONEXIST_IMG + '">')
             (rc, output, error) = self.invokeAsSubprocess(outputFile=path)
             self.assertEqual(0, rc)
             self.assertTrue(os.path.exists(path))
@@ -125,7 +125,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
     def test_remoteImageDoesntExistWithPDF(self):
         if self.isOnline:
             self.addHeaders()
-            self.attachHTML('<img src="http://abc.por/blah.jpg">')
+            self.attachHTML('<img src="' + self.NONEXIST_IMG + '">')
             filename = self.attachPDF("Some PDF content")
             (rc, output, error) = self.invokeAsSubprocess()
             self.assertEqual(0, rc)
@@ -202,7 +202,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         if self.isOnline:
             self.addHeaders()
             imageFilename = self.attachImage('myid')
-            self.attachHTML('<p><img src="https://raw.githubusercontent.com/andrewferrier/email2pdf/master/basi2c16.png">' +
+            self.attachHTML('<p><img src="' + self.EXIST_IMG + '">' +
                             '<li></li><img src="cid:myid"></p>')
             (rc, output, error) = self.invokeAsSubprocess()
             self.assertEqual(0, rc)
