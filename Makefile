@@ -36,7 +36,7 @@ stylecheck:
 	flake8 --max-line-length=132 .
 
 coverage:
-	rm -r cover/
+	rm -rf cover/
 	nosetests tests/test_Direct.py --with-coverage --cover-package=email2pdf --cover-erase --cover-html
 	open cover/email2pdf.html
 
