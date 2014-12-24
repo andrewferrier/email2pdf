@@ -81,7 +81,7 @@ def main(argv, sysLogHandler, sysErrHandler):
     parser.set_defaults(body=True, attachments=True, headers=False)
     args = parser.parse_args(argv[1:])
 
-    if(sysLogHandler):
+    if sysLogHandler:
         if args.verbose > 1:
             sysLogHandler.setLevel(logging.DEBUG)
         elif args.verbose == 1:
