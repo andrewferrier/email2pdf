@@ -152,19 +152,6 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         finally:
             os.unlink(f_path)
 
-    def test_plaincontent_timedfileexist(self):
-        self.setPlainContent("Hello!")
-        filename1 = self.getTimeStamp(datetime.now()) + ".pdf"
-        filename2 = self.getTimeStamp(datetime.now()) + "_1.pdf"
-        self.touch(os.path.join(self.workingDir, filename1))
-        (rc, output, error) = self.invokeAsSubprocess()
-        self.assertEqual(0, rc)
-        self.assertEqual('', error)
-        self.assertTrue(os.path.join(self.workingDir, filename1))
-        self.assertTrue(os.path.join(self.workingDir, filename2))
-        self.assertIsNone(self.getPDFText(os.path.join(self.workingDir, filename1)))
-        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename2)), "Hello!")
-
     def test_verbose(self):
         self.setPlainContent("Hello!")
         (rc, output, error) = self.invokeAsSubprocess(extraParams=['-v'])

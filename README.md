@@ -78,14 +78,20 @@ There is a code coverage target in the Makefile. You'll need to have the
 
 * Install all the package dependencies listed in the
   [`control`](https://github.com/andrewferrier/email2pdf/blob/master/debian/DEBIAN/control)
-  file. In addition, to run the unit tests, you will need to install
-  `python3-reportlab` and `python3-pdfminer3k`. The second is not a standard
-  Debian/Ubuntu package, but there is a supplied Makefile target which will
-  create it for you using a Docker container - run `make buildpdfminer3k`.
+  file. In addition, to run the unit tests, you will need to install:
+
+  * `python3-freezegun` - only available in Ubuntu 14.10 onwards - see
+    http://packages.ubuntu.com/search?keywords=python3-freezegun.
+
+  * `python3-reportlab`
+
+  * `python3-pdfminer3k` (not a standard Debian/Ubuntu package, but there is a
+    supplied Makefile target which will create it for you using a Docker
+    container - run `make buildpdfminer3k`)
 
 ### OSX
 
 * Install [Homebrew](http://brew.sh/)
 * `brew install python3`
 * `brew install libmagic`
-* `pip3 install reportlab python-magic pypdf2 beautifulsoup4 lxml pdfminer3k`
+* `pip3 install beautifulsoup4 freezegun lxml pdfminer3k pypdf2 python-magic reportlab`
