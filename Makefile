@@ -14,11 +14,7 @@ builddeb:
 	fakeroot chmod -R u+x $(TEMPDIR)/usr/bin
 	fakeroot dpkg-deb --build $(TEMPDIR) .
 
-buildpdfminer3k:
-	docker build -t "andrewferrier/pdfminer3k" docker/pdfminer3kdeb
-	docker run -i -v ${PWD}:/pdfminer3k andrewferrier/pdfminer3k sh -c 'cp /tmp/python3-pdfminer3k*.deb /pdfminer3k'
-
-builddocker: buildpdfminer3k
+builddocker:
 	docker build -t andrewferrier/email2pdf .
 
 rundocker_interactive: builddocker
@@ -26,6 +22,9 @@ rundocker_interactive: builddocker
 
 rundocker_testing: builddocker
 	docker run -i -t andrewferrier/email2pdf /sbin/my_init -- bash -c 'cd /tmp/email2pdf && make unittest && make stylecheck'
+
+rundocker_getdebs: builddocker
+	docker run -i -v ${PWD}:/debs andrewferrier/email2pdf sh -c 'cp /tmp/*.deb /debs'
 
 unittest:
 	python3 -m unittest discover

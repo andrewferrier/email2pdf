@@ -53,13 +53,18 @@ Debian package.
 There is some experimental packaging for [Docker](https://www.docker.com/)
 also. You can run the following `make` targets:
 
-* `builddocker` - build a Docker image.
+* `builddocker` - build a Docker image, which can be used for testing,
+  development, etc.
 
 * `rundocker_interactive` - build and start a Docker image, at the `bash`
   prompt.
 
-* `rundocker_unittest` - build and start the Docker image, run the entire unit
-  test suite, and exit.
+* `rundocker_testing` - build and start the Docker image, run the entire unit
+  testing and style testing suites, and exit.
+
+* `rundocker_getdebs` - build and start the Docker image, and copy out various
+  `.debs`, including the `.deb` for email2pdf itself, and various dependencies
+  that are harder to come by or need to be built manually.
 
 ## Developing & Hacking
 
@@ -87,7 +92,7 @@ There is a code coverage target in the Makefile. You'll need to have the
 
   * `python3-pdfminer3k` (not a standard Debian/Ubuntu package, but there is a
     supplied Makefile target which will create it for you using a Docker
-    container - run `make buildpdfminer3k`)
+    container - run `make rundocker_getdebs`)
 
 ### OSX
 
