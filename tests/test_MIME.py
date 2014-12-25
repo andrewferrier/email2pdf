@@ -31,32 +31,6 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
 
-    def test_plainNoAttachments(self):
-        self.addHeaders()
-        self.attachText("Some basic textual content")
-        filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
-        filename2 = self.attachPDF("Some PDF content")
-        filename3 = self.attachImage()
-        (rc, output, error) = self.invokeAsSubprocess(extraParams=['--no-attachments'])
-        self.assertEqual(0, rc)
-        self.assertEqual('', error)
-        self.assertTrue(self.existsByTime())
-        self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename)))
-        self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename2)))
-        self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename3)))
-        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
-
-    def test_plainNoBodyNoAttachments(self):
-        self.addHeaders()
-        self.attachText("Some basic textual content")
-        self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
-        self.attachPDF("Some PDF content")
-        self.attachImage()
-        (rc, output, error) = self.invokeAsSubprocess(extraParams=['--no-body', '--no-attachments'])
-        self.assertNotEqual(0, rc)
-        self.assertFalse(self.existsByTime())
-        self.assertRegex(error, "attachments.*not allowed with.*body")
-
     def test_html(self):
         self.addHeaders()
         self.attachHTML("<p>Some basic textual content</p>")

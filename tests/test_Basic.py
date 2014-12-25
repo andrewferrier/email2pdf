@@ -142,12 +142,6 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(filename))
         self.assertRegex(self.getPDFText(filename), "Hello!")
 
-    def test_plaincontent_dirnotexist(self):
-        self.setPlainContent("Hello!")
-        (rc, output, error) = self.invokeAsSubprocess(outputDirectory="/notexist/")
-        self.assertEqual(2, rc)
-        self.assertRegex(error, "(?i)directory.*exist")
-
     def test_plaincontent_fileexist(self):
         self.setPlainContent("Hello!")
         unused_f_handle, f_path = tempfile.mkstemp()
