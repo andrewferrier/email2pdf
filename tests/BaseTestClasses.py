@@ -172,11 +172,13 @@ class Email2PDFTestCase(unittest.TestCase):
             log.addHandler(handler)
 
             self.timeInvoked = datetime.now()
-            email2pdf.main(options, None, handler)
-            self.timeCompleted = datetime.now()
 
-            log.removeHandler(handler)
-            handler.close()
+            try:
+                email2pdf.main(options, None, handler)
+            finally:
+                self.timeCompleted = datetime.now()
+                log.removeHandler(handler)
+                handler.close()
 
             error = stream.getvalue()
 
