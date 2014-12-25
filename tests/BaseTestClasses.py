@@ -98,7 +98,7 @@ class Email2PDFTestCase(unittest.TestCase):
         self.msg['Date'] = formatdate()
 
     def invokeAsSubprocess(self, inputFile=False, outputDirectory=None, outputFile=None, extraParams=[]):
-        bytesMessage = bytes(self.msg.as_string(), 'UTF-8')
+        bytesMessage = self.msg.as_bytes()
 
         options = [self.command]
 
@@ -149,9 +149,11 @@ class Email2PDFTestCase(unittest.TestCase):
         loader = importlib.machinery.SourceFileLoader('email2pdf', module_path)
         email2pdf = loader.load_module()
 
+        bytesMessage = self.msg.as_bytes()
+
         with tempfile.NamedTemporaryFile() as inputFile_handle:
             options = [module_path, '-i', inputFile_handle.name]
-            inputFile_handle.write(bytes(self.msg.as_string(), 'UTF-8'))
+            inputFile_handle.write(bytesMessage)
             inputFile_handle.flush()
 
             if outputDirectory:
