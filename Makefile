@@ -42,7 +42,3 @@ coverage:
 	open cover/email2pdf.html
 
 alltests: unittest stylecheck coverage
-
-clean:
-	rm -f *.deb
-	rm -f *.log
