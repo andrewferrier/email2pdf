@@ -30,10 +30,10 @@ class Email2PDFTestCase(unittest.TestCase):
 
     NONEXIST_IMG = 'http://www.andrewferrier.com/nonexist.jpg'
     EXIST_IMG = 'https://raw.githubusercontent.com/andrewferrier/email2pdf/master/tests/basi2c16.png'
+    COMMAND = os.path.normpath(os.path.join(os.getcwd(), 'email2pdf'))
 
     def setUp(self):
         self.workingDir = tempfile.mkdtemp(dir='/tmp')
-        self.command = os.path.normpath(os.path.join(os.getcwd(), 'email2pdf'))
         self.checkOnline()
         self.checkExamineDir()
 
@@ -99,7 +99,7 @@ class Email2PDFTestCase(unittest.TestCase):
     def invokeAsSubprocess(self, inputFile=False, outputDirectory=None, outputFile=None, extraParams=[]):
         bytesMessage = self.msg.as_bytes()
 
-        options = [self.command]
+        options = [Email2PDFTestCase.COMMAND]
 
         if inputFile:
             inputFile_handle = tempfile.NamedTemporaryFile()
