@@ -96,7 +96,7 @@ class Email2PDFTestCase(unittest.TestCase):
 
         self.msg['Date'] = formatdate()
 
-    def invokeAsSubprocess(self, inputFile=False, outputDirectory=None, outputFile=None, extraParams=[]):
+    def invokeAsSubprocess(self, inputFile=False, outputDirectory=None, outputFile=None, extraParams=[], expectOutput=False):
         bytesMessage = self.msg.as_bytes()
 
         options = [Email2PDFTestCase.COMMAND]
@@ -135,7 +135,10 @@ class Email2PDFTestCase(unittest.TestCase):
         output = str(output, "utf-8")
         error = str(error, "utf-8")
 
-        self.assertEqual("", output)
+        if expectOutput:
+            self.assertNotEqual("", output)
+        else:
+            self.assertEqual("", output)
 
         if inputFile:
             inputFile_handle.close()

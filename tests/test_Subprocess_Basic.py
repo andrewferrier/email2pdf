@@ -11,6 +11,17 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         super(TestBasic, self).setUp()
         self.msg = Message()
 
+    def test_help(self):
+        (rc, output, error) = self.invokeAsSubprocess(extraParams=['--help'], expectOutput=True)
+        self.assertEqual(0, rc)
+        self.assertRegex(output, 'usage:')
+        self.assertEqual(error, '')
+
+    def test_invalid_option(self):
+        (rc, output, error) = self.invokeAsSubprocess(extraParams=['--invalid-option'])
+        self.assertEqual(2, rc)
+        self.assertRegex(error, 'ERROR: unrecognized.*')
+
     def test_dontPrintBody(self):
         (rc, output, error) = self.invokeAsSubprocess(extraParams=['--no-body'])
         self.assertEqual(1, rc)
