@@ -49,16 +49,14 @@ class Email2PDFTestCase(unittest.TestCase):
         if Email2PDFTestCase.isOnline is None:
             print("Checking if online... ", end="")
             sys.stdout.flush()
-            ONLINE_URL = "https://raw.githubusercontent.com/andrewferrier/email2pdf/master"
             try:
-                requests.get(ONLINE_URL, timeout=1)
+                r = requests.get(Email2PDFTestCase.EXIST_IMG, headers={'Connection': 'close'})
+                r.raise_for_status()
                 Email2PDFTestCase.isOnline = True
                 print("Yes.")
-            except requests.exceptions.RequestException:
+            except Exception as e:
                 Email2PDFTestCase.isOnline = False
-                print("No.")
-
-        return Email2PDFTestCase.isOnline
+                print("No (" + str(e) + ")")
 
     def getOriginalScriptPath(self):
         module_path = inspect.getfile(inspect.currentframe())
