@@ -4,6 +4,7 @@ from datetime import timedelta
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate
 from pdfminer.converter import TextConverter
@@ -186,15 +187,24 @@ class Email2PDFTestCase(unittest.TestCase):
             return error
 
     def setPlainContent(self, content, charset='UTF-8'):
-        self.msg.set_default_type("text/plain")
-        self.msg.set_payload(content)
-        self.msg.set_charset(charset)
+        if isinstance(self.msg, MIMEMultipart):
+            raise Exception("Cannot call setPlainContent() on a MIME-based message.")
+        else:
+            self.msg.set_default_type("text/plain")
+            self.msg.set_payload(content)
+            self.msg.set_charset(charset)
 
     def attachHTML(self, content):
-        self.msg.attach(MIMEText(content, 'html'))
+        if not isinstance(self.msg, MIMEMultipart):
+            raise Exception("Cannot call attachHTML() on a MIME-based message.")
+        else:
+            self.msg.attach(MIMEText(content, 'html'))
 
     def attachText(self, content):
-        self.msg.attach(MIMEText(content, 'plain'))
+        if not isinstance(self.msg, MIMEMultipart):
+            raise Exception("Cannot call attachText() on a MIME-based message.")
+        else:
+            self.msg.attach(MIMEText(content, 'plain'))
 
     def attachPDF(self, string, filePrefix="email2pdf_unittest_file",
                   extension="pdf", mainContentType="application", subContentType="pdf"):
