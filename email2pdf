@@ -398,6 +398,7 @@ class FatalException(Exception):
 
 if __name__ == "__main__":
     logger = logging.getLogger("email2pdf")
+    logger.propagate = False
     logger.setLevel(logging.DEBUG)
 
     if _platform == "linux" or _platform == "linux2":

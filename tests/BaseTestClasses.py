@@ -169,6 +169,7 @@ class Email2PDFTestCase(unittest.TestCase):
             stream = io.StringIO()
             handler = logging.StreamHandler(stream)
             log = logging.getLogger('email2pdf')
+            log.propagate = False
             log.addHandler(handler)
 
             self.timeInvoked = datetime.now()
