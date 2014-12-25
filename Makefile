@@ -1,4 +1,5 @@
 TEMPDIR := $(shell mktemp -t tmp.XXXXXX -d)
+FLAKE8 := $(shell which flake8)
 
 builddeb:
 	sudo apt-get install build-essential
@@ -23,8 +24,8 @@ builddocker: buildpdfminer3k
 rundocker_interactive: builddocker
 	docker run -i -t andrewferrier/email2pdf /sbin/my_init -- bash -l
 
-rundocker_unittest: builddocker
-	docker run -i -t andrewferrier/email2pdf /sbin/my_init -- bash -c 'cd /tmp/email2pdf && make unittest'
+rundocker_testing: builddocker
+	docker run -i -t andrewferrier/email2pdf /sbin/my_init -- bash -c 'cd /tmp/email2pdf && make unittest && make stylecheck'
 
 unittest:
 	python3 -m unittest discover
@@ -33,7 +34,8 @@ unittest_test:
 	python3 -m unittest discover -f -v
 
 stylecheck:
-	flake8 --max-line-length=132 .
+	# Debian version is badly packaged, make sure we are using Python 3.
+	/usr/bin/env python3 $(FLAKE8) --max-line-length=132 .
 
 coverage:
 	rm -rf cover/
