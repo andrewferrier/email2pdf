@@ -1,4 +1,3 @@
-from datetime import datetime
 from email.message import Message
 
 import os

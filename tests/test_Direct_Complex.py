@@ -3,7 +3,6 @@ from email.message import Message
 from freezegun import freeze_time
 
 import os
-import tempfile
 
 from tests import BaseTestClasses
 
