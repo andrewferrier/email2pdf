@@ -25,7 +25,7 @@ class TestMIME(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
 
     def test_nosubject(self):
-        self.addHeaders("from@example.org", "to@example.org", None)
+        self.addHeaders(Email2PDFTestCase.DEFAULT_FROM, Email2PDFTestCase.DEFAULT_TO, None)
         (rc, output, error) = self.invokeAsSubprocess()
         self.assertEqual(0, rc)
         self.assertEqual('', error)

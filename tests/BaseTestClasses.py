@@ -32,6 +32,10 @@ class Email2PDFTestCase(unittest.TestCase):
     EXIST_IMG = 'https://raw.githubusercontent.com/andrewferrier/email2pdf/master/tests/basi2c16.png'
     COMMAND = os.path.normpath(os.path.join(os.getcwd(), 'email2pdf'))
 
+    DEFAULT_FROM = "from@example.org"
+    DEFAULT_TO = "to@example.org"
+    DEFAULT_SUBJECT = "Subject of the email"
+
     def setUp(self):
         self.workingDir = tempfile.mkdtemp(dir='/tmp')
         self.checkOnline()
@@ -84,7 +88,7 @@ class Email2PDFTestCase(unittest.TestCase):
 
         return None
 
-    def addHeaders(self, frm="from@example.org", to="to@example.org", subject="Subject of the email"):
+    def addHeaders(self, frm=DEFAULT_FROM, to=DEFAULT_TO, subject=DEFAULT_SUBJECT):
         if(subject):
             self.msg['Subject'] = subject
 

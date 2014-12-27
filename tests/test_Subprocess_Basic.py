@@ -3,10 +3,10 @@ from email.message import Message
 import os
 import tempfile
 
-from tests import BaseTestClasses
+from tests.BaseTestClasses import Email2PDFTestCase
 
 
-class TestBasic(BaseTestClasses.Email2PDFTestCase):
+class TestBasic(Email2PDFTestCase):
     def setUp(self):
         super(TestBasic, self).setUp()
         self.msg = Message()
@@ -48,17 +48,8 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
 
-    def test_withinputfile_metadata(self):
-        self.addHeaders()
-        (rc, output, error) = self.invokeAsSubprocess(inputFile=True)
-        self.assertEqual(0, rc)
-        self.assertEqual('', error)
-        timedFilename = self.getTimedFilename()
-        self.assertTrue(os.path.exists(timedFilename))
-        self.assertEqual("from@example.org", self.getMetadataField(timedFilename, "Author"))
-
     def test_nosubject(self):
-        self.addHeaders("from@example.org", "to@example.org", None)
+        self.addHeaders(Email2PDFTestCase.DEFAULT_FROM, Email2PDFTestCase.DEFAULT_TO, None)
         (rc, output, error) = self.invokeAsSubprocess()
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
@@ -82,48 +73,6 @@ class TestBasic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
         self.assertRegex(self.getPDFText(path), "Hello - this email costs \xa35!")
-
-    def test_plaincontent_metadata(self):
-        self.addHeaders()
-        self.setPlainContent("Hello!")
-        path = os.path.join(self.examineDir, "plaincontent_metadata.pdf")
-        (rc, output, error) = self.invokeAsSubprocess(outputFile=path)
-        self.assertEqual(0, rc)
-        self.assertEqual('', error)
-        self.assertTrue(os.path.exists(path))
-        self.assertEqual("from@example.org", self.getMetadataField(path, "Author"))
-        self.assertEqual("to@example.org", self.getMetadataField(path, "X-email2pdf-To"))
-        self.assertEqual("Subject of the email", self.getMetadataField(path, "Title"))
-        self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
-        self.assertRegex(self.getPDFText(path), "Hello!")
-
-    def test_plaincontent_metadata_differentmount(self):
-        self.addHeaders("from@example.org")
-        self.setPlainContent("Hello!")
-        mountPoint2 = tempfile.mkdtemp(dir='/var/tmp')
-        if(self.find_mount_point(mountPoint2) != self.find_mount_point(tempfile.tempdir)):
-            path = os.path.join(mountPoint2, "plaincontent_metadata_differentmount.pdf")
-            (rc, output, error) = self.invokeAsSubprocess(outputFile=path)
-            self.assertEqual(0, rc)
-            self.assertEqual('', error)
-            self.assertTrue(os.path.exists(path))
-            self.assertEqual("from@example.org", self.getMetadataField(path, "Author"))
-            self.assertRegex(self.getPDFText(path), "Hello!")
-        else:
-            self.skipTest(mountPoint2 + " and " + tempfile.tempdir + " are on the same mountpoint, test not relevant.")
-
-    def test_noheaders_metadata(self):
-        self.setPlainContent("Hello!")
-        path = os.path.join(self.examineDir, "plaincontent_noheaders_metadata.pdf")
-        (rc, output, error) = self.invokeAsSubprocess(outputFile=path)
-        self.assertEqual(0, rc)
-        self.assertEqual('', error)
-        self.assertTrue(os.path.exists(path))
-        self.assertIsNone(self.getMetadataField(path, "Author"))
-        self.assertIsNone(self.getMetadataField(path, "X-email2pdf-To"))
-        self.assertEqual('', self.getMetadataField(path, "Title"))
-        self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
-        self.assertRegex(self.getPDFText(path), "Hello!")
 
     def test_plaincontent_notrailingslash(self):
         self.setPlainContent("Hello!")
