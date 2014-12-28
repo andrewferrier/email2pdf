@@ -11,6 +11,13 @@ class TestBasic(Email2PDFTestCase):
         super(TestBasic, self).setUp()
         self.msg = Message()
 
+    def test_simple(self):
+        self.addHeaders()
+        (rc, output, error) = self.invokeAsSubprocess()
+        self.assertEqual(0, rc)
+        self.assertTrue(self.existsByTime())
+        self.assertEqual('', error)
+
     def test_help(self):
         (rc, output, error) = self.invokeAsSubprocess(extraParams=['--help'], expectOutput=True)
         self.assertEqual(0, rc)
@@ -22,20 +29,13 @@ class TestBasic(Email2PDFTestCase):
         self.assertEqual(2, rc)
         self.assertRegex(error, 'ERROR: unrecognized.*')
 
-    def test_dontPrintBody(self):
+    def test_dont_print_body(self):
         (rc, output, error) = self.invokeAsSubprocess(extraParams=['--no-body'])
         self.assertEqual(1, rc)
         self.assertFalse(self.existsByTime())
         self.assertRegex(error, "body.*or.*attachments")
 
-    def test_noheaders(self):
-        (rc, output, error) = self.invokeAsSubprocess()
-        self.assertEqual(0, rc)
-        self.assertTrue(self.existsByTime())
-        self.assertEqual('', error)
-
-    def test_simple(self):
-        self.addHeaders()
+    def test_no_message_headers(self):
         (rc, output, error) = self.invokeAsSubprocess()
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
@@ -84,7 +84,7 @@ class TestBasic(Email2PDFTestCase):
 
     def test_plaincontent_trailingslash(self):
         self.setPlainContent("Hello!")
-        (rc, output, error) = self.invokeAsSubprocess(outputDirectory="/tmp")
+        (rc, output, error) = self.invokeAsSubprocess(outputDirectory="/tmp/")
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime("/tmp/"))
