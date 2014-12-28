@@ -40,7 +40,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
 
-    def test_htmlEntitiesCurrency(self):
+    def test_html_entities_currency(self):
         path = os.path.join(self.examineDir, "htmlEntitiesCurrency.pdf")
         self.addHeaders()
         self.attachHTML(b'<span>Pounds: \xc2\xa37.14, Another Pounds: &#163;7.14</span>'.decode('utf-8'))
@@ -72,7 +72,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some PDF content")
 
-    def test_remoteImageDoesExist(self):
+    def test_remote_image_does_exist(self):
         if self.isOnline:
             path = os.path.join(self.examineDir, "remoteImageDoesExist.pdf")
             self.addHeaders()
@@ -84,7 +84,7 @@ class TestMIME(Email2PDFTestCase):
         else:
             self.skipTest("Not online.")
 
-    def test_nonEmbeddedImageJPEG(self):
+    def test_non_embedded_image_jpeg(self):
         self.addHeaders()
         self.attachText("Hello!")
         imageFilename = self.attachImage(jpeg=True)
@@ -95,7 +95,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
 
-    def test_nonEmbeddedImageJPEGAddPrefixDate(self):
+    def test_non_embedded_image_jpeg_add_prefix_date(self):
         self.addHeaders()
         self.attachText("Hello!")
         imageFilename = self.attachImage(jpeg=True)
@@ -106,7 +106,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, datetime.now().strftime("%Y-%m-%d-") + imageFilename)))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
 
-    def test_nonEmbeddedImagePNG(self):
+    def test_non_embedded_image_png(self):
         self.addHeaders()
         self.attachText("Hello!")
         imageFilename = self.attachImage(jpeg=False)
@@ -117,7 +117,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
 
-    def test_nonEmbeddedImageAndPDF(self):
+    def test_non_embedded_image_and_pdf(self):
         self.addHeaders()
         self.attachText("Hello!")
         imageFilename = self.attachImage()
