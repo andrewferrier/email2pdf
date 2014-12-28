@@ -3,10 +3,10 @@ from email.mime.multipart import MIMEMultipart
 
 import os
 
-from tests import BaseTestClasses
+from tests.BaseTestClasses import Email2PDFTestCase
 
 
-class TestMIME(BaseTestClasses.Email2PDFTestCase):
+class TestMIME(Email2PDFTestCase):
     def setUp(self):
         super(TestMIME, self).setUp()
         self.msg = MIMEMultipart()
