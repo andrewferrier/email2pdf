@@ -1,4 +1,3 @@
-from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 
 import os

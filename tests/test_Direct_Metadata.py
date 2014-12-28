@@ -1,4 +1,3 @@
-from datetime import datetime
 from email.message import Message
 
 import os
@@ -56,6 +55,7 @@ class Direct_Metadata(Email2PDFTestCase):
         self.setPlainContent("Hello!")
         path = os.path.join(self.examineDir, "plaincontent_noheaders_metadata.pdf")
         error = self.invokeDirectly(outputFile=path)
+        self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
         self.assertIsNone(self.getMetadataField(path, "Author"))
         self.assertIsNone(self.getMetadataField(path, "X-email2pdf-To"))
