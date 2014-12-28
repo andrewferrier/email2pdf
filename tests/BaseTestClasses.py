@@ -17,6 +17,7 @@ import io
 import logging
 import inspect
 import os
+import os.path
 import requests
 import shutil
 import sys
@@ -35,6 +36,12 @@ class Email2PDFTestCase(unittest.TestCase):
     DEFAULT_FROM = "from@example.org"
     DEFAULT_TO = "to@example.org"
     DEFAULT_SUBJECT = "Subject of the email"
+
+    JPG_FILENAME = 'tests/jpeg444.jpg'
+    PNG_FILENAME = 'tests/basi2c16.png'
+
+    JPG_SIZE = os.path.getsize(JPG_FILENAME)
+    PNG_SIZE = os.path.getsize(PNG_FILENAME)
 
     def setUp(self):
         self.workingDir = tempfile.mkdtemp(dir='/tmp')
@@ -231,10 +238,10 @@ class Email2PDFTestCase(unittest.TestCase):
 
     def attachImage(self, content_id=None, jpeg=True, content_type=None, inline=False, extension=None):
         if jpeg:
-            realFilename = 'tests/jpeg444.jpg'
+            realFilename = self.JPG_FILENAME
             fileSuffix = 'jpg' if not extension else extension
         else:
-            realFilename = 'tests/basi2c16.png'
+            realFilename = self.PNG_FILENAME
             fileSuffix = 'png' if not extension else extension
 
         unused_f_handle, file_name = tempfile.mkstemp(prefix="email2pdf_unittest_image", suffix="." + fileSuffix)
