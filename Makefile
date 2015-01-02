@@ -21,10 +21,10 @@ rundocker_interactive: builddocker
 	docker run -i -t andrewferrier/email2pdf /sbin/my_init -- bash -l
 
 rundocker_testing: builddocker
-	docker run -i -t andrewferrier/email2pdf /sbin/my_init -- bash -c 'cd /tmp/email2pdf && make unittest && make stylecheck'
+	docker run -t andrewferrier/email2pdf /sbin/my_init -- bash -c 'cd /tmp/email2pdf && make unittest && make stylecheck'
 
 rundocker_getdebs: builddocker
-	docker run -i -v ${PWD}:/debs andrewferrier/email2pdf sh -c 'cp /tmp/*.deb /debs'
+	docker run -v ${PWD}:/debs andrewferrier/email2pdf sh -c 'cp /tmp/*.deb /debs'
 
 unittest:
 	python3 -m unittest discover
