@@ -169,12 +169,16 @@ def handle_message_body(input_email, header_info):
             raise FatalException("Cannot find an appropriate payload in email.")
         else:
             payload = part.get_payload(decode=True)
-            charset = input_email.get_content_charset()
+            charset = part.get_content_charset()
+            if not charset:
+                charset = 'utf-8'
             logger.info("Determined email is plain text with charset " + str(charset))
-            payload = bytes("<html><body><pre>\n", 'UTF-8') + payload + bytes("\n</pre></body></html>", 'UTF-8')
+            payload = "<html><body><pre>\n" + str(payload, charset) + "\n</pre></body></html>"
     else:
         payload = part.get_payload(decode=True)
-        charset = part.get_charset()
+        charset = part.get_content_charset()
+        if not charset:
+            charset = 'utf-8'
         logger.info("Determined email is HTML with charset " + str(charset))
 
         def cid_replace(cid_parts_used, matchobj):
@@ -192,17 +196,10 @@ def handle_message_body(input_email, header_info):
                 warning("Could not find image cid " + matchobj.group(1) + " in email content.")
                 return "broken"
 
-        payload = bytes(re.sub('cid:([\w_-]+)', functools.partial(cid_replace, cid_parts_used),
-                               str(payload, encoding='utf-8')), 'UTF-8')
+        payload = re.sub('cid:([\w_-]+)', functools.partial(cid_replace, cid_parts_used),
+                               str(payload, charset))
 
-    payload = bytes(header_info, 'UTF-8') + payload
-
-    if not charset:
-        charset = 'UTF-8'
-
-    payload = str(payload, charset)
-
-    return (payload, cid_parts_used)
+    return (header_info + payload, cid_parts_used)
 
 
 def output_body_pdf(input_email, payload, output_file_name):

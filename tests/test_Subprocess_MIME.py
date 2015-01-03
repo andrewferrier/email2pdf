@@ -50,6 +50,26 @@ class TestMIME(Email2PDFTestCase):
         self.assertTrue(os.path.exists(path))
         self.assertRegex(self.getPDFText(path), "Pounds: £7.14, Another Pounds: £7.14")
 
+    def test_html_poundsign_iso88591(self):
+        self.addHeaders()
+        path = os.path.join(self.examineDir, "html_poundsign_iso88591.pdf")
+        self.attachHTML("Hello - this email costs \xa35!", charset="ISO-8859-1")
+        (rc, output, error) = self.invokeAsSubprocess(outputFile=path)
+        self.assertEqual(0, rc)
+        self.assertEqual('', error)
+        self.assertTrue(os.path.exists(path))
+        self.assertRegex(self.getPDFText(path), "Hello - this email costs \xa35!")
+
+    def test_text_poundsign_iso88591(self):
+        self.addHeaders()
+        path = os.path.join(self.examineDir, "text_poundsign_iso88591.pdf")
+        self.attachText("Hello - this email costs \xa35!", charset="ISO-8859-1")
+        (rc, output, error) = self.invokeAsSubprocess(outputFile=path)
+        self.assertEqual(0, rc)
+        self.assertEqual('', error)
+        self.assertTrue(os.path.exists(path))
+        self.assertRegex(self.getPDFText(path), "Hello - this email costs \xa35!")
+
     def test_plainandhtml(self):
         self.addHeaders()
         self.attachText("Some basic textual content")

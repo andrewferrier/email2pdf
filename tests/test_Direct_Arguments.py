@@ -47,12 +47,13 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(self.existsByTime())
 
     def test_headers(self):
+        path = os.path.join(self.examineDir, "headers.pdf")
         self.addHeaders()
         self.attachText("Hello!")
-        error = self.invokeDirectly(extraParams=['--headers'])
+        error = self.invokeDirectly(outputFile=path, extraParams=['--headers'])
         self.assertEqual('', error)
-        self.assertTrue(self.existsByTime())
-        pdfText = self.getPDFText(self.getTimedFilename())
+        self.assertTrue(os.path.exists(path))
+        pdfText = self.getPDFText(path)
         self.assertRegex(pdfText, "Subject")
         self.assertRegex(pdfText, "From")
         self.assertRegex(pdfText, "To")
