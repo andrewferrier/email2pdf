@@ -132,6 +132,14 @@ def main(argv, sysLogHandler, sysErrHandler):
 
     input_email = email.message_from_string(data)
 
+    # See https://docs.python.org/3/library/email.message.html. I've never
+    # seen this defects array get populated in the wild, so I'm not 100% sure
+    # it's being checked for correctly. But since it's hard to prove a
+    # negative, I'm leaving it here for safety.
+    assert(not input_email.defects)
+    for part in input_email.walk():
+        assert(not part.defects)
+
     if args.headers:
         header_info = get_formatted_header_info(input_email)
         logger.info("Header info is: " + header_info)
