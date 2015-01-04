@@ -255,8 +255,8 @@ class Email2PDFTestCase(unittest.TestCase):
             realFilename = self.PNG_FILENAME
             fileSuffix = 'png' if not extension else extension
 
-        unused_f_handle, file_name = tempfile.mkstemp(prefix="email2pdf_unittest_image", suffix="." + fileSuffix)
-        unused_path, basic_file_name = os.path.split(file_name)
+        with tempfile.NamedTemporaryFile(prefix="email2pdf_unittest_image", suffix="." + fileSuffix) as temp_file:
+            unused_path, basic_file_name = os.path.split(temp_file.name)
 
         with open(realFilename, 'rb') as image_file:
             image = MIMEImage(image_file.read())
