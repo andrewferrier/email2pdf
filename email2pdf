@@ -214,6 +214,8 @@ def output_body_pdf(input_email, payload, output_file_name):
     p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore',
                '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = p.communicate(input=payload)
+    assert(output == b'')
+    assert(error == b'')
     if p.returncode > 0:
         raise FatalException("wkhtmltopdf failed with exit code " + str(p.returncode) + ", error: " + str(error, 'utf-8'))
 
