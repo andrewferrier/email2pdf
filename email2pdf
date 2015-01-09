@@ -26,9 +26,7 @@ HEADER_MAPPING = {'Author': 'From',
                   'Title': 'Subject',
                   'X-email2pdf-To': 'To'}
 
-MIME_TYPES_ATTACHMENTS = set(['application/pdf', 'image/jpeg', 'image/png'])
-
-MIME_TYPES_EXTENSIONS = set(['.pdf', '.jpeg', '.jpg', '.png'])
+MIME_TYPES_BLACKLIST = set(['text/html', 'text/plain'])
 
 
 def main(argv, sysLogHandler, sysErrHandler):
@@ -348,20 +346,11 @@ def find_all_attachments(message, parts_to_ignore):
     parts = set()
 
     for part in message.walk():
-        if part not in parts_to_ignore:
-            if part.get_content_type() in MIME_TYPES_ATTACHMENTS:
-                parts.add(part)
-            elif not part.is_multipart():
-                mime_type_from_payload = get_mime_type(part.get_payload(decode=True))
-
-                if mime_type_from_payload in MIME_TYPES_ATTACHMENTS:
-                    parts.add(part)
-            else:
+        if part not in parts_to_ignore and not part.is_multipart():
+            if part.get_content_type() not in MIME_TYPES_BLACKLIST:
                 filename = extract_part_filename(part)
-                if filename is not None:
-                    unused_base, ext = os.path.splitext(filename)
-                    if ext.lower() in MIME_TYPES_EXTENSIONS:
-                        parts.add(part)
+                assert(filename is not None)
+                parts.add(part)
 
     return parts
 

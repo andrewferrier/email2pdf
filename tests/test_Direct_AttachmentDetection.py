@@ -83,6 +83,17 @@ class AttachmentDetection(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
 
+    def test_word_document(self):
+        self.addHeaders()
+        self.attachText("Some basic textual content")
+        self.attachAttachment("application", "vnd.openxmlformats-officedocument.wordprocessingml.document",
+                              "Word document content", "somefile.docx")
+        error = self.invokeDirectly()
+        self.assertEqual('', error)
+        self.assertTrue(self.existsByTime())
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, "somefile.docx")))
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
+
     def test_unidentified_file(self):
         self.addHeaders()
         self.attachText("Some basic textual content")
@@ -90,5 +101,5 @@ class AttachmentDetection(Email2PDFTestCase):
         error = self.invokeDirectly()
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
-        self.assertFalse(os.path.exists(os.path.join(self.workingDir, "somefile.xyz")))
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, "somefile.xyz")))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
