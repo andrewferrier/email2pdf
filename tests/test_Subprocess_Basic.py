@@ -64,6 +64,15 @@ class TestBasic(Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
 
+    def test_plaincontent_upsidedown(self):
+        self.addHeaders()
+        self.setPlainContent("ɯɐɹƃoɹd ɟpdᄅlᴉɐɯǝ ǝɥʇ ɟo ʇsǝʇ ɐ sᴉ sᴉɥʇ ollǝH")
+        (rc, output, error) = self.invokeAsSubprocess()
+        self.assertEqual(0, rc)
+        self.assertTrue(self.existsByTime())
+        self.assertEqual('', error)
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "ɯɐɹƃoɹd ɟpdᄅlᴉɐɯǝ ǝɥʇ ɟo ʇsǝʇ ɐ sᴉ sᴉɥʇ ollǝH")
+
     def test_plaincontent_poundsign_iso88591(self):
         self.addHeaders()
         path = os.path.join(self.examineDir, "plaincontent_poundsign_iso88591.pdf")

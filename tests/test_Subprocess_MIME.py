@@ -40,6 +40,24 @@ class TestMIME(Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
 
+    def test_attachtext_upsidedown(self):
+        self.addHeaders()
+        self.attachText("ɯɐɹƃoɹd ɟpdᄅlᴉɐɯǝ ǝɥʇ ɟo ʇsǝʇ ɐ sᴉ sᴉɥʇ ollǝH")
+        (rc, output, error) = self.invokeAsSubprocess()
+        self.assertEqual(0, rc)
+        self.assertTrue(self.existsByTime())
+        self.assertEqual('', error)
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "ɯɐɹƃoɹd ɟpdᄅlᴉɐɯǝ ǝɥʇ ɟo ʇsǝʇ ɐ sᴉ sᴉɥʇ ollǝH")
+
+    def test_attachhtml_upsidedown(self):
+        self.addHeaders()
+        self.attachHTML("<p>ɯɐɹƃoɹd ɟpdᄅlᴉɐɯǝ ǝɥʇ ɟo ʇsǝʇ ɐ sᴉ sᴉɥʇ ollǝH</p>")
+        (rc, output, error) = self.invokeAsSubprocess()
+        self.assertEqual(0, rc)
+        self.assertTrue(self.existsByTime())
+        self.assertEqual('', error)
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "ɯɐɹƃoɹd ɟpdᄅlᴉɐɯǝ ǝɥʇ ɟo ʇsǝʇ ɐ sᴉ sᴉɥʇ ollǝH")
+
     def test_html_entities_currency(self):
         path = os.path.join(self.examineDir, "htmlEntitiesCurrency.pdf")
         self.addHeaders()
