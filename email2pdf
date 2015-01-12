@@ -51,8 +51,9 @@ def main(argv, sysLogHandler, sysErrHandler):
                         "the file in the directory specified by --outputDirectory.")
 
     parser.add_argument("-d", "--outputDirectory", default=os.getcwd(),
-                        help="Output directory when --outputFile is not specified. Defaults to the "
-                        "current directory.")
+                        help="Output directory for body PDF file when --outputFile is not specified. Defaults to the "
+                        "current directory. Also used as the directory in which attachments are stored (even if -o is "
+                        "specified).")
 
     body_attachment_options = parser.add_mutually_exclusive_group()
 

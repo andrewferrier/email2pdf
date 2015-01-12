@@ -2,6 +2,7 @@ from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 
 import os
+import tempfile
 
 from tests.BaseTestClasses import Email2PDFTestCase
 
@@ -109,6 +110,25 @@ class TestMIME(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some PDF content")
+
+    def test_plaincontent_outputfileoverrides_with_attachments(self):
+        mainFilename = os.path.join(self.examineDir, "outputFileOverridesWithAttachments.pdf")
+        self.attachText("Hello!")
+        attachmentFilename = self.attachPDF("Some PDF content")
+        with tempfile.TemporaryDirectory() as tempdir:
+            (rc, output, error) = self.invokeAsSubprocess(outputDirectory=tempdir, outputFile=mainFilename)
+            self.assertEqual(0, rc)
+            self.assertEqual('', error)
+            self.assertFalse(self.existsByTime())
+            self.assertFalse(self.existsByTime(tempdir))
+            self.assertFalse(os.path.exists(os.path.join(tempdir, "outputFileOverrides.pdf")))
+            self.assertFalse(os.path.exists(os.path.join(self.workingDir, "outputFileOverrides.pdf")))
+            self.assertTrue(os.path.exists(mainFilename))
+            self.assertFalse(os.path.exists(os.path.join(self.examineDir, attachmentFilename)))
+            self.assertFalse(os.path.exists(os.path.join(self.workingDir, attachmentFilename)))
+            self.assertTrue(os.path.exists(os.path.join(tempdir, attachmentFilename)))
+            self.assertRegex(self.getPDFText(mainFilename), "Hello!")
+            self.assertRegex(self.getPDFText(os.path.join(tempdir, attachmentFilename)), "Some PDF content")
 
     def test_remote_image_does_exist(self):
         if self.isOnline:
