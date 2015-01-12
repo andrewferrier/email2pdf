@@ -38,18 +38,18 @@ class Direct_Metadata(Email2PDFTestCase):
     def test_plaincontent_metadata_differentmount(self):
         self.addHeaders()
         self.setPlainContent("Hello!")
-        mountPoint2 = tempfile.mkdtemp(dir='/var/tmp')
-        if(self.find_mount_point(mountPoint2) != self.find_mount_point(tempfile.tempdir)):
-            path = os.path.join(mountPoint2, "plaincontent_metadata_differentmount.pdf")
-            error = self.invokeDirectly(outputFile=path)
-            self.assertEqual('', error)
-            self.assertTrue(os.path.exists(path))
-            self.assertEqual(Email2PDFTestCase.DEFAULT_FROM, self.getMetadataField(path, "Author"))
-            self.assertEqual(Email2PDFTestCase.DEFAULT_TO, self.getMetadataField(path, "X-email2pdf-To"))
-            self.assertEqual(Email2PDFTestCase.DEFAULT_SUBJECT, self.getMetadataField(path, "Title"))
-            self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
-        else:
-            self.skipTest(mountPoint2 + " and " + tempfile.tempdir + " are on the same mountpoint, test not relevant.")
+        with tempfile.TemporaryDirectory(dir='/var/tmp') as tempdir:
+            if(self.find_mount_point(tempdir) != self.find_mount_point(tempfile.tempdir)):
+                path = os.path.join(tempdir, "plaincontent_metadata_differentmount.pdf")
+                error = self.invokeDirectly(outputFile=path)
+                self.assertEqual('', error)
+                self.assertTrue(os.path.exists(path))
+                self.assertEqual(Email2PDFTestCase.DEFAULT_FROM, self.getMetadataField(path, "Author"))
+                self.assertEqual(Email2PDFTestCase.DEFAULT_TO, self.getMetadataField(path, "X-email2pdf-To"))
+                self.assertEqual(Email2PDFTestCase.DEFAULT_SUBJECT, self.getMetadataField(path, "Title"))
+                self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
+            else:
+                self.skipTest(tempdir + " and " + tempfile.tempdir + " are on the same mountpoint, test not relevant.")
 
     def test_noheaders_metadata(self):
         self.setPlainContent("Hello!")

@@ -13,10 +13,9 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
 
     def test_plaincontent_fileexist(self):
         self.attachText("Hello!")
-        unused_f_handle, f_path = tempfile.mkstemp()
-        with self.assertRaisesRegex(Exception, "file.*exist"):
-            self.invokeDirectly(outputFile=f_path)
-        os.unlink(f_path)
+        with tempfile.NamedTemporaryFile() as tmpfile:
+            with self.assertRaisesRegex(Exception, "file.*exist"):
+                self.invokeDirectly(outputFile=tmpfile.name)
 
     def test_plaincontent_dirnotexist(self):
         self.attachText("Hello!")

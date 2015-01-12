@@ -101,24 +101,21 @@ class TestBasic(Email2PDFTestCase):
 
     def test_plaincontent_outputfileoverrides(self):
         filename = os.path.join(self.examineDir, "outputFileOverrides.pdf")
-        pathname = tempfile.mkdtemp(dir='/tmp')
-        self.setPlainContent("Hello!")
-        (rc, output, error) = self.invokeAsSubprocess(outputDirectory=pathname, outputFile=filename)
-        self.assertEqual(0, rc)
-        self.assertEqual('', error)
-        self.assertFalse(self.existsByTime(pathname))
-        self.assertTrue(os.path.exists(filename))
-        self.assertRegex(self.getPDFText(filename), "Hello!")
+        with tempfile.TemporaryDirectory() as pathname:
+            self.setPlainContent("Hello!")
+            (rc, output, error) = self.invokeAsSubprocess(outputDirectory=pathname, outputFile=filename)
+            self.assertEqual(0, rc)
+            self.assertEqual('', error)
+            self.assertFalse(self.existsByTime(pathname))
+            self.assertTrue(os.path.exists(filename))
+            self.assertRegex(self.getPDFText(filename), "Hello!")
 
     def test_plaincontent_fileexist(self):
         self.setPlainContent("Hello!")
-        unused_f_handle, f_path = tempfile.mkstemp()
-        try:
-            (rc, output, error) = self.invokeAsSubprocess(outputFile=f_path)
+        with tempfile.NamedTemporaryFile() as tmpfile:
+            (rc, output, error) = self.invokeAsSubprocess(outputFile=tmpfile.name)
             self.assertEqual(2, rc)
             self.assertRegex(error, "file.*exist")
-        finally:
-            os.unlink(f_path)
 
     def test_verbose(self):
         self.setPlainContent("Hello!")
