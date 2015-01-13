@@ -10,6 +10,7 @@ from email.utils import formatdate
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfinterp import PDFResourceManager, process_pdf
+from pdfminer.pdftypes import PSException
 from reportlab.pdfgen import canvas
 from subprocess import Popen, PIPE
 
@@ -304,7 +305,7 @@ class Email2PDFTestCase(unittest.TestCase):
                     device.close()
                     string = retstr.getvalue()
                     return string
-        except:
+        except PSException as psexception:
             return None
 
     def touch(self, fname):
