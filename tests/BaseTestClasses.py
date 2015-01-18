@@ -232,7 +232,7 @@ class Email2PDFTestCase(unittest.TestCase):
                 self.msg.attach(MIMEText(content, 'plain'))
 
     def attachPDF(self, string, filePrefix="email2pdf_unittest_file",
-                  extension="pdf", mainContentType="application", subContentType="pdf"):
+                  extension="pdf", mainContentType="application", subContentType="pdf", no_filename=False):
         unused_f_handle, file_name = tempfile.mkstemp(prefix=filePrefix, suffix="." + extension)
 
         try:
@@ -241,7 +241,11 @@ class Email2PDFTestCase(unittest.TestCase):
             cv.save()
 
             openHandle = open(file_name, "rb")
-            self.attachAttachment(mainContentType, subContentType, openHandle.read(), file_name)
+            if no_filename:
+                self.attachAttachment(mainContentType, subContentType, openHandle.read(), None)
+            else:
+                self.attachAttachment(mainContentType, subContentType, openHandle.read(), file_name)
+
             openHandle.close()
 
             return os.path.basename(file_name)
@@ -281,7 +285,12 @@ class Email2PDFTestCase(unittest.TestCase):
         part = MIMEBase(mainContentType, subContentType)
         part.set_payload(data)
         encoders.encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(file_name))
+
+        if file_name:
+            part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(file_name))
+        else:
+            part.add_header('Content-Disposition', 'inline')
+
         self.msg.attach(part)
 
     def getMetadataField(self, pdfFilename, fieldName):
