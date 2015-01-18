@@ -68,6 +68,16 @@ also. You can run the following `make` targets:
 
 ## Developing & Hacking
 
+### Design & Coding Principles
+
+* Follow [PEP-8](https://www.python.org/dev/peps/pep-0008/).
+
+* Try to keep `email2pdf` as "safe" as possible by default. Without supplying
+  any potentially harmful command-line options, `email2pdf` will not ignore
+  parts of the email it shouldn't, and will fail in the standard UNIX way with
+  an error code if it has any significant doubts about the integrity of the
+  email it's reading, or any other serious error occurs.
+
 ### Unit Tests
 
 All the unit tests are in the `tests/` directory. You can run them from the
