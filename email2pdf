@@ -258,7 +258,9 @@ def remove_invalid_urls(payload):
             logger.debug("Getting img URL " + src)
 
             try:
-                r = requests.get(src, headers={'Connection': 'close'})
+                r = requests.get(src, headers={'Connection': 'close'}, timeout=10)
+                # See https://github.com/kennethreitz/requests/issues/1882#issuecomment-44596534
+                r.connection.close()
                 r.raise_for_status()
             except:
                 logger.warning("Could not retrieve img URL " + src + ", replacing with blank.")
