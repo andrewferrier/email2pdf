@@ -314,7 +314,7 @@ class Email2PDFTestCase(unittest.TestCase):
                     device.close()
                     string = retstr.getvalue()
                     return string
-        except PSException as psexception:
+        except PSException:
             return None
 
     def touch(self, fname):
