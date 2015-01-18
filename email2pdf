@@ -71,10 +71,10 @@ def main(argv, sysLogHandler, sysErrHandler):
     body_attachment_options.add_argument("--no-attachments", dest='attachments', action='store_false', default=True,
                                          help="Don't detach attachments, just print the body of the email to PDF.")
 
-    parser.add_argument("--headers", action='store_true', default=False,
+    parser.add_argument("--headers", action='store_true',
                         help="Add basic email headers to the first PDF page. The default is not to do this.")
 
-    parser.add_argument("--add-prefix-date", dest="add_prefix_date", action="store_true",
+    parser.add_argument("--add-prefix-date", action="store_true",
                         help="Prepend an ISO-8601 prefix date (e.g. YYYY-MM-DD-) to any attachment filename "
                         "that doesn't have one. Will search through the whole filename for an existing "
                         "date in that format - if not found, it prepends one.")
