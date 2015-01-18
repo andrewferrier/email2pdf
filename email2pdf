@@ -22,6 +22,7 @@ import requests
 import shutil
 import sys
 import tempfile
+import traceback
 
 HEADER_MAPPING = {'Author': 'From',
                   'Title': 'Subject',
@@ -474,9 +475,7 @@ if __name__ == "__main__":
         logger.error(e.value)
         sys.exit(2)
     except:
-        logger.error(str(sys.exc_info()[0], 'utf-8'))
-        logger.error(sys.exc_info()[1])
-        logger.error(str(sys.exc_info()[2], 'utf-8'))
+        traceback.print_exc()
         sys.exit(3)
 
     if warning_pending:
