@@ -230,9 +230,11 @@ def output_body_pdf(input_email, payload, output_file_name):
                '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = p.communicate(input=payload)
     assert(output == b'')
-    assert(error == b'')
     if p.returncode > 0:
         raise FatalException("wkhtmltopdf failed with exit code " + str(p.returncode) + ", error: " + str(error, 'utf-8'))
+
+    if error != b'':
+        raise FatalException("wkhtmltopdf failed with error output " + str(error, 'utf-8'))
 
     add_metadata_obj = {}
 
