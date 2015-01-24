@@ -157,13 +157,16 @@ class Email2PDFTestCase(unittest.TestCase):
 
         return (p.returncode, output, error)
 
-    def invokeDirectly(self, outputDirectory=None, outputFile=None, extraParams=[]):
+    def invokeDirectly(self, outputDirectory=None, outputFile=None, extraParams=[], completeMessage=None):
         import importlib.machinery
         module_path = self.getOriginalScriptPath()
         loader = importlib.machinery.SourceFileLoader('email2pdf', module_path)
         email2pdf = loader.load_module()
 
-        bytesMessage = self.msg.as_bytes()
+        if completeMessage:
+            bytesMessage = bytes(completeMessage, 'utf-8')
+        else:
+            bytesMessage = self.msg.as_bytes()
 
         with tempfile.NamedTemporaryFile() as inputFile_handle:
             options = [module_path, '-i', inputFile_handle.name]

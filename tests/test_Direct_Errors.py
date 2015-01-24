@@ -44,3 +44,15 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
             self.assertRegex(error, "(?i)could not retrieve")
         else:
             self.skipTest("Not online.")
+
+    def test_no_explicit_parts(self):
+        # If we don't add any parts explicitly, email2pdf should find a
+        # plain-text part
+        error = self.invokeDirectly()
+        self.assertEqual('', error)
+        self.assertTrue(self.existsByTime())
+
+    def test_fuzz(self):
+        with self.assertRaisesRegex(Exception, "(?i)defects parsing email"):
+            error = self.invokeDirectly(completeMessage="This is total junk")
+        self.assertFalse(self.existsByTime())

@@ -17,6 +17,7 @@ import magic
 import mimetypes
 import os
 import os.path
+import pprint
 import re
 import requests
 import shutil
@@ -145,13 +146,12 @@ def main(argv, sysLogHandler, sysErrHandler):
 
     input_email = email.message_from_string(data)
 
-    # See https://docs.python.org/3/library/email.message.html. I've never
-    # seen this defects array get populated in the wild, so I'm not 100% sure
-    # it's being checked for correctly. But since it's hard to prove a
-    # negative, I'm leaving it here for safety.
-    assert(not input_email.defects)
+    defects = input_email.defects
     for part in input_email.walk():
-        assert(not part.defects)
+        defects.extend(part.defects)
+
+    if len(defects) > 0:
+        raise FatalException("Defects parsing email: " + pprint.pformat(defects))
 
     if args.headers:
         header_info = get_formatted_header_info(input_email)
