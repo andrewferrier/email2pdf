@@ -56,3 +56,10 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         with self.assertRaisesRegex(Exception, "(?i)defects parsing email"):
             error = self.invokeDirectly(completeMessage="This is total junk")
         self.assertFalse(self.existsByTime())
+
+    def test_broken_html(self):
+        self.addHeaders()
+        self.attachHTML('<img<a<h href')
+        error = self.invokeDirectly()
+        self.assertEqual('', error)
+        self.assertTrue(self.existsByTime())

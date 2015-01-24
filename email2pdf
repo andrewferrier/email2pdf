@@ -251,20 +251,23 @@ def remove_invalid_urls(payload):
     soup = BeautifulSoup(payload, "lxml")
 
     for img in soup.find_all('img'):
-        src = img['src']
-        if not (src.lower().startswith('data')):
-            logger.debug("Getting img URL " + src)
-
-            try:
-                r = requests.get(src, headers={'Connection': 'close'}, timeout=10)
-                # See https://github.com/kennethreitz/requests/issues/1882#issuecomment-44596534
-                r.connection.close()
-                r.raise_for_status()
-            except:
-                logger.warning("Could not retrieve img URL " + src + ", replacing with blank.")
+        if img.has_attr('src'):
+            src = img['src']
+            if src == 'broken':
                 del img['src']
-        else:
-            logger.debug("Ignoring URL " + src)
+            elif not (src.lower().startswith('data')):
+                logger.debug("Getting img URL " + src)
+
+                try:
+                    r = requests.get(src, headers={'Connection': 'close'}, timeout=10)
+                    # See https://github.com/kennethreitz/requests/issues/1882#issuecomment-44596534
+                    r.connection.close()
+                    r.raise_for_status()
+                except:
+                    logger.warning("Could not retrieve img URL " + src + ", replacing with blank.")
+                    del img['src']
+            else:
+                logger.debug("Ignoring URL " + src)
 
     return str(soup)
 
