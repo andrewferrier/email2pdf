@@ -41,7 +41,7 @@ stylecheck:
 
 coverage:
 	rm -rf cover/
-	nosetests tests/test_Direct*.py --with-coverage --cover-package=email2pdf --cover-erase --cover-html
-	open cover/email2pdf.html
+	nosetests tests/Direct/*.py --with-coverage --cover-package=email2pdf,tests --cover-erase --cover-html --cover-branches
+	open cover/index.html
 
 alltests: unittest stylecheck coverage
