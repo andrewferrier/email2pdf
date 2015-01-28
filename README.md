@@ -56,6 +56,8 @@ also. You can run the following `make` targets:
 * `builddocker` - build a Docker image, which can be used for testing,
   development, etc.
 
+* `builddocker_nocache` - build a Docker image without Docker caching.
+
 * `rundocker_interactive` - build and start a Docker image, at the `bash`
   prompt.
 

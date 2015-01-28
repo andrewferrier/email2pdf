@@ -17,6 +17,9 @@ builddeb:
 builddocker:
 	docker build -t andrewferrier/email2pdf .
 
+builddocker_nocache:
+	docker build --no-cache -t andrewferrier/email2pdf .
+
 rundocker_interactive: builddocker
 	docker run -i -t andrewferrier/email2pdf /sbin/my_init -- bash -l
 
