@@ -30,4 +30,5 @@ COPY . /tmp/email2pdf/
 COPY docker/email2pdf/getmail /etc/cron.d/
 WORKDIR /tmp/email2pdf
 RUN make builddeb_real && sh -c 'ls -1 /tmp/email2pdf/*.deb | xargs -L 1 gdebi -n' && cp /tmp/email2pdf/*.deb /tmp
+RUN apt-get install -y xpdf-utils
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /var/tmp/*
