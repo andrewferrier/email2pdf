@@ -31,6 +31,7 @@ class Email2PDFTestCase(unittest.TestCase):
     examineDir = None
 
     NONEXIST_IMG = 'http://www.andrewferrier.com/nonexist.jpg'
+    NONEXIST_IMG_BLACKLIST = 'http://www.emltrk.com/nonexist.jpg'
     EXIST_IMG = 'https://raw.githubusercontent.com/andrewferrier/email2pdf/master/tests/basi2c16.png'
     COMMAND = os.path.normpath(os.path.join(os.getcwd(), 'email2pdf'))
 
