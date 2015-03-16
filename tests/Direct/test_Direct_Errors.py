@@ -41,6 +41,14 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(path))
         self.assertEqual('', error)
 
+    def test_image_doesnt_exist_blacklist(self):
+        path = os.path.join(self.examineDir, "remoteImageDoesntExistBlacklistUpper.pdf")
+        self.addHeaders()
+        self.attachHTML('<img src="' + self.NONEXIST_IMG_BLACKLIST.upper() + '">')
+        error = self.invokeDirectly(outputFile=path)
+        self.assertTrue(os.path.exists(path))
+        self.assertEqual('', error)
+
     def test_image_doesnt_exist_with_pdf(self):
         if self.isOnline:
             self.addHeaders()
