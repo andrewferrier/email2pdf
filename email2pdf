@@ -255,14 +255,15 @@ def remove_invalid_urls(payload):
 
     for img in soup.find_all('img'):
         if img.has_attr('src'):
-            src = img['src'].lower()
-            if src == 'broken':
+            src = img['src']
+            lowerSrc = src.lower()
+            if lowerSrc == 'broken':
                 del img['src']
-            elif not (src.startswith('data')):
+            elif not (lowerSrc.startswith('data')):
                 foundBlacklist = False
 
                 for IMAGE_LOAD_BLACKLIST_ITEM in IMAGE_LOAD_BLACKLIST:
-                    if IMAGE_LOAD_BLACKLIST_ITEM in src:
+                    if IMAGE_LOAD_BLACKLIST_ITEM in lowerSrc:
                         foundBlacklist = True
 
                 if not foundBlacklist:

@@ -142,6 +142,18 @@ class TestMIME(Email2PDFTestCase):
         else:
             self.skipTest("Not online.")
 
+    def test_remote_image_does_exist_uppercase(self):
+        if self.isOnline:
+            path = os.path.join(self.examineDir, "remoteImageDoesExistUppercase.pdf")
+            self.addHeaders()
+            self.attachHTML('<img src="' + self.EXIST_IMG_UPPERCASE + '">')
+            (rc, output, error) = self.invokeAsSubprocess(outputFile=path)
+            self.assertEqual(0, rc)
+            self.assertEqual('', error)
+            self.assertTrue(os.path.exists(path))
+        else:
+            self.skipTest("Not online.")
+
     def test_non_embedded_image_jpeg(self):
         self.addHeaders()
         self.attachText("Hello!")
