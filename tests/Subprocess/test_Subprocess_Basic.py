@@ -113,7 +113,7 @@ class TestBasic(Email2PDFTestCase):
     def test_plaincontent_fileexist(self):
         self.setPlainContent("Hello!")
         with tempfile.NamedTemporaryFile() as tmpfile:
-            (rc, output, error) = self.invokeAsSubprocess(outputFile=tmpfile.name)
+            (rc, output, error) = self.invokeAsSubprocess(outputFile=tmpfile.name, okToExist=True)
             self.assertEqual(2, rc)
             self.assertRegex(error, "file.*exist")
 
