@@ -41,7 +41,7 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(path))
         self.assertEqual('', error)
 
-    def test_image_doesnt_exist_blacklist(self):
+    def test_image_doesnt_exist_blacklist_upper(self):
         path = os.path.join(self.examineDir, "remoteImageDoesntExistBlacklistUpper.pdf")
         self.addHeaders()
         self.attachHTML('<img src="' + self.NONEXIST_IMG_BLACKLIST.upper() + '">')
@@ -70,7 +70,7 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
 
     def test_fuzz(self):
         with self.assertRaisesRegex(Exception, "(?i)defects parsing email"):
-            error = self.invokeDirectly(completeMessage="This is total junk")
+            self.invokeDirectly(completeMessage="This is total junk")
         self.assertFalse(self.existsByTime())
 
     def test_broken_html(self):

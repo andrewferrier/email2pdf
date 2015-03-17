@@ -110,7 +110,8 @@ class Email2PDFTestCase(unittest.TestCase):
 
         self.msg['Date'] = formatdate()
 
-    def invokeAsSubprocess(self, inputFile=False, outputDirectory=None, outputFile=None, extraParams=[], expectOutput=False, okToExist=False):
+    def invokeAsSubprocess(self, inputFile=False, outputDirectory=None, outputFile=None, extraParams=[],
+                           expectOutput=False, okToExist=False):
         bytesMessage = self.msg.as_bytes()
 
         options = [Email2PDFTestCase.COMMAND]
