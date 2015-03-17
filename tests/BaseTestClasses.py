@@ -161,7 +161,7 @@ class Email2PDFTestCase(unittest.TestCase):
 
         return (p.returncode, output, error)
 
-    def invokeDirectly(self, outputDirectory=None, outputFile=None, extraParams=[], completeMessage=None):
+    def invokeDirectly(self, outputDirectory=None, outputFile=None, extraParams=[], completeMessage=None, okToExist=False):
         import importlib.machinery
         module_path = self.getOriginalScriptPath()
         loader = importlib.machinery.SourceFileLoader('email2pdf', module_path)
@@ -184,6 +184,8 @@ class Email2PDFTestCase(unittest.TestCase):
 
             if outputFile:
                 options.extend(['-o', outputFile])
+                if not okToExist:
+                    assert(not os.path.exists(outputFile))
 
             options.extend(extraParams)
 

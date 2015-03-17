@@ -15,7 +15,7 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         self.attachText("Hello!")
         with tempfile.NamedTemporaryFile() as tmpfile:
             with self.assertRaisesRegex(Exception, "file.*exist"):
-                self.invokeDirectly(outputFile=tmpfile.name)
+                self.invokeDirectly(outputFile=tmpfile.name, okToExist=True)
 
     def test_plaincontent_dirnotexist(self):
         self.attachText("Hello!")
