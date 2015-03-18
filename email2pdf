@@ -287,7 +287,8 @@ def remove_invalid_urls(payload):
                         logger.warning("Could not retrieve img URL " + src + ", replacing with blank.")
                         del img['src']
                 else:
-                    logger.debug("Ignoring URL in blacklist " + src)
+                    logger.debug("Removing URL that was found in blacklist " + src)
+                    del img['src']
             else:
                 logger.debug("Ignoring URL " + src)
 
