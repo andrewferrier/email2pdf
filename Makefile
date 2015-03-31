@@ -32,7 +32,7 @@ rundocker_getdebs: builddocker
 unittest:
 	python3 -m unittest discover
 
-unittest_test:
+unittest_verbose:
 	python3 -m unittest discover -f -v
 
 stylecheck:
