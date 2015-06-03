@@ -222,7 +222,7 @@ def handle_message_body(input_email, header_info):
                 warning("Could not find image cid " + matchobj.group(1) + " in email content.")
                 return "broken"
 
-        payload = re.sub('cid:([\w_-]+)', functools.partial(cid_replace, cid_parts_used),
+        payload = re.sub('cid:([\w_@.-]+)', functools.partial(cid_replace, cid_parts_used),
                                str(payload, charset))
 
     return (header_info + payload, cid_parts_used)
