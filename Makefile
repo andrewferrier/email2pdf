@@ -35,13 +35,14 @@ unittest:
 unittest_verbose:
 	python3 -m unittest discover -f -v
 
-stylecheck:
+analysis:
 	# Debian version is badly packaged, make sure we are using Python 3.
 	/usr/bin/env python3 $(FLAKE8) --max-line-length=132 --max-complexity 10 .
+	pylint --report=n --disable=line-too-long --disable=missing-docstring email2pdf
 
 coverage:
 	rm -rf cover/
 	nosetests tests/Direct/*.py --with-coverage --cover-package=email2pdf,tests --cover-erase --cover-html --cover-branches
 	open cover/index.html
 
-alltests: unittest stylecheck coverage
+alltests: unittest analysis coverage
