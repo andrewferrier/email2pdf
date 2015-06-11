@@ -93,8 +93,8 @@ def main(argv, sysLogHandler, sysErrHandler):
 
     parser.add_argument("--enforce-syslog", action="store_true",
                         help="By default email2pdf will use syslog if available and just log to stderr "
-                        "if not. If this option is specified, it will instead fail when the syslog socket "
-                        "can not be located")
+                        "if not. If this option is specified, email2pdf will exit with an error if the syslog socket "
+                        "can not be located.")
 
     parser.add_argument('-v', '--verbose', action='count', default=0,
                         help="Make the output more verbose. This affects both the output logged to "
@@ -110,7 +110,7 @@ def main(argv, sysLogHandler, sysErrHandler):
         return
 
     if args.enforce_syslog and not sysLogHandler:
-        raise FatalException("Required syslog socket was not found")
+        raise FatalException("Required syslog socket was not found.")
 
     if sysLogHandler:
         if args.verbose > 1:
