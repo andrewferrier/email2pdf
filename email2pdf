@@ -244,18 +244,23 @@ def output_body_pdf(input_email, payload, output_file_name):
                '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = p.communicate(input=payload)
     assert(output == b'')
-    #if p.returncode > 0:
-    #    raise FatalException("wkhtmltopdf failed with exit code " + str(p.returncode) + ", error: " + str(error, 'utf-8'))
 
-    new_error = str(error, 'utf-8')
+    stripped_error = str(error, 'utf-8')
 
     for ERROR_PATTERN in WKHTMLTOPDF_ERRORS_IGNORE:
-        (new_error, number_of_subs_made) = re.subn(ERROR_PATTERN, '', new_error)
+        (stripped_error, number_of_subs_made) = re.subn(ERROR_PATTERN, '', stripped_error)
         if number_of_subs_made > 0:
             logger.debug("Made " + str(number_of_subs_made) + " subs with pattern " + ERROR_PATTERN)
 
-    if new_error.rstrip() != '':
-        raise FatalException("wkhtmltopdf failed with error output " + new_error)
+    original_error = str(error, 'utf-8').rstrip()
+    stripped_error = stripped_error.rstrip()
+
+    if p.returncode > 0 and original_error == '':
+        raise FatalException("wkhtmltopdf failed with exit code " + str(p.returncode) + ", no error output.")
+    elif p.returncode > 0 and stripped_error != '':
+        raise FatalException("wkhtmltopdf failed with exit code " + str(p.returncode) + ", stripped error: " + str(stripped_error, 'utf-8'))
+    elif stripped_error != '':
+        raise FatalException("wkhtmltopdf exited with rc = 0 but produced unknown stripped error output " + stripped_error)
 
     add_metadata_obj = {}
 
