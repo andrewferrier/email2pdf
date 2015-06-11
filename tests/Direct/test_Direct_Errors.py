@@ -69,6 +69,14 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(path))
         self.assertRegex(error, "(?i)could not retrieve")
 
+    def test_local_image_with_query_doesnt_exist(self):
+        path = os.path.join(self.examineDir, "localImageWithQueryDoesntExist.pdf")
+        self.addHeaders()
+        self.attachHTML('<img src="/test.png?foo=bar">')
+        error = self.invokeDirectly(outputFile=path)
+        self.assertTrue(os.path.exists(path))
+        self.assertRegex(error, "(?i)could not retrieve")
+
     def test_local_script_doesnt_exist(self):
         path = os.path.join(self.examineDir, "localScriptDoesntExist.pdf")
         self.addHeaders()
