@@ -478,14 +478,16 @@ if __name__ == "__main__":
     elif _platform == "darwin":
         sysLogAddress = '/var/run/syslog'
     else:
-        print("Unsupported platform.")
-        sys.exit(3)
+        sysLogAddress = None
 
-    sysLogHandler = logging.handlers.SysLogHandler(address=sysLogAddress)
-    sysLogHandler.setLevel(logging.INFO)
-    sysLogFormatter = logging.Formatter('%(pathname)s[%(process)d] %(levelname)s %(lineno)d %(message)s')
-    sysLogHandler.setFormatter(sysLogFormatter)
-    logger.addHandler(sysLogHandler)
+    if sysLogAddress and os.path.exists(sysLogAddress):
+        sysLogHandler = logging.handlers.SysLogHandler(address=sysLogAddress)
+        sysLogHandler.setLevel(logging.INFO)
+        sysLogFormatter = logging.Formatter('%(pathname)s[%(process)d] %(levelname)s %(lineno)d %(message)s')
+        sysLogHandler.setFormatter(sysLogFormatter)
+        logger.addHandler(sysLogHandler)
+    else:
+        sysLogHandler = None
 
     sysErrHandler = logging.StreamHandler(stream=sys.stderr)
     sysErrHandler.setLevel(logging.WARNING)
