@@ -61,6 +61,54 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         else:
             self.skipTest("Not online.")
 
+    def test_local_image_doesnt_exist(self):
+        path = os.path.join(self.examineDir, "localImageDoesntExist.pdf")
+        self.addHeaders()
+        self.attachHTML('<img src="/test.png">')
+        error = self.invokeDirectly(outputFile=path)
+        self.assertTrue(os.path.exists(path))
+        self.assertRegex(error, "(?i)could not retrieve")
+
+    def test_local_image_with_query_doesnt_exist(self):
+        path = os.path.join(self.examineDir, "localImageWithQueryDoesntExist.pdf")
+        self.addHeaders()
+        self.attachHTML('<img src="/test.png?foo=bar">')
+        error = self.invokeDirectly(outputFile=path)
+        self.assertTrue(os.path.exists(path))
+        self.assertRegex(error, "(?i)could not retrieve")
+
+    def test_local_script_doesnt_exist(self):
+        path = os.path.join(self.examineDir, "localScriptDoesntExist.pdf")
+        self.addHeaders()
+        self.attachHTML("<script src=\"/test.js\"></script>")
+        error = self.invokeDirectly(outputFile=path)
+        self.assertTrue(os.path.exists(path))
+        self.assertEqual('', error)
+
+    def test_local_script_with_query_doesnt_exist(self):
+        path = os.path.join(self.examineDir, "localScriptWithQueryDoesntExist.pdf")
+        self.addHeaders()
+        self.attachHTML("<script src=\"/test.js?muh\"></script>")
+        error = self.invokeDirectly(outputFile=path)
+        self.assertTrue(os.path.exists(path))
+        self.assertEqual('', error)
+
+    def test_local_stylesheet_doesnt_exist(self):
+        path = os.path.join(self.examineDir, "localStylesheetDoesntExist.pdf")
+        self.addHeaders()
+        self.attachHTML("<html><head><link href=\"/test.css\" rel=\"stylesheet\"></head></html>")
+        error = self.invokeDirectly(outputFile=path)
+        self.assertTrue(os.path.exists(path))
+        self.assertEqual('', error)
+
+    def test_local_stylesheet_with_query_doesnt_exist(self):
+        path = os.path.join(self.examineDir, "localStylesheetWithQueryDoesntExist.pdf")
+        self.addHeaders()
+        self.attachHTML("<html><head><link href=\"/test.css?muh\" rel=\"stylesheet\"></head></html>")
+        error = self.invokeDirectly(outputFile=path)
+        self.assertTrue(os.path.exists(path))
+        self.assertEqual('', error)
+
     def test_no_explicit_parts(self):
         # If we don't add any parts explicitly, email2pdf should find a
         # plain-text part
