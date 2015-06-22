@@ -38,7 +38,7 @@ unittest_verbose:
 analysis:
 	# Debian version is badly packaged, make sure we are using Python 3.
 	/usr/bin/env python3 $(FLAKE8) --max-line-length=132 --max-complexity 10 .
-	pylint --report=n --disable=line-too-long --disable=missing-docstring email2pdf
+	pylint --report=n --disable=line-too-long --disable=missing-docstring --disable=locally-disabled email2pdf
 
 coverage:
 	rm -rf cover/
