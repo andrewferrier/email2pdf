@@ -489,11 +489,18 @@ if __name__ == "__main__":
     logger.propagate = False
     logger.setLevel(logging.DEBUG)
 
+    syserr_handler = logging.StreamHandler(stream=sys.stderr)
+    syserr_handler.setLevel(logging.WARNING)
+    syserr_formatter = logging.Formatter('%(levelname)s: %(message)s')
+    syserr_handler.setFormatter(syserr_formatter)
+    logger.addHandler(syserr_handler)
+
     if _platform == "linux" or _platform == "linux2":
         SYSLOG_ADDRESS = '/dev/log'
     elif _platform == "darwin":
         SYSLOG_ADDRESS = '/var/run/syslog'
     else:
+        logger.warning("I don't know this platform (" + _platform + "); cannot log to syslog.")
         SYSLOG_ADDRESS = None
 
     if SYSLOG_ADDRESS and os.path.exists(SYSLOG_ADDRESS):
@@ -504,12 +511,6 @@ if __name__ == "__main__":
         logger.addHandler(syslog_handler)
     else:
         syslog_handler = None
-
-    syserr_handler = logging.StreamHandler(stream=sys.stderr)
-    syserr_handler.setLevel(logging.WARNING)
-    syserr_formatter = logging.Formatter('%(levelname)s: %(message)s')
-    syserr_handler.setFormatter(syserr_formatter)
-    logger.addHandler(syserr_handler)
 
     try:
         main(sys.argv, syslog_handler, syserr_handler)
