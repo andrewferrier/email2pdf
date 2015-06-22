@@ -40,7 +40,7 @@ IMAGE_LOAD_BLACKLIST = frozenset(['emltrk.com'])
 WKHTMLTOPDF_ERRORS_IGNORE = frozenset(['QFont::setPixelSize: Pixel size <= 0 \(0\)',
                                        'Exit with code 1 due to network error: ContentNotFoundError'])
 
-def main(argv, sysLogHandler, sysErrHandler):
+def main(argv, syslog_handler, syserr_handler):
     logger = logging.getLogger('email2pdf')
 
     mimetypes.init()
@@ -110,24 +110,24 @@ def main(argv, sysLogHandler, sysErrHandler):
         parser.print_help()
         return
 
-    if args.enforce_syslog and not sysLogHandler:
+    if args.enforce_syslog and not syslog_handler:
         raise FatalException("Required syslog socket was not found.")
 
-    if sysLogHandler:
+    if syslog_handler:
         if args.verbose > 1:
-            sysLogHandler.setLevel(logging.DEBUG)
+            syslog_handler.setLevel(logging.DEBUG)
         elif args.verbose == 1:
-            sysLogHandler.setLevel(logging.DEBUG)
+            syslog_handler.setLevel(logging.DEBUG)
         else:
-            sysLogHandler.setLevel(logging.INFO)
+            syslog_handler.setLevel(logging.INFO)
 
-    if sysErrHandler:
+    if syserr_handler:
         if args.verbose > 1:
-            sysErrHandler.setLevel(logging.DEBUG)
+            syserr_handler.setLevel(logging.DEBUG)
         elif args.verbose == 1:
-            sysErrHandler.setLevel(logging.INFO)
+            syserr_handler.setLevel(logging.INFO)
         else:
-            sysErrHandler.setLevel(logging.WARNING)
+            syserr_handler.setLevel(logging.WARNING)
 
     logger.info("Options used are: " + str(args))
 
@@ -151,8 +151,8 @@ def main(argv, sysLogHandler, sysErrHandler):
         for line in sys.stdin:
             data += line
     else:
-        with open(args.inputFile, "r") as inputHandle:
-            data = inputHandle.read()
+        with open(args.inputFile, "r") as input_handle:
+            data = input_handle.read()
 
     logger.debug("Email input data is: " + data)
 
@@ -202,7 +202,7 @@ def handle_message_body(input_email, header_info):
     part = find_part_by_content_type(input_email, "text/html")
     if part is None:
         part = find_part_by_content_type(input_email, "text/plain")
-        assert(part is not None)
+        assert part is not None
         payload = part.get_payload(decode=True)
         charset = part.get_content_charset()
         if not charset:
@@ -218,21 +218,21 @@ def handle_message_body(input_email, header_info):
 
         def cid_replace(cid_parts_used, matchobj):
             logger.debug("Looking for image for cid " + matchobj.group(1))
-            imagePart = find_part_by_content_id(input_email, matchobj.group(1))
-            if imagePart is not None:
-                assert(imagePart['Content-Transfer-Encoding'] == 'base64')
-                imageBase64 = imagePart.get_payload(decode=False)
-                imageBase64 = re.sub("[\r\n\t]", "", imageBase64)
-                imageDecoded = imagePart.get_payload(decode=True)
-                mimeType = get_mime_type(imageDecoded)
-                cid_parts_used.add(imagePart)
-                return "data:" + mimeType + ";base64," + imageBase64
+            image_part = find_part_by_content_id(input_email, matchobj.group(1))
+            if image_part is not None:
+                assert image_part['Content-Transfer-Encoding'] == 'base64'
+                image_base64 = image_part.get_payload(decode=False)
+                image_base64 = re.sub("[\r\n\t]", "", image_base64)
+                image_decoded = image_part.get_payload(decode=True)
+                mime_type = get_mime_type(image_decoded)
+                cid_parts_used.add(image_part)
+                return "data:" + mime_type + ";base64," + image_base64
             else:
                 warning("Could not find image cid " + matchobj.group(1) + " in email content.")
                 return "broken"
 
         payload = re.sub('cid:([\w_@.-]+)', functools.partial(cid_replace, cid_parts_used),
-                               str(payload, charset))
+                         str(payload, charset))
 
     return (header_info + payload, cid_parts_used)
 
@@ -240,10 +240,10 @@ def handle_message_body(input_email, header_info):
 def output_body_pdf(input_email, payload, output_file_name):
     logger = logging.getLogger("email2pdf")
 
-    p = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore',
-               '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    output, error = p.communicate(input=payload)
-    assert(output == b'')
+    wkh2p_process = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore',
+                           '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    output, error = wkh2p_process.communicate(input=payload)
+    assert output == b''
 
     stripped_error = str(error, 'utf-8')
 
@@ -255,10 +255,10 @@ def output_body_pdf(input_email, payload, output_file_name):
     original_error = str(error, 'utf-8').rstrip()
     stripped_error = stripped_error.rstrip()
 
-    if p.returncode > 0 and original_error == '':
-        raise FatalException("wkhtmltopdf failed with exit code " + str(p.returncode) + ", no error output.")
-    elif p.returncode > 0 and stripped_error != '':
-        raise FatalException("wkhtmltopdf failed with exit code " + str(p.returncode) + ", stripped error: " + str(stripped_error, 'utf-8'))
+    if wkh2p_process.returncode > 0 and original_error == '':
+        raise FatalException("wkhtmltopdf failed with exit code " + str(wkh2p_process.returncode) + ", no error output.")
+    elif wkh2p_process.returncode > 0 and stripped_error != '':
+        raise FatalException("wkhtmltopdf failed with exit code " + str(wkh2p_process.returncode) + ", stripped error: " + str(stripped_error, 'utf-8'))
     elif stripped_error != '':
         raise FatalException("wkhtmltopdf exited with rc = 0 but produced unknown stripped error output " + stripped_error)
 
@@ -281,24 +281,24 @@ def remove_invalid_urls(payload):
     for img in soup.find_all('img'):
         if img.has_attr('src'):
             src = img['src']
-            lowerSrc = src.lower()
-            if lowerSrc == 'broken':
+            lower_src = src.lower()
+            if lower_src == 'broken':
                 del img['src']
-            elif not (lowerSrc.startswith('data')):
-                foundBlacklist = False
+            elif not lower_src.startswith('data'):
+                found_blacklist = False
 
                 for IMAGE_LOAD_BLACKLIST_ITEM in IMAGE_LOAD_BLACKLIST:
-                    if IMAGE_LOAD_BLACKLIST_ITEM in lowerSrc:
-                        foundBlacklist = True
+                    if IMAGE_LOAD_BLACKLIST_ITEM in lower_src:
+                        found_blacklist = True
 
-                if not foundBlacklist:
+                if not found_blacklist:
                     logger.debug("Getting img URL " + src)
 
                     try:
-                        r = requests.get(src, headers={'Connection': 'close'}, timeout=10)
+                        request = requests.get(src, headers={'Connection': 'close'}, timeout=10)
                         # See https://github.com/kennethreitz/requests/issues/1882#issuecomment-44596534
-                        r.connection.close()
-                        r.raise_for_status()
+                        request.connection.close()
+                        request.raise_for_status()
                     except:
                         logger.warning("Could not retrieve img URL " + src + ", replacing with blank.")
                         del img['src']
@@ -330,7 +330,7 @@ def handle_attachments(input_email, output_directory, add_prefix_date, ignore_fl
             if extension:
                 filename = filename + extension
 
-        assert(filename is not None)
+        assert filename is not None
 
         if add_prefix_date:
             if not re.search("\d\d\d\d[-_]\d\d[-_]\d\d", filename):
@@ -338,21 +338,21 @@ def handle_attachments(input_email, output_directory, add_prefix_date, ignore_fl
 
         logger.info("Extracting attachment " + filename)
 
-        fullFilename = os.path.join(output_directory, filename)
-        fullFilename = get_unique_version(fullFilename)
+        full_filename = os.path.join(output_directory, filename)
+        full_filename = get_unique_version(full_filename)
 
         payload = part.get_payload(decode=True)
-        with open(fullFilename, 'wb') as output_file:
+        with open(full_filename, 'wb') as output_file:
             output_file.write(payload)
 
     return len(parts)
 
 
-def add_update_pdf_metadata(filename, updateDictionary):
-    def addPrefix(value):
+def add_update_pdf_metadata(filename, update_dictionary):
+    def add_prefix(value):
         return '/' + value
 
-    fullUpdateDictionary = {addPrefix(k): v for k, v in updateDictionary.items()}
+    full_update_dictionary = {add_prefix(k): v for k, v in update_dictionary.items()}
 
     with open(filename, 'rb') as input_file:
         pdf_input = PdfFileReader(input_file)
@@ -361,15 +361,15 @@ def add_update_pdf_metadata(filename, updateDictionary):
         for page in range(pdf_input.getNumPages()):
             pdf_output.addPage(pdf_input.getPage(page))
 
-        infoDict = pdf_output._info.getObject()
+        info_dict = pdf_output._info.getObject()
 
         info = pdf_input.documentInfo
 
-        fullUpdateDictionary = dict(chain(info.items(), fullUpdateDictionary.items()))
+        full_update_dictionary = dict(chain(info.items(), full_update_dictionary.items()))
 
-        for key in fullUpdateDictionary:
-            assert(fullUpdateDictionary[key] is not None)
-            infoDict.update({NameObject(key): createStringObject(fullUpdateDictionary[key])})
+        for key in full_update_dictionary:
+            assert full_update_dictionary[key] is not None
+            info_dict.update({NameObject(key): createStringObject(full_update_dictionary[key])})
 
         unused_f_handle, temp_file_name = tempfile.mkstemp(prefix="email2pdf_add_update_pdf_metadata", suffix=".pdf")
 
@@ -442,12 +442,12 @@ def find_all_attachments(message, parts_to_ignore):
 
 
 def get_formatted_header_info(email):
-    HEADERS = ('Subject', 'From', 'To', 'Date')
+    HEADERS = frozenset(['Subject', 'From', 'To', 'Date'])
 
     header_info = ""
 
     for header in HEADERS:
-        if(email[header]):
+        if email[header]:
             header_info = header_info + '<b>' + header + '</b>: ' + email[header] + '<br/>'
 
     return header_info + '<br/>'
@@ -457,15 +457,15 @@ def get_formatted_header_info(email):
 # python-magic`, and the second is for the Ubuntu package python3-magic.
 
 
-def get_mime_type(bufferData):
+def get_mime_type(buffer_data):
     if 'from_buffer' in dir(magic):
-        mimeType = str(magic.from_buffer(bufferData, mime=True), 'utf-8')
+        mime_type = str(magic.from_buffer(buffer_data, mime=True), 'utf-8')
     else:
-        m = magic.open(magic.MAGIC_MIME_TYPE)
-        m.load()
-        mimeType = m.buffer(bufferData)
+        m_handle = magic.open(magic.MAGIC_MIME_TYPE)
+        m_handle.load()
+        mime_type = m_handle.buffer(buffer_data)
 
-    return mimeType
+    return mime_type
 
 warning_pending = False
 
@@ -490,31 +490,31 @@ if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
 
     if _platform == "linux" or _platform == "linux2":
-        sysLogAddress = '/dev/log'
+        SYSLOG_ADDRESS = '/dev/log'
     elif _platform == "darwin":
-        sysLogAddress = '/var/run/syslog'
+        SYSLOG_ADDRESS = '/var/run/syslog'
     else:
-        sysLogAddress = None
+        SYSLOG_ADDRESS = None
 
-    if sysLogAddress and os.path.exists(sysLogAddress):
-        sysLogHandler = logging.handlers.SysLogHandler(address=sysLogAddress)
-        sysLogHandler.setLevel(logging.INFO)
-        sysLogFormatter = logging.Formatter('%(pathname)s[%(process)d] %(levelname)s %(lineno)d %(message)s')
-        sysLogHandler.setFormatter(sysLogFormatter)
-        logger.addHandler(sysLogHandler)
+    if SYSLOG_ADDRESS and os.path.exists(SYSLOG_ADDRESS):
+        syslog_handler = logging.handlers.SysLogHandler(address=SYSLOG_ADDRESS)
+        syslog_handler.setLevel(logging.INFO)
+        SYSLOG_FORMATTER = logging.Formatter('%(pathname)s[%(process)d] %(levelname)s %(lineno)d %(message)s')
+        syslog_handler.setFormatter(SYSLOG_FORMATTER)
+        logger.addHandler(syslog_handler)
     else:
-        sysLogHandler = None
+        syslog_handler = None
 
-    sysErrHandler = logging.StreamHandler(stream=sys.stderr)
-    sysErrHandler.setLevel(logging.WARNING)
-    sysErrFormatter = logging.Formatter('%(levelname)s: %(message)s')
-    sysErrHandler.setFormatter(sysErrFormatter)
-    logger.addHandler(sysErrHandler)
+    syserr_handler = logging.StreamHandler(stream=sys.stderr)
+    syserr_handler.setLevel(logging.WARNING)
+    syserr_formatter = logging.Formatter('%(levelname)s: %(message)s')
+    syserr_handler.setFormatter(syserr_formatter)
+    logger.addHandler(syserr_handler)
 
     try:
-        main(sys.argv, sysLogHandler, sysErrHandler)
-    except FatalException as e:
-        logger.error(e.value)
+        main(sys.argv, syslog_handler, syserr_handler)
+    except FatalException as exception:
+        logger.error(exception.value)
         sys.exit(2)
     except:
         traceback.print_exc()
