@@ -51,7 +51,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, imageFilename)))
 
     def test_embedded_image_with_complex_name(self):
-        path = os.path.join(self.examineDir, "embeddedImage.png")
+        path = os.path.join(self.examineDir, "embeddedImageWithComplexName.pdf")
         self.addHeaders()
         imageFilename = self.attachImage('myid@A34A.1A23E', jpeg=False)
         self.attachHTML('<img src=cid:myid@A34A.1A23E>')
