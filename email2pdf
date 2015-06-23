@@ -57,9 +57,7 @@ def main(argv, syslog_handler, syserr_handler):
         raise FatalException("Required syslog socket was not found.")
 
     if syslog_handler:
-        if args.verbose > 1:
-            syslog_handler.setLevel(logging.DEBUG)
-        elif args.verbose == 1:
+        if args.verbose > 0:
             syslog_handler.setLevel(logging.DEBUG)
         else:
             syslog_handler.setLevel(logging.INFO)
@@ -84,8 +82,8 @@ def main(argv, syslog_handler, syserr_handler):
         if os.path.isfile(output_file_name):
             raise FatalException("Output file " + output_file_name + " already exists.")
     else:
-        output_file_name = os.path.join(output_directory, datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf")
-        output_file_name = get_unique_version(output_file_name)
+        output_file_name = get_unique_version(os.path.join(output_directory,
+                                                           datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"))
 
     logger.info("Output file name is: " + output_file_name)
 
