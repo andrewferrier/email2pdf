@@ -16,7 +16,17 @@ class Direct_CID(Email2PDFTestCase):
         self.attachHTML('<img src=cid:myid>')
         error = self.invokeDirectly(extraParams=['--no-body'])
         self.assertFalse(self.existsByTime())
-        self.assertRegex(error, "body.*or.*attachments")
+        self.assertRegex(error, "body.*any.*attachments")
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, 'myid.jpg')))
+
+    def test_inline_image_with_filename_no_body(self):
+        self.addHeaders()
+        imageFileName = self.attachImage('myid', inline=True, force_filename=True)
+        self.attachHTML('<img src=cid:myid>')
+        error = self.invokeDirectly(extraParams=['--no-body'])
+        self.assertEqual('', error)
+        self.assertFalse(self.existsByTime())
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFileName)))
 
     def test_inline_image_and_pdf(self):
         self.addHeaders()

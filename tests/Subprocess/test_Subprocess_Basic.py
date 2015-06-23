@@ -33,7 +33,7 @@ class TestBasic(Email2PDFTestCase):
         (rc, output, error) = self.invokeAsSubprocess(extraParams=['--no-body'])
         self.assertEqual(1, rc)
         self.assertFalse(self.existsByTime())
-        self.assertRegex(error, "body.*or.*attachments")
+        self.assertRegex(error, "body.*any.*attachments")
 
     def test_no_message_headers(self):
         (rc, output, error) = self.invokeAsSubprocess()

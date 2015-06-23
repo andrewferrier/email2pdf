@@ -20,7 +20,7 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
     def test_no_body(self):
         error = self.invokeDirectly(extraParams=['--no-body'])
         self.assertFalse(self.existsByTime())
-        self.assertRegex(error, "body.*or.*attachments")
+        self.assertRegex(error, "body.*any.*attachments")
 
     def test_no_attachments(self):
         self.addHeaders()

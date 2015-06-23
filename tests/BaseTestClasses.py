@@ -262,7 +262,7 @@ class Email2PDFTestCase(unittest.TestCase):
         finally:
             os.unlink(file_name)
 
-    def attachImage(self, content_id=None, jpeg=True, content_type=None, inline=False, extension=None):
+    def attachImage(self, content_id=None, jpeg=True, content_type=None, inline=False, force_filename=False, extension=None):
         if jpeg:
             realFilename = self.JPG_FILENAME
             fileSuffix = 'jpg' if not extension else extension
@@ -281,12 +281,15 @@ class Email2PDFTestCase(unittest.TestCase):
                 self.replace_header(image, 'Content-Type', content_type)
 
             if inline:
-                self.replace_header(image, 'Content-Disposition', 'inline')
+                if force_filename:
+                    self.replace_header(image, 'Content-Disposition', 'inline; filename="%s"' % basic_file_name)
+                else:
+                    self.replace_header(image, 'Content-Disposition', 'inline')
             else:
                 self.replace_header(image, 'Content-Disposition', 'attachment; filename="%s"' % basic_file_name)
             self.msg.attach(image)
 
-        if inline:
+        if inline and not force_filename:
             return None
         else:
             return basic_file_name

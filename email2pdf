@@ -193,7 +193,17 @@ def main(argv, syslog_handler, syserr_handler):
         number_of_attachments = 0
 
     if (not args.body) and number_of_attachments == 0:
-        warning("Didn't print body (on request) or extract any attachments.")
+        logger.info("First try: didn't print body (on request) or extract any attachments. Retrying with filenamed parts.")
+        parts_with_a_filename = filter_filenamed_parts(parts_already_used)
+        if len(parts_with_a_filename) > 0:
+            number_of_attachments = handle_attachments(input_email,
+                                                       output_directory,
+                                                       args.add_prefix_date,
+                                                       args.ignore_floating_attachments,
+                                                       set(parts_already_used - parts_with_a_filename))
+
+        if number_of_attachments == 0:
+            warning("Second try: didn't print body (on request) and still didn't find any attachments even when looked for referenced ones with a filename. Giving up.")
 
 
 def handle_message_body(input_email):
@@ -445,6 +455,16 @@ def find_all_attachments(message, parts_to_ignore):
                 parts.add(part)
 
     return parts
+
+
+def filter_filenamed_parts(parts):
+    new_parts = set()
+
+    for part in parts:
+        if part.get_filename() is not None:
+            new_parts.add(part)
+
+    return new_parts
 
 
 def get_formatted_header_info(input_email):
