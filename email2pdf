@@ -168,19 +168,18 @@ def main(argv, syslog_handler, syserr_handler):
     if len(defects) > 0:
         raise FatalException("Defects parsing email: " + pprint.pformat(defects))
 
-    if args.headers:
-        header_info = get_formatted_header_info(input_email)
-        logger.info("Header info is: " + header_info)
-    else:
-        header_info = ""
-
-    (payload, parts_already_used) = handle_message_body(input_email, header_info)
+    (payload, parts_already_used) = handle_message_body(input_email)
 
     logger.debug("Payload after handle_message_body: " + payload)
 
-    payload = remove_invalid_urls(payload)
-
     if args.body:
+        payload = remove_invalid_urls(payload)
+
+        if args.headers:
+            header_info = get_formatted_header_info(input_email)
+            logger.info("Header info is: " + header_info)
+            payload = header_info + payload
+
         logger.debug("Final payload before output_body_pdf: " + payload)
         output_body_pdf(input_email, bytes(payload, 'UTF-8'), output_file_name)
 
@@ -197,7 +196,7 @@ def main(argv, syslog_handler, syserr_handler):
         warning("Didn't print body (on request) or extract any attachments.")
 
 
-def handle_message_body(input_email, header_info):
+def handle_message_body(input_email):
     logger = logging.getLogger("email2pdf")
 
     cid_parts_used = set()
@@ -237,7 +236,7 @@ def handle_message_body(input_email, header_info):
         payload = re.sub(r'cid:([\w_@.-]+)', functools.partial(cid_replace, cid_parts_used),
                          str(payload, charset))
 
-    return (header_info + payload, cid_parts_used)
+    return (payload, cid_parts_used)
 
 
 def output_body_pdf(input_email, payload, output_file_name):
