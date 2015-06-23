@@ -48,6 +48,92 @@ def main(argv, syslog_handler, syserr_handler):
 
     mimetypes.init()
 
+    proceed, args = handle_args(argv)
+
+    if not proceed:
+        return
+
+    if args.enforce_syslog and not syslog_handler:
+        raise FatalException("Required syslog socket was not found.")
+
+    if syslog_handler:
+        if args.verbose > 1:
+            syslog_handler.setLevel(logging.DEBUG)
+        elif args.verbose == 1:
+            syslog_handler.setLevel(logging.DEBUG)
+        else:
+            syslog_handler.setLevel(logging.INFO)
+
+    if syserr_handler:
+        if args.verbose > 1:
+            syserr_handler.setLevel(logging.DEBUG)
+        elif args.verbose == 1:
+            syserr_handler.setLevel(logging.INFO)
+        else:
+            syserr_handler.setLevel(logging.WARNING)
+
+    logger.info("Options used are: " + str(args))
+
+    output_directory = os.path.normpath(args.outputDirectory)
+
+    if not os.path.exists(output_directory):
+        raise FatalException("outputDirectory does not exist.")
+
+    if args.outputFile:
+        output_file_name = args.outputFile
+        if os.path.isfile(output_file_name):
+            raise FatalException("Output file " + output_file_name + " already exists.")
+    else:
+        output_file_name = os.path.join(output_directory, datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf")
+        output_file_name = get_unique_version(output_file_name)
+
+    logger.info("Output file name is: " + output_file_name)
+
+    input_data = get_input_data(args)
+
+    logger.debug("Email input data is: " + input_data)
+
+    input_email = get_input_email(input_data)
+
+    (payload, parts_already_used) = handle_message_body(input_email)
+
+    logger.debug("Payload after handle_message_body: " + payload)
+
+    if args.body:
+        payload = remove_invalid_urls(payload)
+
+        if args.headers:
+            header_info = get_formatted_header_info(input_email)
+            logger.info("Header info is: " + header_info)
+            payload = header_info + payload
+
+        logger.debug("Final payload before output_body_pdf: " + payload)
+        output_body_pdf(input_email, bytes(payload, 'UTF-8'), output_file_name)
+
+    if args.attachments:
+        number_of_attachments = handle_attachments(input_email,
+                                                   output_directory,
+                                                   args.add_prefix_date,
+                                                   args.ignore_floating_attachments,
+                                                   parts_already_used)
+    else:
+        number_of_attachments = 0
+
+    if (not args.body) and number_of_attachments == 0:
+        logger.info("First try: didn't print body (on request) or extract any attachments. Retrying with filenamed parts.")
+        parts_with_a_filename = filter_filenamed_parts(parts_already_used)
+        if len(parts_with_a_filename) > 0:
+            number_of_attachments = handle_attachments(input_email,
+                                                       output_directory,
+                                                       args.add_prefix_date,
+                                                       args.ignore_floating_attachments,
+                                                       set(parts_already_used - parts_with_a_filename))
+
+        if number_of_attachments == 0:
+            warning("Second try: didn't print body (on request) and still didn't find any attachments even when looked for referenced ones with a filename. Giving up.")
+
+
+def handle_args(argv):
     class ArgumentParser(argparse.ArgumentParser):
         def error(self, message):
             raise FatalException(message)
@@ -111,44 +197,12 @@ def main(argv, syslog_handler, syserr_handler):
 
     if args.help:
         parser.print_help()
-        return
-
-    if args.enforce_syslog and not syslog_handler:
-        raise FatalException("Required syslog socket was not found.")
-
-    if syslog_handler:
-        if args.verbose > 1:
-            syslog_handler.setLevel(logging.DEBUG)
-        elif args.verbose == 1:
-            syslog_handler.setLevel(logging.DEBUG)
-        else:
-            syslog_handler.setLevel(logging.INFO)
-
-    if syserr_handler:
-        if args.verbose > 1:
-            syserr_handler.setLevel(logging.DEBUG)
-        elif args.verbose == 1:
-            syserr_handler.setLevel(logging.INFO)
-        else:
-            syserr_handler.setLevel(logging.WARNING)
-
-    logger.info("Options used are: " + str(args))
-
-    output_directory = os.path.normpath(args.outputDirectory)
-
-    if not os.path.exists(output_directory):
-        raise FatalException("outputDirectory does not exist.")
-
-    if args.outputFile:
-        output_file_name = args.outputFile
-        if os.path.isfile(output_file_name):
-            raise FatalException("Output file " + output_file_name + " already exists.")
+        return (False, None)
     else:
-        output_file_name = os.path.join(output_directory, datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf")
-        output_file_name = get_unique_version(output_file_name)
+        return (True, args)
 
-    logger.info("Output file name is: " + output_file_name)
 
+def get_input_data(args):
     if args.inputFile.strip() == "-":
         data = ""
         for line in sys.stdin:
@@ -157,9 +211,11 @@ def main(argv, syslog_handler, syserr_handler):
         with open(args.inputFile, "r") as input_handle:
             data = input_handle.read()
 
-    logger.debug("Email input data is: " + data)
+    return data
 
-    input_email = email.message_from_string(data)
+
+def get_input_email(input_data):
+    input_email = email.message_from_string(input_data)
 
     defects = input_email.defects
     for part in input_email.walk():
@@ -168,42 +224,7 @@ def main(argv, syslog_handler, syserr_handler):
     if len(defects) > 0:
         raise FatalException("Defects parsing email: " + pprint.pformat(defects))
 
-    (payload, parts_already_used) = handle_message_body(input_email)
-
-    logger.debug("Payload after handle_message_body: " + payload)
-
-    if args.body:
-        payload = remove_invalid_urls(payload)
-
-        if args.headers:
-            header_info = get_formatted_header_info(input_email)
-            logger.info("Header info is: " + header_info)
-            payload = header_info + payload
-
-        logger.debug("Final payload before output_body_pdf: " + payload)
-        output_body_pdf(input_email, bytes(payload, 'UTF-8'), output_file_name)
-
-    if args.attachments:
-        number_of_attachments = handle_attachments(input_email,
-                                                   output_directory,
-                                                   args.add_prefix_date,
-                                                   args.ignore_floating_attachments,
-                                                   parts_already_used)
-    else:
-        number_of_attachments = 0
-
-    if (not args.body) and number_of_attachments == 0:
-        logger.info("First try: didn't print body (on request) or extract any attachments. Retrying with filenamed parts.")
-        parts_with_a_filename = filter_filenamed_parts(parts_already_used)
-        if len(parts_with_a_filename) > 0:
-            number_of_attachments = handle_attachments(input_email,
-                                                       output_directory,
-                                                       args.add_prefix_date,
-                                                       args.ignore_floating_attachments,
-                                                       set(parts_already_used - parts_with_a_filename))
-
-        if number_of_attachments == 0:
-            warning("Second try: didn't print body (on request) and still didn't find any attachments even when looked for referenced ones with a filename. Giving up.")
+    return input_email
 
 
 def handle_message_body(input_email):
