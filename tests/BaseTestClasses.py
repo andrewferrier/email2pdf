@@ -15,6 +15,7 @@ from reportlab.pdfgen import canvas
 from subprocess import Popen, PIPE
 
 import io
+import imghdr
 import logging
 import inspect
 import os
@@ -305,6 +306,9 @@ class Email2PDFTestCase(unittest.TestCase):
             part.add_header('Content-Disposition', 'inline')
 
         self.msg.attach(part)
+
+    def assertIsJPG(self, filename):
+        self.assertEqual(imghdr.what(filename), 'jpeg')
 
     def getMetadataField(self, pdfFilename, fieldName):
         with open(pdfFilename, 'rb') as file_input:
