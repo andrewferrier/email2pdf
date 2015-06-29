@@ -53,6 +53,8 @@ def main(argv, syslog_handler, syserr_handler):
     if not proceed:
         return
 
+    assert args.body or args.attachments
+
     if args.enforce_syslog and not syslog_handler:
         raise FatalException("Required syslog socket was not found.")
 
@@ -77,24 +79,14 @@ def main(argv, syslog_handler, syserr_handler):
     if not os.path.exists(output_directory):
         raise FatalException("outputDirectory does not exist.")
 
-    if args.outputFile:
-        output_file_name = args.outputFile
-        if os.path.isfile(output_file_name):
-            raise FatalException("Output file " + output_file_name + " already exists.")
-    else:
-        output_file_name = get_unique_version(os.path.join(output_directory,
-                                                           datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"))
-
+    output_file_name = get_output_file_name(args, output_directory)
     logger.info("Output file name is: " + output_file_name)
 
     input_data = get_input_data(args)
-
     logger.debug("Email input data is: " + input_data)
 
     input_email = get_input_email(input_data)
-
     (payload, parts_already_used) = handle_message_body(input_email)
-
     logger.debug("Payload after handle_message_body: " + payload)
 
     if args.body:
@@ -114,8 +106,6 @@ def main(argv, syslog_handler, syserr_handler):
                                                    args.add_prefix_date,
                                                    args.ignore_floating_attachments,
                                                    parts_already_used)
-    else:
-        number_of_attachments = 0
 
     if (not args.body) and number_of_attachments == 0:
         logger.info("First try: didn't print body (on request) or extract any attachments. Retrying with filenamed parts.")
@@ -223,6 +213,18 @@ def get_input_email(input_data):
         raise FatalException("Defects parsing email: " + pprint.pformat(defects))
 
     return input_email
+
+
+def get_output_file_name(args, output_directory):
+    if args.outputFile:
+        output_file_name = args.outputFile
+        if os.path.isfile(output_file_name):
+            raise FatalException("Output file " + output_file_name + " already exists.")
+    else:
+        output_file_name = get_unique_version(os.path.join(output_directory,
+                                                           datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"))
+
+    return output_file_name
 
 
 def handle_message_body(input_email):
