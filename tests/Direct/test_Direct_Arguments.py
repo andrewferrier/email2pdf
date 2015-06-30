@@ -11,12 +11,6 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
         super(Direct_Arguments, self).setUp()
         self.msg = MIMEMultipart()
 
-    def test_simple(self):
-        self.addHeaders()
-        error = self.invokeDirectly()
-        self.assertTrue(self.existsByTime())
-        self.assertEqual('', error)
-
     def test_no_body(self):
         error = self.invokeDirectly(extraParams=['--no-body'])
         self.assertFalse(self.existsByTime())

@@ -62,3 +62,14 @@ class Direct_Metadata(Email2PDFTestCase):
         self.assertEqual('', self.getMetadataField(path, "Title"))
         self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
         self.assertRegex(self.getPDFText(path), "Hello!")
+
+    def test_metadata_internationalised_subject(self):
+        self.addHeaders(subject=bytes("Hello!", 'iso-8859-1'), subject_encoding='iso-8859-1')
+        error = self.invokeDirectly()
+        self.assertEqual('', error)
+        timedFilename = self.getTimedFilename()
+        self.assertTrue(os.path.exists(timedFilename))
+        self.assertEqual(Email2PDFTestCase.DEFAULT_FROM, self.getMetadataField(timedFilename, "Author"))
+        self.assertEqual(Email2PDFTestCase.DEFAULT_TO, self.getMetadataField(timedFilename, "X-email2pdf-To"))
+        self.assertEqual("Hello!", self.getMetadataField(timedFilename, "Title"))
+        self.assertEqual("email2pdf", self.getMetadataField(timedFilename, "Producer"))

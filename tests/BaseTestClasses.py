@@ -2,6 +2,7 @@ from PyPDF2 import PdfFileReader
 from datetime import datetime
 from datetime import timedelta
 from email import encoders
+from email.header import Header
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
@@ -99,14 +100,20 @@ class Email2PDFTestCase(unittest.TestCase):
 
         return None
 
-    def addHeaders(self, frm=DEFAULT_FROM, to=DEFAULT_TO, subject=DEFAULT_SUBJECT):
-        if(subject):
-            self.msg['Subject'] = subject
+    def addHeaders(self, frm=DEFAULT_FROM, to=DEFAULT_TO, subject=DEFAULT_SUBJECT, subject_encoding=None):
+        if subject:
+            if subject_encoding:
+                assert isinstance(subject, bytes)
+                header = Header(subject, subject_encoding)
+                self.msg['Subject'] = header
+            else:
+                assert isinstance(subject, str)
+                self.msg['Subject'] = subject
 
-        if(frm):
+        if frm:
             self.msg['From'] = frm
 
-        if(to):
+        if to:
             self.msg['To'] = to
 
         self.msg['Date'] = formatdate()

@@ -299,7 +299,7 @@ def output_body_pdf(input_email, payload, output_file_name):
 
     for key in HEADER_MAPPING:
         if HEADER_MAPPING[key] in input_email:
-            add_metadata_obj[key] = input_email[HEADER_MAPPING[key]]
+            add_metadata_obj[key] = get_utf8_header(input_email[HEADER_MAPPING[key]])
 
     add_metadata_obj['Producer'] = 'email2pdf'
 
@@ -493,7 +493,8 @@ def get_formatted_header_info(input_email):
 
     for header in FORMATTED_HEADERS_TO_INCLUDE:
         if input_email[header]:
-            header_info = header_info + '<b>' + header + '</b>: ' + input_email[header] + '<br/>'
+            decoded_string = get_utf8_header(input_email[header])
+            header_info = header_info + '<b>' + header + '</b>: ' + decoded_string + '<br/>'
 
     return header_info + '<br/>'
 
@@ -514,6 +515,16 @@ def get_mime_type(buffer_data):
     return mime_type
 
 warning_pending = False
+
+
+def get_utf8_header(header):
+    decoded_header = decode_header(header)
+    assert len(decoded_header) == 1
+    (decoded_string, charset) = decoded_header[0]
+    if charset is not None:
+        decoded_string = str(decoded_string, charset)
+
+    return decoded_string
 
 
 def warning(message):
