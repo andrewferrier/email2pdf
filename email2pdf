@@ -12,6 +12,7 @@ from sys import platform as _platform
 import argparse
 import email
 import functools
+import locale
 import logging
 import logging.handlers
 import magic
@@ -191,6 +192,10 @@ def handle_args(argv):
 
 
 def get_input_data(args):
+    logger = logging.getLogger("email2pdf")
+
+    logger.debug("System preferred encoding is: " + locale.getpreferredencoding())
+
     if args.inputFile.strip() == "-":
         data = ""
         for line in sys.stdin:
