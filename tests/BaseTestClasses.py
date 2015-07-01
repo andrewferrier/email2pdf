@@ -32,6 +32,9 @@ class Email2PDFTestCase(unittest.TestCase):
     isOnline = None
     examineDir = None
 
+    time_invoked = None
+    time_completed = None
+
     NONEXIST_IMG = 'http://www.andrewferrier.com/nonexist.jpg'
     NONEXIST_IMG_BLACKLIST = 'http://www.emltrk.com/nonexist.jpg'
     EXIST_IMG = 'https://raw.githubusercontent.com/andrewferrier/email2pdf/master/tests/basi2c16.png'
@@ -53,8 +56,8 @@ class Email2PDFTestCase(unittest.TestCase):
         self._check_online()
         self._check_examine_dir()
 
-    def getTimeStamp(self, myTime):
-        return myTime.strftime("%Y-%m-%dT%H-%M-%S")
+    def getTimeStamp(self, my_time):
+        return my_time.strftime("%Y-%m-%dT%H-%M-%S")
 
     def existsByTime(self, path=None):
         if self.getTimedFilename(path):
@@ -66,7 +69,7 @@ class Email2PDFTestCase(unittest.TestCase):
         if path is None:
             path = self.workingDir
 
-        for single_time in self._timerange(self.timeInvoked, self.timeCompleted):
+        for single_time in self._timerange(self.time_invoked, self.time_completed):
             filename = os.path.join(path, self.getTimeStamp(single_time) + ".pdf")
             if os.path.exists(filename):
                 return filename
@@ -121,17 +124,17 @@ class Email2PDFTestCase(unittest.TestCase):
 
         options.extend(extraParams)
 
-        self.timeInvoked = datetime.now()
+        self.time_invoked = datetime.now()
         if outputDirectory is None:
             my_cwd = self.workingDir
         else:
             my_cwd = None
 
-        p = Popen(options, stdin=my_stdin, stdout=PIPE, stderr=PIPE, cwd=my_cwd)
+        email2pdf_process = Popen(options, stdin=my_stdin, stdout=PIPE, stderr=PIPE, cwd=my_cwd)
 
-        output, error = p.communicate(my_input)
-        p.wait()
-        self.timeCompleted = datetime.now()
+        output, error = email2pdf_process.communicate(my_input)
+        email2pdf_process.wait()
+        self.time_completed = datetime.now()
 
         output = str(output, "utf-8")
         error = str(error, "utf-8")
@@ -144,13 +147,11 @@ class Email2PDFTestCase(unittest.TestCase):
         if inputFile:
             input_file_handle.close()
 
-        return (p.returncode, output, error)
+        return (email2pdf_process.returncode, output, error)
 
     def invokeDirectly(self, outputDirectory=None, outputFile=None, extraParams=None, completeMessage=None, okToExist=False):
-        import importlib.machinery
         module_path = self._get_original_script_path()
-        loader = importlib.machinery.SourceFileLoader('email2pdf', module_path)
-        email2pdf = loader.load_module()
+        email2pdf = self._get_email2pdf_object(module_path)
 
         if completeMessage:
             bytes_message = bytes(completeMessage, 'utf-8')
@@ -162,10 +163,7 @@ class Email2PDFTestCase(unittest.TestCase):
             input_file_handle.write(bytes_message)
             input_file_handle.flush()
 
-            if outputDirectory:
-                options.extend(['-d', outputDirectory])
-            else:
-                options.extend(['-d', self.workingDir])
+            options.extend(['-d', outputDirectory if outputDirectory else self.workingDir])
 
             if outputFile:
                 options.extend(['-o', outputFile])
@@ -184,12 +182,12 @@ class Email2PDFTestCase(unittest.TestCase):
             log.setLevel(logging.DEBUG)
             log.addHandler(handler)
 
-            self.timeInvoked = datetime.now()
+            self.time_invoked = datetime.now()
 
             try:
                 email2pdf.main(options, None, handler)
             finally:
-                self.timeCompleted = datetime.now()
+                self.time_completed = datetime.now()
                 log.removeHandler(handler)
                 handler.close()
 
@@ -294,13 +292,13 @@ class Email2PDFTestCase(unittest.TestCase):
     def assertIsJPG(self, filename):
         self.assertEqual(imghdr.what(filename), 'jpeg')
 
-    def getMetadataField(self, pdfFilename, fieldName):
-        with open(pdfFilename, 'rb') as file_input:
+    def getMetadataField(self, pdf_filename, field_name):
+        with open(pdf_filename, 'rb') as file_input:
             input_f = PdfFileReader(file_input)
-            documentInfo = input_f.getDocumentInfo()
-            key = '/' + fieldName
-            if key in documentInfo.keys():
-                return documentInfo[key]
+            document_info = input_f.getDocumentInfo()
+            key = '/' + field_name
+            if key in document_info.keys():
+                return document_info[key]
             else:
                 return None
 
@@ -332,15 +330,22 @@ class Email2PDFTestCase(unittest.TestCase):
         for step in range(int((end_time - start_time).seconds) + 1):
             yield start_time + timedelta(0, step)
 
-    def _replace_header(self, mimeBase, header, value):
-        mimeBase.__delitem__(header)
-        mimeBase.add_header(header, value)
+    def _replace_header(self, mime_base, header, value):
+        mime_base.__delitem__(header)
+        mime_base.add_header(header, value)
 
-    def _get_original_script_path(self):
+    @classmethod
+    def _get_original_script_path(cls):
         module_path = inspect.getfile(inspect.currentframe())
         module_path = os.path.join(os.path.dirname(os.path.dirname(module_path)), 'email2pdf')
 
         return module_path
+
+    @classmethod
+    def _get_email2pdf_object(cls, module_path):
+        import importlib.machinery
+        loader = importlib.machinery.SourceFileLoader('email2pdf', module_path)
+        return loader.load_module()
 
     @classmethod
     def _check_examine_dir(cls):
