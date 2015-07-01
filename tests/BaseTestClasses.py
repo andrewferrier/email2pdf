@@ -50,35 +50,8 @@ class Email2PDFTestCase(unittest.TestCase):
 
     def setUp(self):
         self.workingDir = tempfile.mkdtemp(dir='/tmp')
-        self.checkOnline()
-        self.checkExamineDir()
-
-    @classmethod
-    def checkExamineDir(cls):
-        if Email2PDFTestCase.examineDir is None:
-            Email2PDFTestCase.examineDir = '/tmp'
-            Email2PDFTestCase.examineDir = tempfile.mkdtemp(dir=Email2PDFTestCase.examineDir)
-            print("Output examination directory: " + Email2PDFTestCase.examineDir)
-
-    @classmethod
-    def checkOnline(cls):
-        if Email2PDFTestCase.isOnline is None:
-            print("Checking if online... ", end="")
-            sys.stdout.flush()
-            try:
-                r = requests.get(Email2PDFTestCase.EXIST_IMG, headers={'Connection': 'close'})
-                r.raise_for_status()
-                Email2PDFTestCase.isOnline = True
-                print("Yes.")
-            except Exception as e:
-                Email2PDFTestCase.isOnline = False
-                print("No (" + str(e) + ")")
-
-    def getOriginalScriptPath(self):
-        module_path = inspect.getfile(inspect.currentframe())
-        module_path = os.path.join(os.path.dirname(os.path.dirname(module_path)), 'email2pdf')
-
-        return module_path
+        self._check_online()
+        self._check_examine_dir()
 
     def getTimeStamp(self, myTime):
         return myTime.strftime("%Y-%m-%dT%H-%M-%S")
@@ -93,7 +66,7 @@ class Email2PDFTestCase(unittest.TestCase):
         if path is None:
             path = self.workingDir
 
-        for single_time in self.timerange(self.timeInvoked, self.timeCompleted):
+        for single_time in self._timerange(self.timeInvoked, self.timeCompleted):
             filename = os.path.join(path, self.getTimeStamp(single_time) + ".pdf")
             if os.path.exists(filename):
                 return filename
@@ -118,22 +91,22 @@ class Email2PDFTestCase(unittest.TestCase):
 
         self.msg['Date'] = formatdate()
 
-    def invokeAsSubprocess(self, inputFile=False, outputDirectory=None, outputFile=None, extraParams=[],
+    def invokeAsSubprocess(self, inputFile=False, outputDirectory=None, outputFile=None, extraParams=None,
                            expectOutput=False, okToExist=False):
         bytesMessage = self.msg.as_bytes()
 
         options = [Email2PDFTestCase.COMMAND]
 
         if inputFile:
-            inputFile_handle = tempfile.NamedTemporaryFile()
-            options.extend(['-i', inputFile_handle.name])
-            inputFile_handle.write(bytesMessage)
-            inputFile_handle.flush()
-            myStdin = None
-            myInput = None
+            input_file_handle = tempfile.NamedTemporaryFile()
+            options.extend(['-i', input_file_handle.name])
+            input_file_handle.write(bytesMessage)
+            input_file_handle.flush()
+            my_stdin = None
+            my_input = None
         else:
-            myStdin = PIPE
-            myInput = bytesMessage
+            my_stdin = PIPE
+            my_input = bytesMessage
 
         if outputDirectory:
             options.extend(['-d', outputDirectory])
@@ -141,19 +114,22 @@ class Email2PDFTestCase(unittest.TestCase):
         if outputFile:
             options.extend(['-o', outputFile])
             if not okToExist:
-                assert(not os.path.exists(outputFile))
+                assert not os.path.exists(outputFile)
+
+        if extraParams is None:
+            extraParams = []
 
         options.extend(extraParams)
 
         self.timeInvoked = datetime.now()
         if outputDirectory is None:
-            myCwd = self.workingDir
+            my_cwd = self.workingDir
         else:
-            myCwd = None
+            my_cwd = None
 
-        p = Popen(options, stdin=myStdin, stdout=PIPE, stderr=PIPE, cwd=myCwd)
+        p = Popen(options, stdin=my_stdin, stdout=PIPE, stderr=PIPE, cwd=my_cwd)
 
-        output, error = p.communicate(myInput)
+        output, error = p.communicate(my_input)
         p.wait()
         self.timeCompleted = datetime.now()
 
@@ -166,13 +142,13 @@ class Email2PDFTestCase(unittest.TestCase):
             self.assertEqual("", output)
 
         if inputFile:
-            inputFile_handle.close()
+            input_file_handle.close()
 
         return (p.returncode, output, error)
 
-    def invokeDirectly(self, outputDirectory=None, outputFile=None, extraParams=[], completeMessage=None, okToExist=False):
+    def invokeDirectly(self, outputDirectory=None, outputFile=None, extraParams=None, completeMessage=None, okToExist=False):
         import importlib.machinery
-        module_path = self.getOriginalScriptPath()
+        module_path = self._get_original_script_path()
         loader = importlib.machinery.SourceFileLoader('email2pdf', module_path)
         email2pdf = loader.load_module()
 
@@ -181,10 +157,10 @@ class Email2PDFTestCase(unittest.TestCase):
         else:
             bytesMessage = self.msg.as_bytes()
 
-        with tempfile.NamedTemporaryFile() as inputFile_handle:
-            options = [module_path, '-i', inputFile_handle.name]
-            inputFile_handle.write(bytesMessage)
-            inputFile_handle.flush()
+        with tempfile.NamedTemporaryFile() as input_file_handle:
+            options = [module_path, '-i', input_file_handle.name]
+            input_file_handle.write(bytesMessage)
+            input_file_handle.flush()
 
             if outputDirectory:
                 options.extend(['-d', outputDirectory])
@@ -194,7 +170,10 @@ class Email2PDFTestCase(unittest.TestCase):
             if outputFile:
                 options.extend(['-o', outputFile])
                 if not okToExist:
-                    assert(not os.path.exists(outputFile))
+                    assert not os.path.exists(outputFile)
+
+            if extraParams is None:
+                extraParams = []
 
             options.extend(extraParams)
 
@@ -251,7 +230,7 @@ class Email2PDFTestCase(unittest.TestCase):
 
     def attachPDF(self, string, filePrefix="email2pdf_unittest_file",
                   extension="pdf", mainContentType="application", subContentType="pdf", no_filename=False):
-        unused_f_handle, file_name = tempfile.mkstemp(prefix=filePrefix, suffix="." + extension)
+        _, file_name = tempfile.mkstemp(prefix=filePrefix, suffix="." + extension)
 
         try:
             cv = canvas.Canvas(file_name)
@@ -279,22 +258,22 @@ class Email2PDFTestCase(unittest.TestCase):
             fileSuffix = 'png' if not extension else extension
 
         with tempfile.NamedTemporaryFile(prefix="email2pdf_unittest_image", suffix="." + fileSuffix) as temp_file:
-            unused_path, basic_file_name = os.path.split(temp_file.name)
+            _, basic_file_name = os.path.split(temp_file.name)
 
         with open(realFilename, 'rb') as image_file:
             image = MIMEImage(image_file.read())
             if content_id:
                 image.add_header('Content-ID', content_id)
             if content_type:
-                self.replace_header(image, 'Content-Type', content_type)
+                self._replace_header(image, 'Content-Type', content_type)
 
             if inline:
                 if force_filename:
-                    self.replace_header(image, 'Content-Disposition', 'inline; filename="%s"' % basic_file_name)
+                    self._replace_header(image, 'Content-Disposition', 'inline; filename="%s"' % basic_file_name)
                 else:
-                    self.replace_header(image, 'Content-Disposition', 'inline')
+                    self._replace_header(image, 'Content-Disposition', 'inline')
             else:
-                self.replace_header(image, 'Content-Disposition', 'attachment; filename="%s"' % basic_file_name)
+                self._replace_header(image, 'Content-Disposition', 'attachment; filename="%s"' % basic_file_name)
             self.msg.attach(image)
 
         if inline and not force_filename:
@@ -322,7 +301,7 @@ class Email2PDFTestCase(unittest.TestCase):
             inputF = PdfFileReader(file_input)
             documentInfo = inputF.getDocumentInfo()
             key = '/' + fieldName
-            if(key in documentInfo.keys()):
+            if key in documentInfo.keys():
                 return documentInfo[key]
             else:
                 return None
@@ -330,11 +309,11 @@ class Email2PDFTestCase(unittest.TestCase):
     def getPDFText(self, filename):
         try:
             with io.StringIO() as retstr:
-                with open(filename, 'rb') as fp:
+                with open(filename, 'rb') as filehandle:
                     rsrcmgr = PDFResourceManager()
                     device = TextConverter(rsrcmgr, retstr, laparams=LAParams())
                     pagenos = set()
-                    process_pdf(rsrcmgr, device, fp, pagenos, maxpages=0, password="", caching=True, check_extractable=True)
+                    process_pdf(rsrcmgr, device, filehandle, pagenos, maxpages=0, password="", caching=True, check_extractable=True)
                     device.close()
                     string = retstr.getvalue()
                     return string
@@ -344,20 +323,47 @@ class Email2PDFTestCase(unittest.TestCase):
     def touch(self, fname):
         open(fname, 'w').close()
 
-    def timerange(self, start_time, end_time):
-        start_time = start_time.replace(microsecond=0)
-        end_time = end_time.replace(microsecond=0)
-        for n in range(int((end_time - start_time).seconds) + 1):
-            yield start_time + timedelta(0, n)
-
     def find_mount_point(self, path):
         while not os.path.ismount(path):
             path = os.path.dirname(path)
         return path
 
-    def replace_header(self, mimeBase, header, value):
+    def _timerange(self, start_time, end_time):
+        start_time = start_time.replace(microsecond=0)
+        end_time = end_time.replace(microsecond=0)
+        for step in range(int((end_time - start_time).seconds) + 1):
+            yield start_time + timedelta(0, step)
+
+    def _replace_header(self, mimeBase, header, value):
         mimeBase.__delitem__(header)
         mimeBase.add_header(header, value)
+
+    def _get_original_script_path(self):
+        module_path = inspect.getfile(inspect.currentframe())
+        module_path = os.path.join(os.path.dirname(os.path.dirname(module_path)), 'email2pdf')
+
+        return module_path
+
+    @classmethod
+    def _check_examine_dir(cls):
+        if Email2PDFTestCase.examineDir is None:
+            Email2PDFTestCase.examineDir = '/tmp'
+            Email2PDFTestCase.examineDir = tempfile.mkdtemp(dir=Email2PDFTestCase.examineDir)
+            print("Output examination directory: " + Email2PDFTestCase.examineDir)
+
+    @classmethod
+    def _check_online(cls):
+        if Email2PDFTestCase.isOnline is None:
+            print("Checking if online... ", end="")
+            sys.stdout.flush()
+            try:
+                request = requests.get(Email2PDFTestCase.EXIST_IMG, headers={'Connection': 'close'})
+                request.raise_for_status()
+                Email2PDFTestCase.isOnline = True
+                print("Yes.")
+            except Exception as exception:
+                Email2PDFTestCase.isOnline = False
+                print("No (" + str(exception) + ")")
 
     def tearDown(self):
         shutil.rmtree(self.workingDir)
