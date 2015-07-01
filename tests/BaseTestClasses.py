@@ -237,13 +237,11 @@ class Email2PDFTestCase(unittest.TestCase):
             pdf_canvas.drawString(0, 500, string)
             pdf_canvas.save()
 
-            open_handle = open(file_name, "rb")
-            if no_filename:
-                self.attachAttachment(mainContentType, subContentType, open_handle.read(), None)
-            else:
-                self.attachAttachment(mainContentType, subContentType, open_handle.read(), file_name)
-
-            open_handle.close()
+            with open(file_name, "rb") as open_handle:
+                if no_filename:
+                    self.attachAttachment(mainContentType, subContentType, open_handle.read(), None)
+                else:
+                    self.attachAttachment(mainContentType, subContentType, open_handle.read(), file_name)
 
             return os.path.basename(file_name)
         finally:
