@@ -207,7 +207,7 @@ class Email2PDFTestCase(unittest.TestCase):
 
     def attachHTML(self, content, charset=None):
         if not isinstance(self.msg, MIMEMultipart):
-            raise Exception("Cannot call attachHTML() on a MIME-based message.")
+            raise Exception("Cannot call attachHTML() on a non-MIME-based message.")
         else:
             # According to the docs
             # (https://docs.python.org/3.3/library/email.mime.html), setting
