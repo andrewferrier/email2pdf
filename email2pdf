@@ -514,17 +514,27 @@ def get_mime_type(buffer_data):
 
     return mime_type
 
-warning_pending = False
-
 
 def get_utf8_header(header):
-    decoded_header = decode_header(header)
-    assert len(decoded_header) == 1
-    (decoded_string, charset) = decoded_header[0]
-    if charset is not None:
-        decoded_string = str(decoded_string, charset)
+    # There is a simpler way of doing this here:
+    # http://stackoverflow.com/a/21715870/27641. However, it doesn't seem to
+    # work, as it inserts a space between certain elements in the string
+    # that's not warranted/correct.
 
-    return decoded_string
+    logger = logging.getLogger("email2pdf")
+
+    decoded_header = decode_header(header)
+    logger.debug("Decoded header: " + str(decoded_header))
+    hdr = ""
+    for element in decoded_header:
+        if isinstance(element[0], bytes):
+            hdr += str(element[0], element[1] or 'ASCII')
+        else:
+            hdr += element[0]
+    return hdr
+
+
+warning_pending = False
 
 
 def warning(message):
