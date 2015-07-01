@@ -285,10 +285,10 @@ def output_body_pdf(input_email, payload, output_file_name):
 
     stripped_error = str(error, 'utf-8')
 
-    for ERROR_PATTERN in WKHTMLTOPDF_ERRORS_IGNORE:
-        (stripped_error, number_of_subs_made) = re.subn(ERROR_PATTERN, '', stripped_error)
+    for error_pattern in WKHTMLTOPDF_ERRORS_IGNORE:
+        (stripped_error, number_of_subs_made) = re.subn(error_pattern, '', stripped_error)
         if number_of_subs_made > 0:
-            logger.debug("Made " + str(number_of_subs_made) + " subs with pattern " + ERROR_PATTERN)
+            logger.debug("Made " + str(number_of_subs_made) + " subs with pattern " + error_pattern)
 
     original_error = str(error, 'utf-8').rstrip()
     stripped_error = stripped_error.rstrip()
@@ -325,8 +325,8 @@ def remove_invalid_urls(payload):
             elif not lower_src.startswith('data'):
                 found_blacklist = False
 
-                for IMAGE_LOAD_BLACKLIST_ITEM in IMAGE_LOAD_BLACKLIST:
-                    if IMAGE_LOAD_BLACKLIST_ITEM in lower_src:
+                for image_load_blacklist_item in IMAGE_LOAD_BLACKLIST:
+                    if image_load_blacklist_item in lower_src:
                         found_blacklist = True
 
                 if not found_blacklist:
@@ -558,13 +558,13 @@ class FatalException(Exception):
         return repr(self.value)
 
 
-def call_main():
+def call_main(argv, syslog_handler, syserr_handler, logger):
     # pylint: disable=bare-except
 
     try:
-        main(sys.argv, syslog_handler, syserr_handler)
+        main(argv, syslog_handler, syserr_handler)
     except FatalException as exception:
-        logger_setup.error(exception.value)
+        logger.error(exception.value)
         sys.exit(2)
     except:
         traceback.print_exc()
@@ -576,11 +576,11 @@ if __name__ == "__main__":
     logger_setup.propagate = False
     logger_setup.setLevel(logging.DEBUG)
 
-    syserr_handler = logging.StreamHandler(stream=sys.stderr)
-    syserr_handler.setLevel(logging.WARNING)
+    syserr_handler_setup = logging.StreamHandler(stream=sys.stderr)
+    syserr_handler_setup.setLevel(logging.WARNING)
     syserr_formatter = logging.Formatter('%(levelname)s: %(message)s')
-    syserr_handler.setFormatter(syserr_formatter)
-    logger_setup.addHandler(syserr_handler)
+    syserr_handler_setup.setFormatter(syserr_formatter)
+    logger_setup.addHandler(syserr_handler_setup)
 
     if _platform == "linux" or _platform == "linux2":
         SYSLOG_ADDRESS = '/dev/log'
@@ -591,15 +591,15 @@ if __name__ == "__main__":
         SYSLOG_ADDRESS = None
 
     if SYSLOG_ADDRESS and os.path.exists(SYSLOG_ADDRESS):
-        syslog_handler = logging.handlers.SysLogHandler(address=SYSLOG_ADDRESS)
-        syslog_handler.setLevel(logging.INFO)
+        syslog_handler_setup = logging.handlers.SysLogHandler(address=SYSLOG_ADDRESS)
+        syslog_handler_setup.setLevel(logging.INFO)
         SYSLOG_FORMATTER = logging.Formatter('%(pathname)s[%(process)d] %(levelname)s %(lineno)d %(message)s')
-        syslog_handler.setFormatter(SYSLOG_FORMATTER)
-        logger_setup.addHandler(syslog_handler)
+        syslog_handler_setup.setFormatter(SYSLOG_FORMATTER)
+        logger_setup.addHandler(syslog_handler_setup)
     else:
-        syslog_handler = None
+        syslog_handler_setup = None
 
-    call_main()
+    call_main(sys.argv, syslog_handler_setup, syserr_handler_setup, logger_setup)
 
     if warning_pending:
         sys.exit(1)
