@@ -9,6 +9,8 @@ usage and options available.
 
 For more information on hacking/developing email2pdf, please see
 [HACKING.md](https://github.com/andrewferrier/email2pdf/blob/master/HACKING.md).
+Note that use is subject to the [license conditions]
+(https://github.com/andrewferrier/email2pdf/blob/master/LICENSE.txt).
 
 ## Installing Dependencies
 
