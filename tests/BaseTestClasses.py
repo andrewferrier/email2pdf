@@ -93,20 +93,20 @@ class Email2PDFTestCase(unittest.TestCase):
 
     def invokeAsSubprocess(self, inputFile=False, outputDirectory=None, outputFile=None, extraParams=None,
                            expectOutput=False, okToExist=False):
-        bytesMessage = self.msg.as_bytes()
+        bytes_message = self.msg.as_bytes()
 
         options = [Email2PDFTestCase.COMMAND]
 
         if inputFile:
             input_file_handle = tempfile.NamedTemporaryFile()
             options.extend(['-i', input_file_handle.name])
-            input_file_handle.write(bytesMessage)
+            input_file_handle.write(bytes_message)
             input_file_handle.flush()
             my_stdin = None
             my_input = None
         else:
             my_stdin = PIPE
-            my_input = bytesMessage
+            my_input = bytes_message
 
         if outputDirectory:
             options.extend(['-d', outputDirectory])
@@ -153,13 +153,13 @@ class Email2PDFTestCase(unittest.TestCase):
         email2pdf = loader.load_module()
 
         if completeMessage:
-            bytesMessage = bytes(completeMessage, 'utf-8')
+            bytes_message = bytes(completeMessage, 'utf-8')
         else:
-            bytesMessage = self.msg.as_bytes()
+            bytes_message = self.msg.as_bytes()
 
         with tempfile.NamedTemporaryFile() as input_file_handle:
             options = [module_path, '-i', input_file_handle.name]
-            input_file_handle.write(bytesMessage)
+            input_file_handle.write(bytes_message)
             input_file_handle.flush()
 
             if outputDirectory:
@@ -233,17 +233,17 @@ class Email2PDFTestCase(unittest.TestCase):
         _, file_name = tempfile.mkstemp(prefix=filePrefix, suffix="." + extension)
 
         try:
-            cv = canvas.Canvas(file_name)
-            cv.drawString(0, 500, string)
-            cv.save()
+            pdf_canvas = canvas.Canvas(file_name)
+            pdf_canvas.drawString(0, 500, string)
+            pdf_canvas.save()
 
-            openHandle = open(file_name, "rb")
+            open_handle = open(file_name, "rb")
             if no_filename:
-                self.attachAttachment(mainContentType, subContentType, openHandle.read(), None)
+                self.attachAttachment(mainContentType, subContentType, open_handle.read(), None)
             else:
-                self.attachAttachment(mainContentType, subContentType, openHandle.read(), file_name)
+                self.attachAttachment(mainContentType, subContentType, open_handle.read(), file_name)
 
-            openHandle.close()
+            open_handle.close()
 
             return os.path.basename(file_name)
         finally:
@@ -251,16 +251,16 @@ class Email2PDFTestCase(unittest.TestCase):
 
     def attachImage(self, content_id=None, jpeg=True, content_type=None, inline=False, force_filename=False, extension=None):
         if jpeg:
-            realFilename = self.JPG_FILENAME
-            fileSuffix = 'jpg' if not extension else extension
+            real_filename = self.JPG_FILENAME
+            file_suffix = 'jpg' if not extension else extension
         else:
-            realFilename = self.PNG_FILENAME
-            fileSuffix = 'png' if not extension else extension
+            real_filename = self.PNG_FILENAME
+            file_suffix = 'png' if not extension else extension
 
-        with tempfile.NamedTemporaryFile(prefix="email2pdf_unittest_image", suffix="." + fileSuffix) as temp_file:
+        with tempfile.NamedTemporaryFile(prefix="email2pdf_unittest_image", suffix="." + file_suffix) as temp_file:
             _, basic_file_name = os.path.split(temp_file.name)
 
-        with open(realFilename, 'rb') as image_file:
+        with open(real_filename, 'rb') as image_file:
             image = MIMEImage(image_file.read())
             if content_id:
                 image.add_header('Content-ID', content_id)
@@ -298,8 +298,8 @@ class Email2PDFTestCase(unittest.TestCase):
 
     def getMetadataField(self, pdfFilename, fieldName):
         with open(pdfFilename, 'rb') as file_input:
-            inputF = PdfFileReader(file_input)
-            documentInfo = inputF.getDocumentInfo()
+            input_f = PdfFileReader(file_input)
+            documentInfo = input_f.getDocumentInfo()
             key = '/' + fieldName
             if key in documentInfo.keys():
                 return documentInfo[key]
