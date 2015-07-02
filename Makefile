@@ -1,7 +1,13 @@
 TEMPDIR := $(shell mktemp -t tmp.XXXXXX -d)
 FLAKE8 := $(shell which flake8)
 
-builddeb:
+determineversion:
+	$(eval GITDESCRIBE := $(shell git describe --dirty))
+	sed 's/Version: .*/Version: $(GITDESCRIBE)/' debian/DEBIAN/control_template > debian/DEBIAN/control
+
+builddeb: determineversion builddeb_real
+
+builddeb_real:
 	sudo apt-get install build-essential
 	cp -R debian/DEBIAN/ $(TEMPDIR)
 	mkdir -p $(TEMPDIR)/usr/bin
@@ -14,10 +20,10 @@ builddeb:
 	fakeroot chmod -R u+x $(TEMPDIR)/usr/bin
 	fakeroot dpkg-deb --build $(TEMPDIR) .
 
-builddocker:
+builddocker: determineversion
 	docker build -t andrewferrier/email2pdf .
 
-builddocker_nocache:
+builddocker_nocache: determineversion
 	docker build --no-cache -t andrewferrier/email2pdf .
 
 rundocker_interactive: builddocker
