@@ -219,7 +219,7 @@ class Email2PDFTestCase(unittest.TestCase):
 
     def attachText(self, content, charset=None):
         if not isinstance(self.msg, MIMEMultipart):
-            raise Exception("Cannot call attachText() on a MIME-based message.")
+            raise Exception("Cannot call attachText() on a non-MIME-based message.")
         else:
             if charset:
                 self.msg.attach(MIMEText(content, 'plain', charset))
