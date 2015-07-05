@@ -96,20 +96,23 @@ class Email2PDFTestCase(unittest.TestCase):
 
     def invokeAsSubprocess(self, inputFile=False, outputDirectory=None, outputFile=None, extraParams=None,
                            expectOutput=False, okToExist=False):
-        bytes_message = self.msg.as_bytes()
+        if type(inputFile) is str:
+            input_content = bytes(inputFile, 'utf-8')
+        else:
+            input_content = self.msg.as_bytes()
 
         options = [Email2PDFTestCase.COMMAND]
 
         if inputFile:
             input_file_handle = tempfile.NamedTemporaryFile()
             options.extend(['-i', input_file_handle.name])
-            input_file_handle.write(bytes_message)
+            input_file_handle.write(input_content)
             input_file_handle.flush()
             my_stdin = None
             my_input = None
         else:
             my_stdin = PIPE
-            my_input = bytes_message
+            my_input = input_content
 
         if outputDirectory:
             options.extend(['-d', outputDirectory])

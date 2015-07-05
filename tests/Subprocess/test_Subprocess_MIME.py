@@ -89,6 +89,25 @@ class TestMIME(Email2PDFTestCase):
         self.assertTrue(os.path.exists(path))
         self.assertRegex(self.getPDFText(path), "Hello - this email costs \xa35!")
 
+    def test_plaincontent_poundsign_utf8_8bit(self):
+        input_email = ("From: \"XYZ\" <xyz@abc.uk>\n"
+                       "To: \"XYZ\" <xyz@gmail.com>\n"
+                       "Subject: Blah\n"
+                       "Content-Type: multipart/mixed; boundary=\"CUT-HERE--\"\n"
+                       "\n"
+                       "--CUT-HERE--\n"
+                       "Content-Type: text/plain; charset=UTF-8\n"
+                       "Content-Transfer-Encoding: 8bit\n"
+                       "\n"
+                       "Price is £45.00\n"
+                       "--CUT-HERE----\n")
+        path = os.path.join(self.examineDir, "plaincontent_poundsign_utf8_8bit.pdf")
+        (rc, output, error) = self.invokeAsSubprocess(inputFile=input_email, outputFile=path)
+        self.assertEqual(0, rc)
+        self.assertEqual('', error)
+        self.assertTrue(os.path.exists(path))
+        self.assertRegex(self.getPDFText(path), "Price is £45.00")
+
     def test_plainandhtml(self):
         self.addHeaders()
         self.attachText("Some basic textual content")

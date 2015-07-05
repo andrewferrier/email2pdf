@@ -241,14 +241,22 @@ def handle_message_body(input_email):
     if part is None:
         part = find_part_by_content_type(input_email, "text/plain")
         assert part is not None
-        payload = part.get_payload(decode=True)
-        charset = part.get_content_charset()
-        if not charset:
-            charset = 'utf-8'
-            logger.info("Determined email is plain text, defaulting to charset utf-8")
+
+        if part['Content-Transfer-Encoding'] == '8bit':
+            payload = part.get_payload(decode=False)
+            assert type(payload) is str
+            logger.info("Email is pre-decoded because Content-Transfer-Encoding is 8bit")
         else:
-            logger.info("Determined email is plain text with charset " + str(charset))
-        payload = "<html><body><pre>\n" + str(payload, charset) + "\n</pre></body></html>"
+            payload = part.get_payload(decode=True)
+            assert type(payload) is bytes
+            charset = part.get_content_charset()
+            if not charset:
+                charset = 'utf-8'
+                logger.info("Determined email is plain text, defaulting to charset utf-8")
+            else:
+                logger.info("Determined email is plain text with charset " + str(charset))
+
+        payload = "<html><body><pre>\n" + (str(payload, charset) if (type(payload) is bytes) else payload) + "\n</pre></body></html>"
     else:
         payload = part.get_payload(decode=True)
         charset = part.get_content_charset()
