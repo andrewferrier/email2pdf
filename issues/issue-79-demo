@@ -1,0 +1,19 @@
+From: "XYZ" <xyz@abc.uk>
+To: "XYZ" <xyz@gmail.com>
+Subject: Blah
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="CUT-HERE--"
+Status: RO
+
+This email is MIME encoded and contains a plain text message plus a PDF attachment
+--CUT-HERE--
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Blah,
+
+Price is £45.00
+--CUT-HERE----
