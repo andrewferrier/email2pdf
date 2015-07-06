@@ -47,11 +47,11 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
         error = self.invokeDirectly(outputFile=path, extraParams=['--headers'])
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
-        pdfText = self.getPDFText(path)
-        self.assertRegex(pdfText, "Subject")
-        self.assertRegex(pdfText, "From")
-        self.assertRegex(pdfText, "To")
-        self.assertRegex(pdfText, "Hello")
+        pdf_text = self.getPDFText(path)
+        self.assertRegex(pdf_text, "Subject")
+        self.assertRegex(pdf_text, "From")
+        self.assertRegex(pdf_text, "To")
+        self.assertRegex(pdf_text, "Hello")
 
     def test_add_prefix_date(self):
         self.addHeaders()

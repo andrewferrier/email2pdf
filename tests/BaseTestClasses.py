@@ -13,6 +13,7 @@ from pdfminer.layout import LAParams
 from pdfminer.pdfinterp import PDFResourceManager, process_pdf
 from pdfminer.pdftypes import PSException
 from reportlab.pdfgen import canvas
+from requests.exceptions import RequestException
 from subprocess import Popen, PIPE
 
 import io
@@ -367,7 +368,7 @@ class Email2PDFTestCase(unittest.TestCase):
                 request.raise_for_status()
                 Email2PDFTestCase.isOnline = True
                 print("Yes.")
-            except Exception as exception:
+            except RequestException as exception:
                 Email2PDFTestCase.isOnline = False
                 print("No (" + str(exception) + ")")
 

@@ -56,34 +56,34 @@ class AttachmentDetection(Email2PDFTestCase):
     def test_jpeg_as_octet_stream(self):
         self.addHeaders()
         self.attachText("Some basic textual content")
-        imageFilename = self.attachImage(jpeg=True, content_type="application/octet-stream")
+        image_filename = self.attachImage(jpeg=True, content_type="application/octet-stream")
         error = self.invokeDirectly()
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
-        self.assertIsJPG(os.path.join(self.workingDir, imageFilename))
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, image_filename)))
+        self.assertIsJPG(os.path.join(self.workingDir, image_filename))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
 
     def test_jpeg_with_invalid_extension(self):
         self.addHeaders()
         self.attachText("Some basic textual content")
-        imageFilename = self.attachImage(jpeg=True, extension="blah")
+        image_filename = self.attachImage(jpeg=True, extension="blah")
         error = self.invokeDirectly()
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
-        self.assertIsJPG(os.path.join(self.workingDir, imageFilename))
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, image_filename)))
+        self.assertIsJPG(os.path.join(self.workingDir, image_filename))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
 
     def test_jpeg_as_octet_stream_with_invalid_extension(self):
         self.addHeaders()
         self.attachText("Some basic textual content")
-        imageFilename = self.attachImage(jpeg=True, content_type="application/octet-stream", extension="xyz")
+        image_filename = self.attachImage(jpeg=True, content_type="application/octet-stream", extension="xyz")
         error = self.invokeDirectly()
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
-        self.assertIsJPG(os.path.join(self.workingDir, imageFilename))
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, image_filename)))
+        self.assertIsJPG(os.path.join(self.workingDir, image_filename))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
 
     def test_word_document(self):
