@@ -12,6 +12,7 @@ from sys import platform as _platform
 import argparse
 import email
 import functools
+import io
 import locale
 import logging
 import logging.handlers
@@ -135,6 +136,13 @@ def handle_args(argv):
                         "delivered from a MTA. If set to '-' (which is the default), it "
                         "reads from stdin.")
 
+    parser.add_argument("--input-encoding",
+                        default=locale.getpreferredencoding(), help="Set the "
+                        "expected encoding of the input email (whether on stdin "
+                        "or specified with the --inputFile option). If not set, "
+                        "defaults to this system's preferred encoding, which "
+                        "is " + locale.getpreferredencoding() + ".")
+
     parser.add_argument("-o", "--outputFile",
                         help="Output file you wish to print the body of the email to as PDF. Should "
                         "include the complete path, otherwise it defaults to the current directory. If "
@@ -195,13 +203,16 @@ def get_input_data(args):
     logger = logging.getLogger("email2pdf")
 
     logger.debug("System preferred encoding is: " + locale.getpreferredencoding())
+    logger.debug("System encoding is: " + str(locale.getlocale()))
+    logger.debug("Input encoding that will be used is " + args.input_encoding)
 
     if args.inputFile.strip() == "-":
         data = ""
-        for line in sys.stdin:
+        input_stream = io.TextIOWrapper(sys.stdin.buffer, encoding=args.input_encoding)
+        for line in input_stream:
             data += line
     else:
-        with open(args.inputFile, "r") as input_handle:
+        with open(args.inputFile, "r", encoding=args.input_encoding) as input_handle:
             data = input_handle.read()
 
     return data
