@@ -1,5 +1,6 @@
 TEMPDIR := $(shell mktemp -t tmp.XXXXXX -d)
 FLAKE8 := $(shell which flake8)
+DOCKERTAG = andrewferrier/email2pdf
 
 determineversion:
 	$(eval GITDESCRIBE := $(shell git describe --dirty))
@@ -21,19 +22,21 @@ builddeb_real:
 	fakeroot dpkg-deb --build $(TEMPDIR) .
 
 builddocker: determineversion
-	docker build -t andrewferrier/email2pdf .
+	docker build -t $(DOCKERTAG) .
+	docker tag $(DOCKERTAG):latest $(DOCKERTAG):$(GITDESCRIBE)
 
 builddocker_nocache: determineversion
-	docker build --no-cache -t andrewferrier/email2pdf .
+	docker build --no-cache -t $(DOCKERTAG) .
+	docker tag $(DOCKERTAG):latest $(DOCKERTAG):$(GITDESCRIBE)
 
 rundocker_interactive: builddocker
-	docker run -i -t andrewferrier/email2pdf /sbin/my_init -- bash -l
+	docker run -i -t $(DOCKERTAG) /sbin/my_init -- bash -l
 
 rundocker_testing: builddocker
-	docker run -t andrewferrier/email2pdf /sbin/my_init -- bash -c 'cd /tmp/email2pdf && make unittest && make stylecheck'
+	docker run -t $(DOCKERTAG) /sbin/my_init -- bash -c 'cd /tmp/email2pdf && make unittest && make stylecheck'
 
 rundocker_getdebs: builddocker
-	docker run -v ${PWD}:/debs andrewferrier/email2pdf sh -c 'cp /tmp/*.deb /debs'
+	docker run -v ${PWD}:/debs $(DOCKERTAG) sh -c 'cp /tmp/*.deb /debs'
 
 unittest:
 	python3 -m unittest discover
