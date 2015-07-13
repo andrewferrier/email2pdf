@@ -26,7 +26,7 @@ WORKDIR /tmp
 RUN wget http://mirrors.kernel.org/ubuntu/pool/universe/p/pypdf2/python3-pypdf2_1.23+git20141008-1_all.deb
 RUN wget http://mirrors.kernel.org/ubuntu/pool/universe/f/freezegun/python3-freezegun_0.1.18-1_all.deb
 RUN fakeroot checkinstall --pkgname=python3-pdfminer3k --pkgversion=0.1 -y --fstrans=no --install=no pip3 install pdfminer3k
-RUN wget -O wkhtmltox.deb 'http://sourceforge.net/projects/wkhtmltopdf/files/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb/download?use_mirror=garr#'
+RUN wget -O wkhtmltox.deb 'http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb'
 RUN dpkg -i *.deb
 RUN wget -O /etc/vim/vimrc.local https://raw.githubusercontent.com/tpope/vim-sensible/master/plugin/sensible.vim
 COPY . /tmp/email2pdf/
