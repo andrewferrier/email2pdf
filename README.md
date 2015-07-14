@@ -42,12 +42,15 @@ instructions here are split out by platform:
 
 * Install [Homebrew](http://brew.sh/)
 
+* `xcode-select --install` (for lxml, because of
+  [this](http://stackoverflow.com/questions/19548011/cannot-install-lxml-on-mac-os-x-10-9))
+
 * `brew install python3` (or otherwise make sure you have Python 3 and `pip3`
   available).
 
 * `brew install libmagic`
 
-* `pip3 install beautifulsoup4 lxml pypdf2 python-magic`
+* `pip3 install beautifulsoup4 lxml pypdf2 python-magic requests`
 
 ## Configuring getmail
 
