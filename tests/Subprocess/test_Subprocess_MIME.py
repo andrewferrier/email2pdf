@@ -102,7 +102,8 @@ class TestMIME(Email2PDFTestCase):
                        "Price is £45.00\n"
                        "--CUT-HERE----\n")
         path = os.path.join(self.examineDir, "plaincontent_poundsign_utf8_8bit.pdf")
-        (rc, output, error) = self.invokeAsSubprocess(inputFile=input_email, outputFile=path, extraParams=['--input-encoding=utf-8'])
+        (rc, output, error) = self.invokeAsSubprocess(inputFile=input_email, outputFile=path,
+                                                      extraParams=['--input-encoding=utf-8'])
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
