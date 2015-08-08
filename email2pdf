@@ -150,9 +150,10 @@ def handle_args(argv):
                         "the file in the directory specified by --outputDirectory.")
 
     parser.add_argument("-d", "--outputDirectory", default=os.getcwd(),
-                        help="Output directory for body PDF file when --outputFile is not specified. Defaults to the "
-                        "current directory. Also used as the directory in which attachments are stored (even if -o is "
-                        "specified).")
+                        help="If --outputFile is not specified, the value of this parameter is used as "
+                        "the output directory for the body PDF, with a date-and-time based filename attached. "
+                        "In either case, this parameter also specifies the directory in which attachments are "
+                        "stored.")
 
     body_attachment_options = parser.add_mutually_exclusive_group()
 
