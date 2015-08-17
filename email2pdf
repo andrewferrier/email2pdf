@@ -580,8 +580,9 @@ class FatalException(Exception):
         return repr(self.value)
 
 
-def call_main(argv, syslog_handler, syserr_handler, logger):
+def call_main(argv, syslog_handler, syserr_handler):
     # pylint: disable=bare-except
+    logger = logging.getLogger("email2pdf")
 
     try:
         main(argv, syslog_handler, syserr_handler)
@@ -621,7 +622,7 @@ if __name__ == "__main__":
     else:
         syslog_handler_setup = None
 
-    call_main(sys.argv, syslog_handler_setup, syserr_handler_setup, logger_setup)
+    call_main(sys.argv, syslog_handler_setup, syserr_handler_setup)
 
     if warning_pending:
         sys.exit(1)
