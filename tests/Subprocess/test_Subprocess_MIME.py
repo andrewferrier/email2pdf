@@ -39,7 +39,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
-        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some\sbasic\stextual\scontent")
 
     def test_attachtext_upsidedown(self):
         self.addHeaders()
@@ -48,7 +48,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
-        self.assertRegex(self.getPDFText(self.getTimedFilename()), "ɯɐɹƃoɹd ɟpdᄅlᴉɐɯǝ ǝɥʇ ɟo ʇsǝʇ ɐ sᴉ sᴉɥʇ ollǝH")
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "ɯɐɹƃoɹd\sɟpdᄅlᴉɐɯǝ\sǝɥʇ\sɟo\sʇsǝʇ\sɐ\ssᴉ\ssᴉɥʇ\sollǝH")
 
     def test_attachhtml_upsidedown(self):
         self.addHeaders()
@@ -57,7 +57,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
-        self.assertRegex(self.getPDFText(self.getTimedFilename()), "ɯɐɹƃoɹd ɟpdᄅlᴉɐɯǝ ǝɥʇ ɟo ʇsǝʇ ɐ sᴉ sᴉɥʇ ollǝH")
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "ɯɐɹƃoɹd\sɟpdᄅlᴉɐɯǝ\sǝɥʇ\sɟo\sʇsǝʇ\sɐ\ssᴉ\ssᴉɥʇ\sollǝH")
 
     def test_html_entities_currency(self):
         path = os.path.join(self.examineDir, "htmlEntitiesCurrency.pdf")
@@ -67,7 +67,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
-        self.assertRegex(self.getPDFText(path), "Pounds: £7.14, Another Pounds: £7.14")
+        self.assertRegex(self.getPDFText(path), "Pounds:\s£7.14,\sAnother\sPounds:\s£7.14")
 
     def test_html_poundsign_iso88591(self):
         self.addHeaders()
@@ -77,7 +77,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
-        self.assertRegex(self.getPDFText(path), "Hello - this email costs \xa35!")
+        self.assertRegex(self.getPDFText(path), "Hello\s-\sthis\semail\scosts\s\xa35!")
 
     def test_text_poundsign_iso88591(self):
         self.addHeaders()
@@ -87,7 +87,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
-        self.assertRegex(self.getPDFText(path), "Hello - this email costs \xa35!")
+        self.assertRegex(self.getPDFText(path), "Hello\s-\sthis\semail\scosts\s\xa35!")
 
     def test_plaincontent_poundsign_utf8_8bit(self):
         input_email = ("From: \"XYZ\" <xyz@abc.uk>\n"
@@ -107,7 +107,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
-        self.assertRegex(self.getPDFText(path), "Price is £45.00")
+        self.assertRegex(self.getPDFText(path), "Price\sis\s£45.00")
 
     def test_plainandhtml(self):
         self.addHeaders()
@@ -117,7 +117,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
-        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic HTML content")
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some\sbasic\sHTML\scontent")
 
     def test_pdf(self):
         self.addHeaders()
@@ -128,8 +128,8 @@ class TestMIME(Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
-        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
-        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some PDF content")
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some\sbasic\stextual\scontent")
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some\sPDF\scontent")
 
     def test_plaincontent_outputfileoverrides_with_attachments(self):
         mainFilename = os.path.join(self.examineDir, "outputFileOverridesWithAttachments.pdf")
@@ -148,7 +148,7 @@ class TestMIME(Email2PDFTestCase):
             self.assertFalse(os.path.exists(os.path.join(self.workingDir, attachmentFilename)))
             self.assertTrue(os.path.exists(os.path.join(tempdir, attachmentFilename)))
             self.assertRegex(self.getPDFText(mainFilename), "Hello!")
-            self.assertRegex(self.getPDFText(os.path.join(tempdir, attachmentFilename)), "Some PDF content")
+            self.assertRegex(self.getPDFText(os.path.join(tempdir, attachmentFilename)), "Some\sPDF\scontent")
 
     def test_remote_image_does_exist(self):
         if self.isOnline:
@@ -219,7 +219,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, imageFilename)))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
-        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some PDF content")
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some\sPDF\scontent")
 
     def test_2pdfs(self):
         self.addHeaders()
