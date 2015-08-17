@@ -79,6 +79,22 @@ class Direct_CID(Email2PDFTestCase):
         self.assertTrue(self.existsByTimeWarning())
         self.assertRegex(self.getWarningFileContents(), "(?i)could not find image")
 
+    def test_embedded_image_invalid_cid_output_file(self):
+        path = os.path.join(self.workingDir, "test_embedded_image_invalid_cid_output_file.pdf")
+        self.addHeaders()
+        image_filename = self.attachImage('myid')
+        self.attachHTML('<img src=cid:myid2>')
+        error = self.invokeDirectly(outputFile=path)
+        self.assertRegex(error, "(?i)could not find image")
+        self.assertTrue(os.path.exists(path))
+        self.assertGreater(Email2PDFTestCase.JPG_SIZE, os.path.getsize(path))
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, image_filename)))
+        warning_filename = os.path.join(self.workingDir, "test_embedded_image_invalid_cid_output_file_warnings_and_errors.txt")
+        self.assertTrue(os.path.exists(warning_filename))
+        with open(warning_filename) as f:
+            warning_file_contents = f.read()
+        self.assertRegex(warning_file_contents, "(?i)could not find image")
+
     def test_embedded_image_png(self):
         path = os.path.join(self.examineDir, "embeddedImagePNG.pdf")
         self.addHeaders()
