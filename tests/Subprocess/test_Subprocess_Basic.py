@@ -17,29 +17,35 @@ class TestBasic(Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_help(self):
         (rc, output, error) = self.invokeAsSubprocess(extraParams=['--help'], expectOutput=True)
         self.assertEqual(0, rc)
         self.assertRegex(output, 'usage:')
         self.assertEqual(error, '')
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_invalid_option(self):
         (rc, output, error) = self.invokeAsSubprocess(extraParams=['--invalid-option'])
         self.assertEqual(2, rc)
         self.assertRegex(error, 'ERROR: unrecognized.*')
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_dont_print_body(self):
         (rc, output, error) = self.invokeAsSubprocess(extraParams=['--no-body'])
         self.assertEqual(1, rc)
         self.assertFalse(self.existsByTime())
         self.assertRegex(error, "body.*any.*attachments")
+        self.assertTrue(self.existsByTimeWarning())
+        self.assertRegex(self.getWarningFileContents(), "body.*any.*attachments")
 
     def test_no_message_headers(self):
         (rc, output, error) = self.invokeAsSubprocess()
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_withinputfile(self):
         self.addHeaders()
@@ -47,6 +53,7 @@ class TestBasic(Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_nosubject(self):
         self.addHeaders(Email2PDFTestCase.DEFAULT_FROM, Email2PDFTestCase.DEFAULT_TO, None)
@@ -54,6 +61,7 @@ class TestBasic(Email2PDFTestCase):
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_plaincontent(self):
         self.addHeaders()
@@ -63,6 +71,7 @@ class TestBasic(Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_plaincontent_upsidedown(self):
         self.addHeaders()
@@ -72,6 +81,7 @@ class TestBasic(Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "ɯɐɹƃoɹd ɟpdᄅlᴉɐɯǝ ǝɥʇ ɟo ʇsǝʇ ɐ sᴉ sᴉɥʇ ollǝH")
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_plaincontent_poundsign_iso88591(self):
         self.addHeaders()
@@ -82,6 +92,7 @@ class TestBasic(Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(path))
         self.assertRegex(self.getPDFText(path), "Hello - this email costs \xa35!")
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_plaincontent_notrailingslash(self):
         self.setPlainContent("Hello!")
@@ -90,6 +101,7 @@ class TestBasic(Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime("/tmp"))
         self.assertRegex(self.getPDFText(self.getTimedFilename("/tmp/")), "Hello!")
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_plaincontent_trailingslash(self):
         self.setPlainContent("Hello!")
@@ -98,6 +110,7 @@ class TestBasic(Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime("/tmp/"))
         self.assertRegex(self.getPDFText(self.getTimedFilename("/tmp/")), "Hello!")
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_plaincontent_outputfileoverrides(self):
         filename = os.path.join(self.examineDir, "outputFileOverrides.pdf")
@@ -109,6 +122,7 @@ class TestBasic(Email2PDFTestCase):
             self.assertFalse(self.existsByTime(pathname))
             self.assertTrue(os.path.exists(filename))
             self.assertRegex(self.getPDFText(filename), "Hello!")
+            self.assertFalse(self.existsByTimeWarning())
 
     def test_plaincontent_fileexist(self):
         self.setPlainContent("Hello!")
@@ -116,6 +130,7 @@ class TestBasic(Email2PDFTestCase):
             (rc, output, error) = self.invokeAsSubprocess(outputFile=tmpfile.name, okToExist=True)
             self.assertEqual(2, rc)
             self.assertRegex(error, "file.*exist")
+            self.assertFalse(self.existsByTimeWarning())
 
     def test_verbose(self):
         self.setPlainContent("Hello!")
@@ -124,6 +139,7 @@ class TestBasic(Email2PDFTestCase):
         self.assertNotEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_veryverbose(self):
         self.setPlainContent("Hello!")
@@ -132,3 +148,4 @@ class TestBasic(Email2PDFTestCase):
         self.assertNotEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
+        self.assertFalse(self.existsByTimeWarning())

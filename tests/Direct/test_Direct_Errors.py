@@ -16,11 +16,13 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         with tempfile.NamedTemporaryFile() as tmpfile:
             with self.assertRaisesRegex(Exception, "file.*exist"):
                 self.invokeDirectly(outputFile=tmpfile.name, okToExist=True)
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_plaincontent_dirnotexist(self):
         self.attachText("Hello!")
         with self.assertRaisesRegex(Exception, "(?i)directory.*not.*exist"):
             self.invokeDirectly(outputDirectory="/notexist/")
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_image_doesnt_exist(self):
         if self.isOnline:
@@ -30,6 +32,7 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
             error = self.invokeDirectly(outputFile=path)
             self.assertTrue(os.path.exists(path))
             self.assertRegex(error, "(?i)could not retrieve")
+            self.assertFalse(self.existsByTimeWarning())
         else:
             self.skipTest("Not online.")
 
@@ -40,6 +43,7 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         error = self.invokeDirectly(outputFile=path)
         self.assertTrue(os.path.exists(path))
         self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_image_doesnt_exist_blacklist_upper(self):
         path = os.path.join(self.examineDir, "remoteImageDoesntExistBlacklistUpper.pdf")
@@ -48,6 +52,7 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         error = self.invokeDirectly(outputFile=path)
         self.assertTrue(os.path.exists(path))
         self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_image_doesnt_exist_with_pdf(self):
         if self.isOnline:
@@ -58,6 +63,8 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
             self.assertTrue(self.existsByTime())
             self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
             self.assertRegex(error, "(?i)could not retrieve")
+            self.assertTrue(self.existsByTimeWarning())
+            self.assertRegex(self.getWarningFileContents(), "(?i)could not retrieve")
         else:
             self.skipTest("Not online.")
 
@@ -68,6 +75,7 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         error = self.invokeDirectly(outputFile=path)
         self.assertTrue(os.path.exists(path))
         self.assertRegex(error, "(?i)could not retrieve")
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_local_image_with_query_doesnt_exist(self):
         path = os.path.join(self.examineDir, "localImageWithQueryDoesntExist.pdf")
@@ -76,6 +84,7 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         error = self.invokeDirectly(outputFile=path)
         self.assertTrue(os.path.exists(path))
         self.assertRegex(error, "(?i)could not retrieve")
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_local_script_doesnt_exist(self):
         path = os.path.join(self.examineDir, "localScriptDoesntExist.pdf")
@@ -84,6 +93,7 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         error = self.invokeDirectly(outputFile=path)
         self.assertTrue(os.path.exists(path))
         self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_local_script_with_query_doesnt_exist(self):
         path = os.path.join(self.examineDir, "localScriptWithQueryDoesntExist.pdf")
@@ -92,6 +102,7 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         error = self.invokeDirectly(outputFile=path)
         self.assertTrue(os.path.exists(path))
         self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_local_stylesheet_doesnt_exist(self):
         path = os.path.join(self.examineDir, "localStylesheetDoesntExist.pdf")
@@ -100,6 +111,7 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         error = self.invokeDirectly(outputFile=path)
         self.assertTrue(os.path.exists(path))
         self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_local_stylesheet_with_query_doesnt_exist(self):
         path = os.path.join(self.examineDir, "localStylesheetWithQueryDoesntExist.pdf")
@@ -108,6 +120,7 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         error = self.invokeDirectly(outputFile=path)
         self.assertTrue(os.path.exists(path))
         self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_no_explicit_parts(self):
         # If we don't add any parts explicitly, email2pdf should find a
@@ -115,11 +128,13 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         error = self.invokeDirectly()
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_fuzz(self):
         with self.assertRaisesRegex(Exception, "(?i)defects parsing email"):
             self.invokeDirectly(completeMessage="This is total junk")
         self.assertFalse(self.existsByTime())
+        self.assertFalse(self.existsByTimeWarning())
 
     def test_broken_html(self):
         self.addHeaders()
@@ -127,3 +142,4 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         error = self.invokeDirectly()
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
+        self.assertFalse(self.existsByTimeWarning())
