@@ -10,4 +10,4 @@ delete = true
 [destination]
 type = MDA_external
 path = /where/I/installed/email2pdf
-arguments = ("-d", "/where/I/want/PDFs/to/go", "--enforce-syslog")
+arguments = ("-d", "/where/I/want/PDFs/to/go", "--enforce-syslog", "--mostly-hide-warnings")

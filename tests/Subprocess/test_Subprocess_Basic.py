@@ -45,8 +45,26 @@ class TestBasic(Email2PDFTestCase):
         self.assertTrue(self.existsByTimeOriginal())
         self.assertValidOriginalFileContents()
 
+    def test_dont_print_body_mostly_hide_warnings(self):
+        (rc, output, error) = self.invokeAsSubprocess(extraParams=['--no-body', '--mostly-hide-warnings'])
+        self.assertEqual(0, rc)
+        self.assertFalse(self.existsByTime())
+        self.assertEqual('', error)
+        self.assertTrue(self.existsByTimeWarning())
+        self.assertRegex(self.getWarningFileContents(), "body.*any.*attachments")
+        self.assertTrue(self.existsByTimeOriginal())
+        self.assertValidOriginalFileContents()
+
     def test_no_message_headers(self):
         (rc, output, error) = self.invokeAsSubprocess()
+        self.assertEqual(0, rc)
+        self.assertTrue(self.existsByTime())
+        self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
+
+    def test_no_message_headers(self):
+        (rc, output, error) = self.invokeAsSubprocess(extraParams=['--mostly-hide-warnings'])
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)

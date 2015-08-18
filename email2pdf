@@ -71,8 +71,10 @@ def main(argv, syslog_handler, syserr_handler):
             syserr_handler.setLevel(logging.DEBUG)
         elif args.verbose == 1:
             syserr_handler.setLevel(logging.INFO)
-        else:
+        elif args.mostly_hide_warnings == False:
             syserr_handler.setLevel(logging.WARNING)
+        else:
+            syserr_handler.setLevel(logging.ERROR)
 
     logger.info("Options used are: " + str(args))
 
@@ -131,6 +133,8 @@ def main(argv, syslog_handler, syserr_handler):
     if warning_pending:
         with open(get_modified_output_file_name(output_file_name, "_original.eml"), 'w') as f:
             f.write(input_data)
+
+    return args.mostly_hide_warnings
 
 
 def handle_args(argv):
@@ -194,7 +198,18 @@ def handle_args(argv):
                         "if not. If this option is specified, email2pdf will exit with an error if the syslog socket "
                         "can not be located.")
 
-    parser.add_argument('-v', '--verbose', action='count', default=0,
+    verbose_options = parser.add_mutually_exclusive_group()
+
+    verbose_options.add_argument("--mostly-hide-warnings", action="store_true",
+                        help="By default email2pdf will output warnings about handling emails to stderr and "
+                        "exit with a non-zero return code if any are encountered, *as well as* outputting a "
+                        "summary file entitled <output_PDF_name>_warnings_and_errors.txt and the original "
+                        "email as <output_PDF_name>_original.eml. Specifying this option disables the first "
+                        "two, so only the additional files are produced - this makes it easier to use email2pdf "
+                        "if it is run on a schedule, as warnings won't cause the same email to be repeatedly "
+                        "retried.")
+
+    verbose_options.add_argument('-v', '--verbose', action='count', default=0,
                         help="Make the output more verbose. This affects both the output logged to "
                         "syslog, as well as output to the console. Using this twice makes it doubly verbose.")
 
@@ -602,7 +617,7 @@ def call_main(argv, syslog_handler, syserr_handler):
     logger = logging.getLogger("email2pdf")
 
     try:
-        main(argv, syslog_handler, syserr_handler)
+        return main(argv, syslog_handler, syserr_handler)
     except FatalException as exception:
         logger.error(exception.value)
         sys.exit(2)
@@ -639,7 +654,7 @@ if __name__ == "__main__":
     else:
         syslog_handler_setup = None
 
-    call_main(sys.argv, syslog_handler_setup, syserr_handler_setup)
+    mostly_hide_warnings = call_main(sys.argv, syslog_handler_setup, syserr_handler_setup)
 
-    if warning_pending:
+    if warning_pending and not mostly_hide_warnings:
         sys.exit(1)
