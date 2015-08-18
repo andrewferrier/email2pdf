@@ -73,6 +73,13 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(self.existsByTimeWarning())
         self.assertFalse(self.existsByTimeOriginal())
 
+    def test_verbose_and_mostly_hide_warnings(self):
+        with self.assertRaisesRegex(Exception, "mostly-hide.*not allowed with.*verbose"):
+            self.invokeDirectly(extraParams=['--verbose', '--mostly-hide-warnings'])
+        self.assertFalse(self.existsByTime())
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
+
     def test_headers(self):
         path = os.path.join(self.examineDir, "headers.pdf")
         self.addHeaders()
