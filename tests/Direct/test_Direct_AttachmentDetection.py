@@ -20,6 +20,8 @@ class AttachmentDetection(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some PDF content")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_pdf_with_invalid_extension(self):
         self.addHeaders()
@@ -31,6 +33,8 @@ class AttachmentDetection(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some PDF content")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_pdf_as_octet_stream_with_invalid_extension(self):
         self.addHeaders()
@@ -42,6 +46,8 @@ class AttachmentDetection(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some PDF content")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_pdf_as_octet_stream_no_body(self):
         self.addHeaders()
@@ -52,6 +58,8 @@ class AttachmentDetection(Email2PDFTestCase):
         self.assertFalse(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some PDF content")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_jpeg_as_octet_stream(self):
         self.addHeaders()
@@ -63,6 +71,8 @@ class AttachmentDetection(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertIsJPG(os.path.join(self.workingDir, image_filename))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_jpeg_with_invalid_extension(self):
         self.addHeaders()
@@ -74,6 +84,8 @@ class AttachmentDetection(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertIsJPG(os.path.join(self.workingDir, image_filename))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_jpeg_as_octet_stream_with_invalid_extension(self):
         self.addHeaders()
@@ -85,6 +97,8 @@ class AttachmentDetection(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertIsJPG(os.path.join(self.workingDir, image_filename))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_word_document(self):
         self.addHeaders()
@@ -96,6 +110,8 @@ class AttachmentDetection(Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, "somefile.docx")))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_unidentified_file(self):
         self.addHeaders()
@@ -106,3 +122,5 @@ class AttachmentDetection(Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, "somefile.xyz")))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())

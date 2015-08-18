@@ -21,6 +21,8 @@ class Direct_Metadata(Email2PDFTestCase):
         self.assertEqual(Email2PDFTestCase.DEFAULT_TO, self.getMetadataField(timedFilename, "X-email2pdf-To"))
         self.assertEqual(Email2PDFTestCase.DEFAULT_SUBJECT, self.getMetadataField(timedFilename, "Title"))
         self.assertEqual("email2pdf", self.getMetadataField(timedFilename, "Producer"))
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_plaincontent_metadata(self):
         self.addHeaders()
@@ -34,6 +36,8 @@ class Direct_Metadata(Email2PDFTestCase):
         self.assertEqual(Email2PDFTestCase.DEFAULT_SUBJECT, self.getMetadataField(path, "Title"))
         self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
         self.assertRegex(self.getPDFText(path), "Hello!")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_plaincontent_metadata_differentmount(self):
         self.addHeaders()
@@ -48,6 +52,8 @@ class Direct_Metadata(Email2PDFTestCase):
                 self.assertEqual(Email2PDFTestCase.DEFAULT_TO, self.getMetadataField(path, "X-email2pdf-To"))
                 self.assertEqual(Email2PDFTestCase.DEFAULT_SUBJECT, self.getMetadataField(path, "Title"))
                 self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
+                self.assertFalse(self.existsByTimeWarning())
+                self.assertFalse(self.existsByTimeOriginal())
             else:
                 self.skipTest(tempdir + " and " + tempfile.tempdir + " are on the same mountpoint, test not relevant.")
 
@@ -62,6 +68,8 @@ class Direct_Metadata(Email2PDFTestCase):
         self.assertEqual('', self.getMetadataField(path, "Title"))
         self.assertEqual("email2pdf", self.getMetadataField(path, "Producer"))
         self.assertRegex(self.getPDFText(path), "Hello!")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_metadata_internationalised_subject(self):
         self.addHeaders(subject=bytes("Hello!", 'iso-8859-1'), subject_encoding='iso-8859-1')
@@ -73,3 +81,5 @@ class Direct_Metadata(Email2PDFTestCase):
         self.assertEqual(Email2PDFTestCase.DEFAULT_TO, self.getMetadataField(timedFilename, "X-email2pdf-To"))
         self.assertEqual("Hello!", self.getMetadataField(timedFilename, "Title"))
         self.assertEqual("email2pdf", self.getMetadataField(timedFilename, "Producer"))
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
