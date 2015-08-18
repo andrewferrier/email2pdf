@@ -63,7 +63,7 @@ class TestBasic(Email2PDFTestCase):
         self.assertFalse(self.existsByTimeWarning())
         self.assertFalse(self.existsByTimeOriginal())
 
-    def test_no_message_headers(self):
+    def test_no_message_headers_mostly_hide_warnings(self):
         (rc, output, error) = self.invokeAsSubprocess(extraParams=['--mostly-hide-warnings'])
         self.assertEqual(0, rc)
         self.assertTrue(self.existsByTime())

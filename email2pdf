@@ -131,8 +131,8 @@ def main(argv, syslog_handler, syserr_handler):
             warning("Second try: didn't print body (on request) and still didn't find any attachments even when looked for referenced ones with a filename. Giving up.")
 
     if warning_pending:
-        with open(get_modified_output_file_name(output_file_name, "_original.eml"), 'w') as f:
-            f.write(input_data)
+        with open(get_modified_output_file_name(output_file_name, "_original.eml"), 'w') as original_copy_file:
+            original_copy_file.write(input_data)
 
     return args.mostly_hide_warnings
 
@@ -201,17 +201,17 @@ def handle_args(argv):
     verbose_options = parser.add_mutually_exclusive_group()
 
     verbose_options.add_argument("--mostly-hide-warnings", action="store_true",
-                        help="By default email2pdf will output warnings about handling emails to stderr and "
-                        "exit with a non-zero return code if any are encountered, *as well as* outputting a "
-                        "summary file entitled <output_PDF_name>_warnings_and_errors.txt and the original "
-                        "email as <output_PDF_name>_original.eml. Specifying this option disables the first "
-                        "two, so only the additional files are produced - this makes it easier to use email2pdf "
-                        "if it is run on a schedule, as warnings won't cause the same email to be repeatedly "
-                        "retried.")
+                                 help="By default email2pdf will output warnings about handling emails to stderr and "
+                                 "exit with a non-zero return code if any are encountered, *as well as* outputting a "
+                                 "summary file entitled <output_PDF_name>_warnings_and_errors.txt and the original "
+                                 "email as <output_PDF_name>_original.eml. Specifying this option disables the first "
+                                 "two, so only the additional files are produced - this makes it easier to use email2pdf "
+                                 "if it is run on a schedule, as warnings won't cause the same email to be repeatedly "
+                                 "retried.")
 
     verbose_options.add_argument('-v', '--verbose', action='count', default=0,
-                        help="Make the output more verbose. This affects both the output logged to "
-                        "syslog, as well as output to the console. Using this twice makes it doubly verbose.")
+                                 help="Make the output more verbose. This affects both the output logged to "
+                                 "syslog, as well as output to the console. Using this twice makes it doubly verbose.")
 
     parser.add_argument('-h', '--help', action='store_true',
                         help="Show some basic help information about how to use email2pdf.")
@@ -288,11 +288,11 @@ def handle_message_body(input_email):
 
         if part['Content-Transfer-Encoding'] == '8bit':
             payload = part.get_payload(decode=False)
-            assert type(payload) is str
+            assert isinstance(payload, str)
             logger.info("Email is pre-decoded because Content-Transfer-Encoding is 8bit")
         else:
             payload = part.get_payload(decode=True)
-            assert type(payload) is bytes
+            assert isinstance(payload, bytes)
             charset = part.get_content_charset()
             if not charset:
                 charset = 'utf-8'
@@ -300,7 +300,7 @@ def handle_message_body(input_email):
             else:
                 logger.info("Determined email is plain text with charset " + str(charset))
 
-        payload = "<html><body><pre>\n" + (str(payload, charset) if (type(payload) is bytes) else payload) + "\n</pre></body></html>"
+        payload = "<html><body><pre>\n" + (str(payload, charset) if isinstance(payload, bytes) else payload) + "\n</pre></body></html>"
     else:
         payload = part.get_payload(decode=True)
         charset = part.get_content_charset()

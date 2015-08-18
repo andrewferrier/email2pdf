@@ -95,7 +95,8 @@ class Email2PDFTestCase(unittest.TestCase):
 
             assert(contents == self.msg.as_bytes())
         except:
-            raise AssertionError("General error validating email, contents=" + contents + "\n, self.msg.as_string=" + self.msg.as_string())
+            raise AssertionError("General error validating email, contents=" + contents +
+                                 "\n, self.msg.as_string=" + self.msg.as_string())
 
     def getTimedFilename(self, path=None, postfix=".pdf"):
         if path is None:
