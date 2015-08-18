@@ -19,6 +19,7 @@ class Direct_Complex(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, "2016-08-09T23-04-05.pdf")))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     @freeze_time("2017-09-11 00:05:06")
     def test_add_prefix_date(self):
@@ -33,6 +34,7 @@ class Direct_Complex(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, "2017-09-11-" + filename)))
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir, "2017-09-11-" + filename)), "Some PDF content")
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     @freeze_time("2015-02-03 14:00:00")
     def test_plaincontent_timedfileexist(self):
@@ -49,3 +51,4 @@ class Direct_Complex(BaseTestClasses.Email2PDFTestCase):
         self.assertIsNone(self.getPDFText(filename1))
         self.assertRegex(self.getPDFText(filename2), "Hello!")
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())

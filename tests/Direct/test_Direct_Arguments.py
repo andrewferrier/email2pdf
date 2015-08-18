@@ -16,7 +16,9 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(self.existsByTime())
         self.assertRegex(error, "body.*any.*attachments")
         self.assertTrue(self.existsByTimeWarning())
+        self.assertTrue(self.existsByTimeOriginal())
         self.assertRegex(self.getWarningFileContents(), "body.*any.*attachments")
+        self.assertValidOriginalFileContents()
 
     def test_no_attachments(self):
         self.addHeaders()
@@ -32,6 +34,7 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, filename3)))
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_no_body_and_no_attachments(self):
         self.addHeaders()
@@ -43,6 +46,7 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
             self.invokeDirectly(extraParams=['--no-body', '--no-attachments'])
         self.assertFalse(self.existsByTime())
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_headers(self):
         path = os.path.join(self.examineDir, "headers.pdf")
@@ -57,6 +61,7 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
         self.assertRegex(pdf_text, "To")
         self.assertRegex(pdf_text, "Hello")
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_add_prefix_date(self):
         self.addHeaders()
@@ -83,6 +88,7 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir,
                                                       datetime.now().strftime("%Y-%m-%d-") + filename)), "Some PDF content")
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_verbose(self):
         self.attachText("Hello!")
@@ -91,6 +97,7 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_veryverbose(self):
         self.attachText("Hello!")
@@ -99,3 +106,4 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Hello!")
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())

@@ -52,6 +52,9 @@ class Email2PDFTestCase(unittest.TestCase):
     JPG_SIZE = os.path.getsize(JPG_FILENAME)
     PNG_SIZE = os.path.getsize(PNG_FILENAME)
 
+    WARNINGS_AND_ERRORS_POSTFIX = "_warnings_and_errors.txt"
+    ORIGINAL_EMAIL_POSTFIX = "_original.eml"
+
     def setUp(self):
         self.workingDir = tempfile.mkdtemp(dir='/tmp')
         self._check_online()
@@ -67,15 +70,32 @@ class Email2PDFTestCase(unittest.TestCase):
             return False
 
     def existsByTimeWarning(self):
-        if self.getTimedFilename(postfix="_warnings_and_errors.txt"):
+        if self.getTimedFilename(postfix=self.WARNINGS_AND_ERRORS_POSTFIX):
+            return True
+        else:
+            return False
+
+    def existsByTimeOriginal(self):
+        if self.getTimedFilename(postfix=self.ORIGINAL_EMAIL_POSTFIX):
             return True
         else:
             return False
 
     def getWarningFileContents(self):
-        filename = self.getTimedFilename(postfix="_warnings_and_errors.txt")
+        filename = self.getTimedFilename(postfix=self.WARNINGS_AND_ERRORS_POSTFIX)
         with open(filename) as f:
             return f.read()
+
+    def assertValidOriginalFileContents(self, filename=None):
+        try:
+            if not filename:
+                filename = self.getTimedFilename(postfix=self.ORIGINAL_EMAIL_POSTFIX)
+            with open(filename, 'rb') as f:
+                contents = f.read()
+
+            assert(contents == self.msg.as_bytes())
+        except:
+            raise AssertionError("General error validating email, contents=" + contents + "\n, self.msg.as_string=" + self.msg.as_string())
 
     def getTimedFilename(self, path=None, postfix=".pdf"):
         if path is None:

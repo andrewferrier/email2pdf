@@ -20,6 +20,8 @@ class Direct_CID(Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, 'myid.jpg')))
         self.assertTrue(self.existsByTimeWarning())
         self.assertRegex(self.getWarningFileContents(), "body.*any.*attachments")
+        self.assertTrue(self.existsByTimeOriginal())
+        self.assertValidOriginalFileContents()
 
     def test_inline_image_with_filename_no_body(self):
         self.addHeaders()
@@ -30,6 +32,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertFalse(self.existsByTime())
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_inline_image_and_pdf(self):
         self.addHeaders()
@@ -42,6 +45,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, pdf_file_name)))
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir, pdf_file_name)), "Some PDF content")
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_embedded_image(self):
         path = os.path.join(self.examineDir, "embeddedImage.pdf")
@@ -54,6 +58,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertLess(Email2PDFTestCase.JPG_SIZE, os.path.getsize(path))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_embedded_image_with_complex_name(self):
         path = os.path.join(self.examineDir, "embeddedImageWithComplexName.pdf")
@@ -66,6 +71,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertLess(Email2PDFTestCase.PNG_SIZE, os.path.getsize(path))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_embedded_image_invalid_cid(self):
         self.addHeaders()
@@ -78,6 +84,8 @@ class Direct_CID(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertTrue(self.existsByTimeWarning())
         self.assertRegex(self.getWarningFileContents(), "(?i)could not find image")
+        self.assertTrue(self.existsByTimeOriginal())
+        self.assertValidOriginalFileContents()
 
     def test_embedded_image_invalid_cid_output_file(self):
         path = os.path.join(self.workingDir, "test_embedded_image_invalid_cid_output_file.pdf")
@@ -94,6 +102,9 @@ class Direct_CID(Email2PDFTestCase):
         with open(warning_filename) as f:
             warning_file_contents = f.read()
         self.assertRegex(warning_file_contents, "(?i)could not find image")
+        original_email_filename = os.path.join(self.workingDir, "test_embedded_image_invalid_cid_output_file_original.eml")
+        self.assertTrue(os.path.exists(original_email_filename))
+        self.assertValidOriginalFileContents(filename=original_email_filename)
 
     def test_embedded_image_png(self):
         path = os.path.join(self.examineDir, "embeddedImagePNG.pdf")
@@ -106,6 +117,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertLess(Email2PDFTestCase.PNG_SIZE, os.path.getsize(path))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_embedded_image_cid_underscore(self):
         self.addHeaders()
@@ -117,6 +129,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertLess(Email2PDFTestCase.JPG_SIZE, os.path.getsize(self.getTimedFilename()))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_embedded_image_extra_html_content(self):
         if self.isOnline:
@@ -130,6 +143,7 @@ class Direct_CID(Email2PDFTestCase):
             self.assertLess(Email2PDFTestCase.JPG_SIZE, os.path.getsize(self.getTimedFilename()))
             self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename)))
             self.assertFalse(self.existsByTimeWarning())
+            self.assertFalse(self.existsByTimeOriginal())
         else:
             self.skipTest("Not online.")
 
@@ -143,6 +157,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertLess(Email2PDFTestCase.JPG_SIZE, os.path.getsize(self.getTimedFilename()))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_embedded_image_no_attachments(self):
         self.addHeaders()
@@ -154,6 +169,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertLess(Email2PDFTestCase.JPG_SIZE, os.path.getsize(self.getTimedFilename()))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_embedded_image_as_octet_stream(self):
         self.addHeaders()
@@ -165,6 +181,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertLess(Email2PDFTestCase.JPG_SIZE, os.path.getsize(self.getTimedFilename()))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_one_embedded_one_not_image(self):
         self.addHeaders()
@@ -178,6 +195,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, image_filename2)))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_two_embedded(self):
         path = os.path.join(self.examineDir, "twoEmbeddedImages.pdf")
@@ -190,6 +208,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertLess(Email2PDFTestCase.JPG_SIZE, os.path.getsize(path))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_two_different_embedded(self):
         path = os.path.join(self.examineDir, "twoDifferentEmbeddedImages.pdf")
@@ -204,6 +223,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename)))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename2)))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_some_cids_not_referenced(self):
         self.addHeaders()
@@ -223,6 +243,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, 'floating_attachment.jpg')))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, 'floating_attachment_1.jpg')))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_some_cids_not_referenced_ignore_floating_attachments(self):
         self.addHeaders()
@@ -242,6 +263,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, 'floating_attachment.jpg')))
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, 'floating_attachment_1.jpg')))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_some_cids_not_referenced_png(self):
         self.addHeaders()
@@ -257,6 +279,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, 'myid2.png')))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, 'floating_attachment.png')))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_some_cids_not_referenced_pdf(self):
         self.addHeaders()
@@ -271,6 +294,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, 'floating_attachment.pdf')))
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir, 'floating_attachment.pdf')), "Some PDF content")
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_some_cids_not_referenced_docx(self):
         self.addHeaders()
@@ -286,6 +310,7 @@ class Direct_CID(Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, 'myid.png')))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, 'floating_attachment.docx')))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_some_cids_not_referenced_misc(self):
         self.addHeaders()
@@ -301,3 +326,4 @@ class Direct_CID(Email2PDFTestCase):
         self.assertFalse(os.path.exists(os.path.join(self.workingDir, 'myid.png')))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, 'floating_attachment')))
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())

@@ -84,9 +84,7 @@ def main(argv, syslog_handler, syserr_handler):
     output_file_name = get_output_file_name(args, output_directory)
     logger.info("Output file name is: " + output_file_name)
 
-    (warning_logger_name, _) = os.path.splitext(output_file_name)
-    warning_logger_name = os.path.join(os.path.dirname(warning_logger_name),
-                                       os.path.basename(warning_logger_name) + "_warnings_and_errors.txt")
+    warning_logger_name = get_modified_output_file_name(output_file_name, "_warnings_and_errors.txt")
     warning_logger = logging.FileHandler(warning_logger_name, delay=True)
     warning_logger.setLevel(logging.WARNING)
     warning_logger.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
@@ -129,6 +127,10 @@ def main(argv, syslog_handler, syserr_handler):
 
         if number_of_attachments == 0:
             warning("Second try: didn't print body (on request) and still didn't find any attachments even when looked for referenced ones with a filename. Giving up.")
+
+    if warning_pending:
+        with open(get_modified_output_file_name(output_file_name, "_original.eml"), 'w') as f:
+            f.write(input_data)
 
 
 def handle_args(argv):
@@ -252,6 +254,13 @@ def get_output_file_name(args, output_directory):
     return output_file_name
 
 
+def get_modified_output_file_name(output_file_name, append):
+    (partial_name, _) = os.path.splitext(output_file_name)
+    partial_name = os.path.join(os.path.dirname(partial_name),
+                                os.path.basename(partial_name) + append)
+    return partial_name
+
+
 def handle_message_body(input_email):
     logger = logging.getLogger("email2pdf")
 
@@ -368,7 +377,7 @@ def remove_invalid_urls(payload):
                         request.connection.close()
                         request.raise_for_status()
                     except RequestException:
-                        logger.warning("Could not retrieve img URL " + src + ", replacing with blank.")
+                        warning("Could not retrieve img URL " + src + ", replacing with blank.")
                         del img['src']
                 else:
                     logger.debug("Removing URL that was found in blacklist " + src)

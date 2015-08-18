@@ -17,6 +17,7 @@ class Direct_Basic(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertEqual('', error)
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_internationalised_subject(self):
         path = os.path.join(self.examineDir, "internationalised_subject.pdf")
@@ -25,6 +26,7 @@ class Direct_Basic(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(path))
         self.assertEqual('', error)
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_internationalised_subject2(self):
         path = os.path.join(self.examineDir, "internationalised_subject_jp.pdf")
@@ -33,6 +35,7 @@ class Direct_Basic(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(path))
         self.assertEqual('', error)
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_internationalised_subject3(self):
         path = os.path.join(self.examineDir, "internationalised_subject_de.pdf")
@@ -41,6 +44,7 @@ class Direct_Basic(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(path))
         self.assertEqual('', error)
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
 
     def test_internationalised_subject4(self):
         path = os.path.join(self.examineDir, "internationalised_subject_complex.pdf")
@@ -53,3 +57,4 @@ class Direct_Basic(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(path))
         self.assertEqual('', error)
         self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
