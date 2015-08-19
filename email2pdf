@@ -28,6 +28,8 @@ import sys
 import tempfile
 import traceback
 
+mimetypes.init()
+
 HEADER_MAPPING = {'Author': 'From',
                   'Title': 'Subject',
                   'X-email2pdf-To': 'To'}
@@ -50,14 +52,10 @@ def main(argv, syslog_handler, syserr_handler):
     warning_count_filter = WarningCountFilter()
     logger.addFilter(warning_count_filter)
 
-    mimetypes.init()
-
     proceed, args = handle_args(argv)
 
     if not proceed:
         return (False, False)
-
-    assert args.body or args.attachments
 
     if args.enforce_syslog and not syslog_handler:
         raise FatalException("Required syslog socket was not found.")
@@ -88,11 +86,7 @@ def main(argv, syslog_handler, syserr_handler):
     output_file_name = get_output_file_name(args, output_directory)
     logger.info("Output file name is: " + output_file_name)
 
-    warning_logger_name = get_modified_output_file_name(output_file_name, "_warnings_and_errors.txt")
-    warning_logger = logging.FileHandler(warning_logger_name, delay=True)
-    warning_logger.setLevel(logging.WARNING)
-    warning_logger.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
-    logger.addHandler(warning_logger)
+    set_up_warning_logger(logger, output_file_name)
 
     input_data = get_input_data(args)
     logger.debug("Email input data is: " + input_data)
@@ -220,6 +214,8 @@ def handle_args(argv):
 
     args = parser.parse_args(argv[1:])
 
+    assert args.body or args.attachments
+
     if args.help:
         parser.print_help()
         return (False, None)
@@ -269,6 +265,14 @@ def get_output_file_name(args, output_directory):
                                                            datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".pdf"))
 
     return output_file_name
+
+
+def set_up_warning_logger(logger, output_file_name):
+    warning_logger_name = get_modified_output_file_name(output_file_name, "_warnings_and_errors.txt")
+    warning_logger = logging.FileHandler(warning_logger_name, delay=True)
+    warning_logger.setLevel(logging.WARNING)
+    warning_logger.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
+    logger.addHandler(warning_logger)
 
 
 def get_modified_output_file_name(output_file_name, append):
