@@ -227,6 +227,8 @@ class Email2PDFTestCase(unittest.TestCase):
                 for handler in log.handlers:
                     handler.close()
                     log.removeHandler(handler)
+                for log_filter in log.filters:
+                    log.removeFilter(log_filter)
                 stream_handler.close()
 
             error = stream.getvalue()

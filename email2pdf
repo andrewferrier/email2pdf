@@ -47,13 +47,15 @@ WKHTMLTOPDF_ERRORS_IGNORE = frozenset([r'QFont::setPixelSize: Pixel size <= 0 \(
 
 def main(argv, syslog_handler, syserr_handler):
     logger = logging.getLogger('email2pdf')
+    warning_count_filter = WarningCountFilter()
+    logger.addFilter(warning_count_filter)
 
     mimetypes.init()
 
     proceed, args = handle_args(argv)
 
     if not proceed:
-        return
+        return (False, False)
 
     assert args.body or args.attachments
 
@@ -128,13 +130,13 @@ def main(argv, syslog_handler, syserr_handler):
                                                        set(parts_already_used - parts_with_a_filename))
 
         if number_of_attachments == 0:
-            warning("Second try: didn't print body (on request) and still didn't find any attachments even when looked for referenced ones with a filename. Giving up.")
+            logger.warning("Second try: didn't print body (on request) and still didn't find any attachments even when looked for referenced ones with a filename. Giving up.")
 
-    if warning_pending:
+    if warning_count_filter.warning_pending:
         with open(get_modified_output_file_name(output_file_name, "_original.eml"), 'w') as original_copy_file:
             original_copy_file.write(input_data)
 
-    return args.mostly_hide_warnings
+    return (warning_count_filter.warning_pending, args.mostly_hide_warnings)
 
 
 def handle_args(argv):
@@ -320,7 +322,7 @@ def handle_message_body(input_email):
                 cid_parts_used.add(image_part)
                 return "data:" + mime_type + ";base64," + image_base64
             else:
-                warning("Could not find image cid " + matchobj.group(1) + " in email content.")
+                logger.warning("Could not find image cid " + matchobj.group(1) + " in email content.")
                 return "broken"
 
         payload = re.sub(r'cid:([\w_@.-]+)', functools.partial(cid_replace, cid_parts_used),
@@ -392,7 +394,7 @@ def remove_invalid_urls(payload):
                         request.connection.close()
                         request.raise_for_status()
                     except RequestException:
-                        warning("Could not retrieve img URL " + src + ", replacing with blank.")
+                        logger.warning("Could not retrieve img URL " + src + ", replacing with blank.")
                         del img['src']
                 else:
                     logger.debug("Removing URL that was found in blacklist " + src)
@@ -593,14 +595,14 @@ def get_utf8_header(header):
     return hdr
 
 
-warning_pending = False
+class WarningCountFilter(logging.Filter):
+    # pylint: disable=too-few-public-methods
+    warning_pending = False
 
-
-def warning(message):
-    global warning_pending
-    logger = logging.getLogger("email2pdf")
-    logger.warning(message)
-    warning_pending = True
+    def filter(self, record):
+        if record.levelno == logging.WARNING:
+            self.warning_pending = True
+        return True
 
 
 class FatalException(Exception):
@@ -617,13 +619,16 @@ def call_main(argv, syslog_handler, syserr_handler):
     logger = logging.getLogger("email2pdf")
 
     try:
-        return main(argv, syslog_handler, syserr_handler)
+        (warning_pending, mostly_hide_warnings) = main(argv, syslog_handler, syserr_handler)
     except FatalException as exception:
         logger.error(exception.value)
         sys.exit(2)
     except:
         traceback.print_exc()
         sys.exit(3)
+
+    if warning_pending and not mostly_hide_warnings:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
@@ -654,7 +659,4 @@ if __name__ == "__main__":
     else:
         syslog_handler_setup = None
 
-    mostly_hide_warnings = call_main(sys.argv, syslog_handler_setup, syserr_handler_setup)
-
-    if warning_pending and not mostly_hide_warnings:
-        sys.exit(1)
+    call_main(sys.argv, syslog_handler_setup, syserr_handler_setup)
