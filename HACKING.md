@@ -48,7 +48,7 @@ work:
 
 ### OS X
 
-Just run `pip3 install flake8 freezegun pdfminer3k reportlab`.
+Just run `pip3 install flake8 freezegun nosetests pdfminer3k reportlab`.
 
 ### Debian/Ubuntu
 
