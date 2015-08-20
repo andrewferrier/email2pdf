@@ -20,6 +20,15 @@ class TestBasic(Email2PDFTestCase):
         self.assertFalse(self.existsByTimeWarning())
         self.assertFalse(self.existsByTimeOriginal())
 
+    def test_simple_with_explicit_stdin(self):
+        self.addHeaders()
+        (rc, output, error) = self.invokeAsSubprocess(extraParams=['-i-'])
+        self.assertEqual(0, rc)
+        self.assertTrue(self.existsByTime())
+        self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
+
     def test_help(self):
         (rc, output, error) = self.invokeAsSubprocess(extraParams=['--help'], expectOutput=True)
         self.assertEqual(0, rc)
