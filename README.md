@@ -28,12 +28,13 @@ instructions here are split out by platform:
   dependencies you need to install (in particular, to avoid needing a package
   manager).
 
-* [getmail](http://pyropus.ca/software/getmail/) - Install using
-  `apt-get install getmail`.
+* [getmail](http://pyropus.ca/software/getmail/) - getmail is optional, but it
+  works well as a companion to email2pdf. Install using `apt-get install
+  getmail`.
 
 * Others - there are some other Python library dependencies. Run `make
   builddeb` to create a `.deb` package, then install it with `dpkg -i
-  mydeb.deb`.
+  mydeb.deb`. This will prompt you regarding any missing dependencies.
 
 ### OS X
 
