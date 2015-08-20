@@ -78,10 +78,10 @@ def main(argv, syslog_handler, syserr_handler):
 
     logger.info("Options used are: " + str(args))
 
-    output_directory = os.path.normpath(args.outputDirectory)
+    output_directory = os.path.normpath(args.output_directory)
 
     if not os.path.exists(output_directory):
-        raise FatalException("outputDirectory does not exist.")
+        raise FatalException("output-directory does not exist.")
 
     output_file_name = get_output_file_name(args, output_directory)
     logger.info("Output file name is: " + output_file_name)
@@ -141,7 +141,7 @@ def handle_args(argv):
     parser = ArgumentParser(description="Converts emails to PDFs. "
                             "See https://github.com/andrewferrier/email2pdf for more information.", add_help=False)
 
-    parser.add_argument("-i", "--inputFile", default="-",
+    parser.add_argument("-i", "--input-file", default="-",
                         help="File containing input email you wish to read in raw form "
                         "delivered from a MTA. If set to '-' (which is the default), it "
                         "reads from stdin.")
@@ -149,18 +149,18 @@ def handle_args(argv):
     parser.add_argument("--input-encoding",
                         default=locale.getpreferredencoding(), help="Set the "
                         "expected encoding of the input email (whether on stdin "
-                        "or specified with the --inputFile option). If not set, "
+                        "or specified with the --input-file option). If not set, "
                         "defaults to this system's preferred encoding, which "
                         "is " + locale.getpreferredencoding() + ".")
 
-    parser.add_argument("-o", "--outputFile",
+    parser.add_argument("-o", "--output-file",
                         help="Output file you wish to print the body of the email to as PDF. Should "
                         "include the complete path, otherwise it defaults to the current directory. If "
                         "this option is not specified, email2pdf picks a date & time-based filename and puts "
-                        "the file in the directory specified by --outputDirectory.")
+                        "the file in the directory specified by --output-directory.")
 
-    parser.add_argument("-d", "--outputDirectory", default=os.getcwd(),
-                        help="If --outputFile is not specified, the value of this parameter is used as "
+    parser.add_argument("-d", "--output-directory", default=os.getcwd(),
+                        help="If --output-file is not specified, the value of this parameter is used as "
                         "the output directory for the body PDF, with a date-and-time based filename attached. "
                         "In either case, this parameter also specifies the directory in which attachments are "
                         "stored.")
@@ -230,13 +230,13 @@ def get_input_data(args):
     logger.debug("System encoding is: " + str(locale.getlocale()))
     logger.debug("Input encoding that will be used is " + args.input_encoding)
 
-    if args.inputFile.strip() == "-":
+    if args.input_file.strip() == "-":
         data = ""
         input_stream = io.TextIOWrapper(sys.stdin.buffer, encoding=args.input_encoding)
         for line in input_stream:
             data += line
     else:
-        with open(args.inputFile, "r", encoding=args.input_encoding) as input_handle:
+        with open(args.input_file, "r", encoding=args.input_encoding) as input_handle:
             data = input_handle.read()
 
     return data
@@ -256,8 +256,8 @@ def get_input_email(input_data):
 
 
 def get_output_file_name(args, output_directory):
-    if args.outputFile:
-        output_file_name = args.outputFile
+    if args.output_file:
+        output_file_name = args.output_file
         if os.path.isfile(output_file_name):
             raise FatalException("Output file " + output_file_name + " already exists.")
     else:
