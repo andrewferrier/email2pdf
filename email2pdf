@@ -47,6 +47,7 @@ IMAGE_LOAD_BLACKLIST = frozenset(['emltrk.com', 'trk.email'])
 WKHTMLTOPDF_ERRORS_IGNORE = frozenset([r'QFont::setPixelSize: Pixel size <= 0 \(0\)',
                                        r'Exit with code 1 due to network error: ContentNotFoundError'])
 
+
 def main(argv, syslog_handler, syserr_handler):
     logger = logging.getLogger('email2pdf')
     warning_count_filter = WarningCountFilter()
@@ -71,7 +72,7 @@ def main(argv, syslog_handler, syserr_handler):
             syserr_handler.setLevel(logging.DEBUG)
         elif args.verbose == 1:
             syserr_handler.setLevel(logging.INFO)
-        elif args.mostly_hide_warnings == False:
+        elif not args.mostly_hide_warnings:
             syserr_handler.setLevel(logging.WARNING)
         else:
             syserr_handler.setLevel(logging.ERROR)
@@ -124,7 +125,8 @@ def main(argv, syslog_handler, syserr_handler):
                                                        set(parts_already_used - parts_with_a_filename))
 
         if number_of_attachments == 0:
-            logger.warning("Second try: didn't print body (on request) and still didn't find any attachments even when looked for referenced ones with a filename. Giving up.")
+            logger.warning("Second try: didn't print body (on request) and still didn't find any attachments even when looked for "
+                           "referenced ones with a filename. Giving up.")
 
     if warning_count_filter.warning_pending:
         with open(get_modified_output_file_name(output_file_name, "_original.eml"), 'w') as original_copy_file:
@@ -306,7 +308,8 @@ def handle_message_body(input_email):
             else:
                 logger.info("Determined email is plain text with charset " + str(charset))
 
-        payload = "<html><body><pre>\n" + (str(payload, charset) if isinstance(payload, bytes) else payload) + "\n</pre></body></html>"
+        payload = "<html><body><pre>\n" + (str(payload, charset)
+                                           if isinstance(payload, bytes) else payload) + "\n</pre></body></html>"
     else:
         payload = part.get_payload(decode=True)
         charset = part.get_content_charset()
@@ -356,7 +359,8 @@ def output_body_pdf(input_email, payload, output_file_name):
     if wkh2p_process.returncode > 0 and original_error == '':
         raise FatalException("wkhtmltopdf failed with exit code " + str(wkh2p_process.returncode) + ", no error output.")
     elif wkh2p_process.returncode > 0 and stripped_error != '':
-        raise FatalException("wkhtmltopdf failed with exit code " + str(wkh2p_process.returncode) + ", stripped error: " + str(stripped_error, 'utf-8'))
+        raise FatalException("wkhtmltopdf failed with exit code " + str(wkh2p_process.returncode) + ", stripped error: " +
+                             str(stripped_error, 'utf-8'))
     elif stripped_error != '':
         raise FatalException("wkhtmltopdf exited with rc = 0 but produced unknown stripped error output " + stripped_error)
 
