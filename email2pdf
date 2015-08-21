@@ -47,6 +47,8 @@ IMAGE_LOAD_BLACKLIST = frozenset(['emltrk.com', 'trk.email'])
 WKHTMLTOPDF_ERRORS_IGNORE = frozenset([r'QFont::setPixelSize: Pixel size <= 0 \(0\)',
                                        r'Exit with code 1 due to network error: ContentNotFoundError'])
 
+WKHTMLTOPDF_EXTERNAL_COMMAND = 'wkhtmltopdf'
+
 
 def main(argv, syslog_handler, syserr_handler):
     logger = logging.getLogger('email2pdf')
@@ -78,6 +80,11 @@ def main(argv, syslog_handler, syserr_handler):
             syserr_handler.setLevel(logging.ERROR)
 
     logger.info("Options used are: " + str(args))
+
+    if not shutil.which(WKHTMLTOPDF_EXTERNAL_COMMAND):
+        raise FatalException("email2pdf requires wkhtmltopdf to be installed - please see "
+                             "https://github.com/andrewferrier/email2pdf/blob/master/README.md#installing-dependencies "
+                             "for more information.")
 
     output_directory = os.path.normpath(args.output_directory)
 
@@ -341,7 +348,7 @@ def handle_message_body(input_email):
 def output_body_pdf(input_email, payload, output_file_name):
     logger = logging.getLogger("email2pdf")
 
-    wkh2p_process = Popen(['wkhtmltopdf', '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore',
+    wkh2p_process = Popen([WKHTMLTOPDF_EXTERNAL_COMMAND, '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore',
                            '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = wkh2p_process.communicate(input=payload)
     assert output == b''
