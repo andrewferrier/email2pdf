@@ -10,6 +10,7 @@ from requests.exceptions import RequestException
 from subprocess import Popen, PIPE
 from sys import platform as _platform
 import argparse
+import base64
 import email
 import functools
 import io
@@ -21,13 +22,15 @@ import mimetypes
 import os
 import os.path
 import pprint
+import quopri
 import re
 import requests
 import shutil
 import sys
+import uu
 import tempfile
 import traceback
-
+_unicodeerror="replace"
 mimetypes.init()
 
 HEADER_MAPPING = {'Author': 'From',
@@ -112,7 +115,7 @@ def main(argv, syslog_handler, syserr_handler):
             payload = header_info + payload
 
         logger.debug("Final payload before output_body_pdf: " + payload)
-        output_body_pdf(input_email, bytes(payload, 'UTF-8'), output_file_name)
+        output_body_pdf(input_email, payload.encode('UTF-8',_unicodeerror), output_file_name)
 
     if args.attachments:
         number_of_attachments = handle_attachments(input_email,
@@ -230,6 +233,43 @@ def handle_args(argv):
         return (False, None)
     else:
         return (True, args)
+def _decodetxt(text,encoding,charset):
+#necessary due to a bug in python 3 email module
+	if not charset:
+		charset="UTF-8"
+	if not encoding:
+		encoding="8bit"
+	bytetext=text.encode(charset,_unicodeerror)
+	result=bytetext
+	cte=encoding.upper()
+	if cte=="BASE64":
+		pad_err = len(bytetext) % 4
+		if pad_err:
+			padded_encoded = bytetext + b'==='[:4-pad_err]
+		else:
+			padded_encoded = bytetext
+		try:
+			result= base64.b64decode(padded_encoded, validate=True)
+		except binascii.Error:
+			for i in 0, 1, 2, 3:
+				try:
+					result= base64.b64decode(bytetext+b'='*i, validate=False)
+					break
+				except binascii.Error:
+					pass
+			else:
+				raise AssertionError("unexpected binascii.Error")
+	elif cte=="QUOTED-PRINTABLE":
+		result=quopri.decodestring(bytetext)
+	elif cte in ('X-UUENCODE', 'UUENCODE', 'UUE', 'X-UUE'):
+		in_file = _BytesIO(bytetext)
+		out_file = _BytesIO()
+		try:
+			uu.decode(in_file, out_file, quiet=True)
+			result=out_file.getvalue()
+		except uu.Error:
+			pass
+	return result.decode(charset,_unicodeerror)
 
 
 def get_input_data(args):
@@ -299,15 +339,21 @@ def handle_message_body(input_email):
     part = find_part_by_content_type(input_email, "text/html")
     if part is None:
         part = find_part_by_content_type(input_email, "text/plain")
-        assert part is not None
+        if not part:
+            return ("",cid_parts_used)
+        is_text=part.get_content_maintype()=="text"
+        payload = part.get_payload(decode=not is_text)
+        charset = part.get_content_charset()
+        cte=part["Content-Transfer-Encoding"]
 
         if part['Content-Transfer-Encoding'] == '8bit':
-            payload = part.get_payload(decode=False)
-            assert isinstance(payload, str)
-            logger.info("Email is pre-decoded because Content-Transfer-Encoding is 8bit")
+           assert isinstance(payload, str)
+           logger.info("Email is pre-decoded because Content-Transfer-Encoding is 8bit")
         else:
-            payload = part.get_payload(decode=True)
-            assert isinstance(payload, bytes)
+            is_text=part.get_content_maintype()=="text"
+            payload = part.get_payload(decode=not is_text)
+            if is_text:
+               payload=_decodetxt(payload,cte,charset)
             charset = part.get_content_charset()
             if not charset:
                 charset = 'utf-8'
@@ -315,13 +361,17 @@ def handle_message_body(input_email):
             else:
                 logger.info("Determined email is plain text with charset " + str(charset))
 
-        payload = "<html><body><pre>\n" + (str(payload, charset)
+        payload = "<html><body><pre>\n" + (payload.decode(charset,_unicodeerror)
                                            if isinstance(payload, bytes) else payload) + "\n</pre></body></html>"
     else:
-        payload = part.get_payload(decode=True)
+        is_text=part.get_content_maintype()=="text"
+        payload = part.get_payload(decode=not is_text)
         charset = part.get_content_charset()
+        cte=part["Content-Transfer-Encoding"]
         if not charset:
-            charset = 'utf-8'
+             charset = 'utf-8'
+        if is_text:
+             payload=_decodetxt(payload,cte,charset)
         logger.info("Determined email is HTML with charset " + str(charset))
 
         def cid_replace(cid_parts_used, matchobj):
@@ -339,8 +389,12 @@ def handle_message_body(input_email):
                 logger.warning("Could not find image cid " + matchobj.group(1) + " in email content.")
                 return "broken"
 
+        if is_text:
+           pl=payload
+        else:
+           pl= payload.decode(charset,_unicodeerror)
         payload = re.sub(r'cid:([\w_@.-]+)', functools.partial(cid_replace, cid_parts_used),
-                         str(payload, charset))
+                        pl)
 
     return (payload, cid_parts_used)
 
@@ -348,12 +402,10 @@ def handle_message_body(input_email):
 def output_body_pdf(input_email, payload, output_file_name):
     logger = logging.getLogger("email2pdf")
 
-    wkh2p_process = Popen([WKHTMLTOPDF_EXTERNAL_COMMAND, '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore',
+    wkh2p_process = Popen([WKHTMLTOPDF_EXTERNAL_COMMAND, '-q',  
                            '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = wkh2p_process.communicate(input=payload)
-    assert output == b''
-
-    stripped_error = str(error, 'utf-8')
+    stripped_error = error.decode('utf-8',_unicodeerror)
 
     for error_pattern in WKHTMLTOPDF_ERRORS_IGNORE:
         (stripped_error, number_of_subs_made) = re.subn(error_pattern, '', stripped_error)
@@ -367,7 +419,7 @@ def output_body_pdf(input_email, payload, output_file_name):
         raise FatalException("wkhtmltopdf failed with exit code " + str(wkh2p_process.returncode) + ", no error output.")
     elif wkh2p_process.returncode > 0 and stripped_error != '':
         raise FatalException("wkhtmltopdf failed with exit code " + str(wkh2p_process.returncode) + ", stripped error: " +
-                             str(stripped_error, 'utf-8'))
+                             stripped_error)
     elif stripped_error != '':
         raise FatalException("wkhtmltopdf exited with rc = 0 but produced unknown stripped error output " + stripped_error)
 
