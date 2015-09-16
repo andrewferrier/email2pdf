@@ -11,6 +11,7 @@ from subprocess import Popen, PIPE
 from sys import platform as _platform
 import argparse
 import base64
+import binascii
 import email
 import functools
 import io
@@ -170,6 +171,8 @@ def handle_args(argv):
                         "include the complete path, otherwise it defaults to the current directory. If "
                         "this option is not specified, email2pdf picks a date & time-based filename and puts "
                         "the file in the directory specified by --output-directory.")
+    parser.add_argument("--overwrite",action="store_true",
+                        help="Overwrites the output file, if it already exists")
 
     parser.add_argument("-d", "--output-directory", default=os.getcwd(),
                         help="If --output-file is not specified, the value of this parameter is used as "
@@ -234,6 +237,7 @@ def handle_args(argv):
     else:
         return (True, args)
 def _decodetxt(text,encoding,charset):
+#function taken from gpgmailencrypt.py (https://github.com/gpgmailencrypt/gpgmailencrypt)
 #necessary due to a bug in python 3 email module
 	if not charset:
 		charset="UTF-8"
@@ -305,9 +309,9 @@ def get_input_email(input_data):
 
 
 def get_output_file_name(args, output_directory):
-    if args.output_file:
+    if args.output_file :
         output_file_name = args.output_file
-        if os.path.isfile(output_file_name):
+        if os.path.isfile(output_file_name)and not args.overwrite:
             raise FatalException("Output file " + output_file_name + " already exists.")
     else:
         output_file_name = get_unique_version(os.path.join(output_directory,
