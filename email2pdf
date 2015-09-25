@@ -14,6 +14,7 @@ import base64
 import binascii
 import email
 import functools
+import html
 import io
 import locale
 import logging
@@ -346,7 +347,7 @@ def handle_message_body(input_email):
         if not part:
             return ("",cid_parts_used)
         is_text=part.get_content_maintype()=="text"
-        payload = part.get_payload(decode=not is_text)
+        payload = html.escape(part.get_payload(decode=not is_text))
         charset = part.get_content_charset()
         cte=part["Content-Transfer-Encoding"]
 
@@ -405,8 +406,7 @@ def handle_message_body(input_email):
 
 def output_body_pdf(input_email, payload, output_file_name):
     logger = logging.getLogger("email2pdf")
-
-    wkh2p_process = Popen([WKHTMLTOPDF_EXTERNAL_COMMAND, '-q',  
+    wkh2p_process = Popen([WKHTMLTOPDF_EXTERNAL_COMMAND, '-q', '--load-error-handling', 'ignore', '--load-media-error-handling', 'ignore', 
                            '--encoding', 'utf-8', '-', output_file_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, error = wkh2p_process.communicate(input=payload)
     stripped_error = error.decode('utf-8',_unicodeerror)
