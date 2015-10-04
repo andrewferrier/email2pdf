@@ -58,3 +58,13 @@ class Direct_Basic(BaseTestClasses.Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertFalse(self.existsByTimeWarning())
         self.assertFalse(self.existsByTimeOriginal())
+
+    def test_contains_left_angle_bracket_mime(self):
+        path = os.path.join(self.examineDir, "left_angle_bracket_mime.pdf")
+        self.attachText("<angle bracket test>")
+        error = self.invokeDirectly(outputFile=path)
+        self.assertTrue(os.path.exists(path))
+        self.assertEqual('', error)
+        self.assertRegex(self.getPDFText(path), "<angle bracket test>")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())

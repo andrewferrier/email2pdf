@@ -12,6 +12,7 @@ from sys import platform as _platform
 import argparse
 import email
 import functools
+import html
 import io
 import locale
 import logging
@@ -315,8 +316,11 @@ def handle_message_body(input_email):
             else:
                 logger.info("Determined email is plain text with charset " + str(charset))
 
-        payload = "<html><body><pre>\n" + (str(payload, charset)
-                                           if isinstance(payload, bytes) else payload) + "\n</pre></body></html>"
+        if isinstance(payload, bytes):
+            payload = str(payload, charset)
+
+        payload = html.escape(payload)
+        payload = "<html><body><pre>\n" + payload + "\n</pre></body></html>"
     else:
         payload = part.get_payload(decode=True)
         charset = part.get_content_charset()
