@@ -1,7 +1,6 @@
 from email.message import Message
 
 import os
-import tempfile
 
 from tests.BaseTestClasses import Email2PDFTestCase
 
