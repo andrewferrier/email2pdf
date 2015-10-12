@@ -1,12 +1,17 @@
 TEMPDIR := $(shell mktemp -t tmp.XXXXXX -d)
 FLAKE8 := $(shell which flake8)
+UNAME := $(shell uname)
 DOCKERTAG = andrewferrier/email2pdf
 
 determineversion:
 	$(eval GITDESCRIBE := $(shell git describe --dirty))
 	sed 's/Version: .*/Version: $(GITDESCRIBE)/' debian/DEBIAN/control_template > debian/DEBIAN/control
 
+ifeq ($(UNAME),Linux)
 builddeb: determineversion builddeb_real
+else
+builddeb: rundocker_getdebs
+endif
 
 builddeb_real:
 	sudo apt-get install build-essential
