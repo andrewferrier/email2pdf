@@ -323,7 +323,7 @@ class Email2PDFTestCase(unittest.TestCase):
         encoders.encode_base64(part)
 
         if file_name:
-            part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(file_name))
+            part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(file_name))
         else:
             part.add_header('Content-Disposition', 'inline')
 
