@@ -39,7 +39,8 @@ verbose, and stops on failing tests).
 
 All new code should be covered by a test. There is a code coverage checker
 target in the Makefile - run `make coverage`. You'll need to have the
-`coverage` Python module installed (`pip3 install coverage`) to run it.
+`coverage` and `nose` Python modules installed (`pip3 install coverage nose`)
+to run them.
 
 In addition to the standard dependencies from the [standard install
 documentation](https://github.com/andrewferrier/email2pdf/blob/master/README.md),
