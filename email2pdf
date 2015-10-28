@@ -302,19 +302,19 @@ def handle_message_body(args, input_email):
         part = find_part_by_content_type(input_email, "text/plain")
         if part is None:
             if not args.body:
-                logger.debug("No body parts found, but using --no-body; proceeding.");
+                logger.debug("No body parts found, but using --no-body; proceeding.")
                 return (None, cid_parts_used)
             else:
                 raise FatalException("No body parts found; aborting.")
         else:
-            payload = handle_plain_message_body(input_email, part)
+            payload = handle_plain_message_body(part)
     else:
         (payload, cid_parts_used) = handle_html_message_body(input_email, part)
 
     return (payload, cid_parts_used)
 
 
-def handle_plain_message_body(input_email, part):
+def handle_plain_message_body(part):
     logger = logging.getLogger("email2pdf")
 
     if part['Content-Transfer-Encoding'] == '8bit':

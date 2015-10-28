@@ -22,7 +22,7 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
 
     def test_no_body_but_some_attachments(self):
         filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
-        error = self.invokeDirectly(extraParams=['--no-body'])
+        self.invokeDirectly(extraParams=['--no-body'])
         self.assertFalse(self.existsByTime())
         self.assertFalse(self.existsByTimeWarning())
         self.assertFalse(self.existsByTimeOriginal())
