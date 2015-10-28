@@ -124,3 +124,12 @@ class AttachmentDetection(Email2PDFTestCase):
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
         self.assertFalse(self.existsByTimeWarning())
         self.assertFalse(self.existsByTimeOriginal())
+
+    def test_attachment_filename_has_encoding(self):
+        path = os.path.join(self.workingDir, "somefile.xyz")
+        self.attachAttachment("application", "data", "some data in some format", "somefile.xyz", file_name_encoding="utf-8")
+        (rc, output, error) = self.invokeAsSubprocess(extraParams=['--no-body'])
+        self.assertTrue(os.path.exists(path))
+        self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())

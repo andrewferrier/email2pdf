@@ -317,13 +317,31 @@ class Email2PDFTestCase(unittest.TestCase):
         else:
             return basic_file_name
 
-    def attachAttachment(self, mainContentType, subContentType, data, file_name):
+    def attachAttachment(self, mainContentType, subContentType, data, file_name, file_name_encoding=None):
         part = MIMEBase(mainContentType, subContentType)
         part.set_payload(data)
         encoders.encode_base64(part)
 
         if file_name:
-            part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(file_name))
+            if file_name_encoding:
+                # I would like to use a more simple implementation here based
+                # on part.add_header, but the encoding mechanism provided for
+                # that gives a different output, placing the filename in
+                # Content-Disposition, with it subtly differently encoded.
+                # This doesn't match a real-world problematic email which was
+                # observed like this:
+                #
+                # Content-Type: APPLICATION/pdf; NAME="=?UTF-8?Q?123.pdf?="
+                # Content-Transfer-Encoding: QUOTED-PRINTABLE
+                # Content-Disposition: attachment
+
+                header = mainContentType + '/' + subContentType
+                header += '; name="' + Header(os.path.basename(file_name), file_name_encoding).encode() + '"'
+                del part['Content-Type']
+                part['Content-Type'] = header
+                part.add_header('Content-Disposition', 'attachment')
+            else:
+                part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(file_name))
         else:
             part.add_header('Content-Disposition', 'inline')
 

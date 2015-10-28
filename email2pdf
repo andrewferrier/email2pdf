@@ -452,6 +452,7 @@ def handle_attachments(input_email, output_directory, add_prefix_date, ignore_fl
     logger = logging.getLogger("email2pdf")
 
     parts = find_all_attachments(input_email, parts_to_ignore)
+    logger.debug("Attachments found by handle_attachments: " + str(len(parts)))
 
     for part in parts:
         filename = extract_part_filename(part)
@@ -521,10 +522,15 @@ def add_update_pdf_metadata(filename, update_dictionary):
 
 
 def extract_part_filename(part):
+    logger = logging.getLogger("email2pdf")
     filename = part.get_filename()
     if filename is not None:
+        logger.debug("Pre-decoded filename: " + filename)
         if decode_header(filename)[0][1] is not None:
-            filename = str(decode_header(filename)[0][0]).decode(decode_header(filename)[0][1])
+            logger.debug("Encoding: " + str(decode_header(filename)[0][1]))
+            logger.debug("Filename in bytes: " + str(decode_header(filename)[0][0]))
+            filename = str(decode_header(filename)[0][0], (decode_header(filename)[0][1]))
+            logger.debug("Post-decoded filename: " + filename)
         return filename
     else:
         return None
