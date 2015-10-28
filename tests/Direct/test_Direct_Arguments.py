@@ -20,6 +20,15 @@ class Direct_Arguments(BaseTestClasses.Email2PDFTestCase):
         self.assertRegex(self.getWarningFileContents(), "body.*any.*attachments")
         self.assertValidOriginalFileContents()
 
+    def test_no_body_but_some_attachments(self):
+        filename = self.attachPDF("Some PDF content", mainContentType="application", subContentType="octet-stream")
+        error = self.invokeDirectly(extraParams=['--no-body'])
+        self.assertFalse(self.existsByTime())
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
+        self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename)), "Some PDF content")
+
     def test_no_body_mostly_hide_warnings(self):
         error = self.invokeDirectly(extraParams=['--no-body', '--mostly-hide-warnings'])
         self.assertFalse(self.existsByTime())

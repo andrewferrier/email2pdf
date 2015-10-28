@@ -101,8 +101,8 @@ def main(argv, syslog_handler, syserr_handler):
     logger.debug("Email input data is: " + input_data)
 
     input_email = get_input_email(input_data)
-    (payload, parts_already_used) = handle_message_body(input_email)
-    logger.debug("Payload after handle_message_body: " + payload)
+    (payload, parts_already_used) = handle_message_body(args, input_email)
+    logger.debug("Payload after handle_message_body: " + str(payload))
 
     if args.body:
         payload = remove_invalid_urls(payload)
@@ -292,24 +292,30 @@ def get_modified_output_file_name(output_file_name, append):
     return partial_name
 
 
-def handle_message_body(input_email):
+def handle_message_body(args, input_email):
     logger = logging.getLogger("email2pdf")
 
     cid_parts_used = set()
 
     part = find_part_by_content_type(input_email, "text/html")
     if part is None:
-        payload = handle_plain_message_body(input_email)
+        part = find_part_by_content_type(input_email, "text/plain")
+        if part is None:
+            if not args.body:
+                logger.debug("No body parts found, but using --no-body; proceeding.");
+                return (None, cid_parts_used)
+            else:
+                raise FatalException("No body parts found; aborting.")
+        else:
+            payload = handle_plain_message_body(input_email, part)
     else:
         (payload, cid_parts_used) = handle_html_message_body(input_email, part)
 
     return (payload, cid_parts_used)
 
 
-def handle_plain_message_body(input_email):
+def handle_plain_message_body(input_email, part):
     logger = logging.getLogger("email2pdf")
-
-    part = find_part_by_content_type(input_email, "text/plain")
 
     if part['Content-Transfer-Encoding'] == '8bit':
         payload = part.get_payload(decode=False)
