@@ -185,7 +185,8 @@ def handle_args(argv):
                                          help="Don't detach attachments, just print the body of the email to PDF.")
 
     parser.add_argument("--headers", action='store_true',
-                        help="Add basic email headers to the first PDF page. The default is not to do this.")
+                        help="Add basic email headers (" + ", ".join(FORMATTED_HEADERS_TO_INCLUDE) +
+                        ") to the first PDF page. The default is not to do this.")
 
     parser.add_argument("--add-prefix-date", action="store_true",
                         help="Prepend an ISO-8601 prefix date (e.g. YYYY-MM-DD-) to any attachment filename "
