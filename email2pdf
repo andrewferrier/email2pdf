@@ -432,12 +432,7 @@ def remove_invalid_urls(payload):
                 if not found_blacklist:
                     logger.debug("Getting img URL " + src)
 
-                    try:
-                        request = requests.get(src, headers={'Connection': 'close'}, timeout=10)
-                        # See https://github.com/kennethreitz/requests/issues/1882#issuecomment-44596534
-                        request.connection.close()
-                        request.raise_for_status()
-                    except RequestException:
+                    if not can_url_fetch(src):
                         logger.warning("Could not retrieve img URL " + src + ", replacing with blank.")
                         del img['src']
                 else:
@@ -447,6 +442,17 @@ def remove_invalid_urls(payload):
                 logger.debug("Ignoring URL " + src)
 
     return str(soup)
+
+
+def can_url_fetch(src):
+    try:
+        request = requests.get(src, headers={'Connection': 'close'}, timeout=10)
+        # See https://github.com/kennethreitz/requests/issues/1882#issuecomment-44596534
+        request.connection.close()
+        request.raise_for_status()
+        return True
+    except RequestException:
+        return False
 
 
 def handle_attachments(input_email, output_directory, add_prefix_date, ignore_floating_attachments, parts_to_ignore):
