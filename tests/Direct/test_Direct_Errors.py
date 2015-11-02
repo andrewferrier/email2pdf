@@ -2,6 +2,7 @@ from email.mime.multipart import MIMEMultipart
 
 import os
 import tempfile
+import unittest.mock
 
 from tests import BaseTestClasses
 
@@ -159,3 +160,11 @@ class Direct_Errors(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(self.existsByTime())
         self.assertFalse(self.existsByTimeWarning())
         self.assertFalse(self.existsByTimeOriginal())
+
+    def test_missing_wkhtmltopdf(self):
+        with unittest.mock.patch.dict(os.environ, {'PATH': ''}):
+            with self.assertRaisesRegex(Exception, "(?i)email2pdf requires wkhtmltopdf"):
+                self.invokeDirectly()
+            self.assertFalse(self.existsByTime())
+            self.assertFalse(self.existsByTimeWarning())
+            self.assertFalse(self.existsByTimeOriginal())
