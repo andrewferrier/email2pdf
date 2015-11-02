@@ -59,4 +59,10 @@ coverage:
 	nosetests tests/Direct/*.py --with-coverage --cover-package=email2pdf,tests --cover-erase --cover-html --cover-branches
 	open cover/index.html
 
+.email2pdf.profile: email2pdf
+	python3 -m cProfile -o .email2pdf.profile `which nosetests` .
+
+profile: .email2pdf.profile
+	python3 performance/printstats.py | less
+
 alltests: unittest analysis coverage
