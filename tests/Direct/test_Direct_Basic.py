@@ -19,6 +19,15 @@ class Direct_Basic(BaseTestClasses.Email2PDFTestCase):
         self.assertFalse(self.existsByTimeWarning())
         self.assertFalse(self.existsByTimeOriginal())
 
+    def test_missing_from_to(self):
+        path = os.path.join(self.examineDir, "missing_from_to.pdf")
+        self.addHeaders(frm=None, to=None)
+        error = self.invokeDirectly(outputFile=path, extraParams=['--headers'])
+        self.assertTrue(os.path.exists(path))
+        self.assertEqual('', error)
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
+
     def test_internationalised_subject(self):
         path = os.path.join(self.examineDir, "internationalised_subject.pdf")
         self.addHeaders(subject=bytes("Hello!", 'iso-8859-1'), subject_encoding='iso-8859-1')
