@@ -1,7 +1,4 @@
-FROM phusion/baseimage:0.9.15
-ENV HOME /root
-RUN /etc/my_init.d/00_regen_ssh_host_keys.sh
-CMD ["/sbin/my_init"]
+FROM ubuntu:14.04
 MAINTAINER Andrew Ferrier <andrew.ferrier@example.com>
 RUN apt-get update && apt-get install -y git build-essential \
         checkinstall \
