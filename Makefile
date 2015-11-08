@@ -28,20 +28,20 @@ builddeb_real:
 
 builddocker: determineversion
 	docker build -t $(DOCKERTAG) .
-	docker tag $(DOCKERTAG):latest $(DOCKERTAG):$(GITDESCRIBE)
+	docker tag -f $(DOCKERTAG):latest $(DOCKERTAG):$(GITDESCRIBE)
 
 builddocker_nocache: determineversion
 	docker build --no-cache -t $(DOCKERTAG) .
-	docker tag $(DOCKERTAG):latest $(DOCKERTAG):$(GITDESCRIBE)
+	docker tag -f $(DOCKERTAG):latest $(DOCKERTAG):$(GITDESCRIBE)
 
 rundocker_interactive: builddocker
-	docker run -i -t $(DOCKERTAG) /sbin/my_init -- bash -l
+	docker run --rm -i -t $(DOCKERTAG) bash -l
 
 rundocker_testing: builddocker
-	docker run -t $(DOCKERTAG) /sbin/my_init -- bash -c 'cd /tmp/email2pdf && make unittest && make stylecheck'
+	docker run --rm -t $(DOCKERTAG) bash -c 'cd /tmp/email2pdf && make unittest && make stylecheck'
 
 rundocker_getdebs: builddocker
-	docker run -v ${PWD}:/debs $(DOCKERTAG) sh -c 'cp /tmp/*.deb /debs'
+	docker run --rm -v ${PWD}:/debs $(DOCKERTAG) sh -c 'cp /tmp/*.deb /debs'
 
 unittest:
 	python3 -m unittest discover
