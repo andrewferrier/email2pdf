@@ -145,6 +145,7 @@ def main(argv, syslog_handler, syserr_handler):
 
 def handle_args(argv):
     class ArgumentParser(argparse.ArgumentParser):
+
         def error(self, message):
             raise FatalException(message)
 
@@ -662,6 +663,7 @@ class WarningCountFilter(logging.Filter):
 
 
 class FatalException(Exception):
+
     def __init__(self, value):
         Exception.__init__(self, value)
         self.value = value
