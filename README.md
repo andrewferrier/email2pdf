@@ -76,3 +76,6 @@ something like this:
 
 This will ensure that getmail is invoked hourly to fetch email, and log its
 output to syslog.
+
+If your mailserver is unreliable, you might want to consider wrapping the getmail
+cron job with [cromer](https://github.com/andrewferrier/cromer).
