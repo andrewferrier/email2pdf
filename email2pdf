@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 
-from PyPDF2 import PdfFileReader, PdfFileWriter
-from PyPDF2.generic import NameObject, createStringObject
-from bs4 import BeautifulSoup
 from datetime import datetime
 from email.header import decode_header
 from itertools import chain
-from requests.exceptions import RequestException
 from subprocess import Popen, PIPE
 from sys import platform as _platform
 import argparse
@@ -17,17 +13,22 @@ import io
 import locale
 import logging
 import logging.handlers
-import magic
 import mimetypes
 import os
 import os.path
 import pprint
 import re
-import requests
 import shutil
 import sys
 import tempfile
 import traceback
+
+from PyPDF2 import PdfFileReader, PdfFileWriter
+from PyPDF2.generic import NameObject, createStringObject
+from bs4 import BeautifulSoup
+from requests.exceptions import RequestException
+import magic
+import requests
 
 mimetypes.init()
 
