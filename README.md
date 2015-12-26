@@ -1,5 +1,7 @@
 # email2pdf
 
+[![Travis CI Status](https://travis-ci.org/andrewferrier/email2pdf.svg?branch=master)](https://travis-ci.org/andrewferrier/email2pdf)
+
 email2pdf is a Python script to convert emails to PDF from the command-line.
 email2pdf acts in place of a [mail delivery
 agent](http://en.wikipedia.org/wiki/Mail_delivery_agent) - it won't retrieve
