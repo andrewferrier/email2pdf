@@ -1,5 +1,5 @@
 flake8
 freezegun
-nosetests
+nose
 pdfminer3k
 reportlab
