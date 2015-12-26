@@ -49,7 +49,7 @@ work:
 
 ### OS X
 
-Just run `pip3 install flake8 freezegun nosetests pdfminer3k reportlab`.
+Just run `pip3 install -r requirements_hacking.txt`.
 
 ### Debian/Ubuntu
 

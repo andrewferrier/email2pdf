@@ -1,0 +1,5 @@
+flake8
+freezegun
+nosetests
+pdfminer3k
+reportlab

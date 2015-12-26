@@ -55,7 +55,7 @@ instructions here are split out by platform:
 
 * `brew install libmagic`
 
-* `pip3 install beautifulsoup4 lxml pypdf2 python-magic requests`
+* `pip3 install -r requirements.txt`
 
 ## Configuring getmail
 
