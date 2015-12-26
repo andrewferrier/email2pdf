@@ -14,7 +14,7 @@ from pdfminer.pdfinterp import PDFResourceManager, process_pdf
 from pdfminer.pdftypes import PSException
 from reportlab.pdfgen import canvas
 from requests.exceptions import RequestException
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, DEVNULL
 
 import io
 import imghdr
@@ -369,9 +369,9 @@ class Email2PDFTestCase(unittest.TestCase):
                 return None
 
     def getPDFText(self, filename):
-        with tempfile.NamedTemporaryFile() as temporaryFile:
-            options = ['pdftotext', filename, temporaryFile.name]
-            p = Popen(options)
+        with tempfile.NamedTemporaryFile(suffix='.txt') as temporaryFile:
+            options = ['ebook-convert', filename, temporaryFile.name]
+            p = Popen(options, stdout=DEVNULL)
             p.wait()
             with open(temporaryFile.name, 'rb') as f:
                 return str(f.read(), 'utf-8')
