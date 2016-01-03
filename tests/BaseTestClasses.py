@@ -369,12 +369,18 @@ class Email2PDFTestCase(unittest.TestCase):
                 return None
 
     def getPDFText(self, filename):
-        with tempfile.NamedTemporaryFile() as temporaryFile:
-            options = ['pdftotext', filename, temporaryFile.name]
-            p = Popen(options)
-            p.wait()
-            with open(temporaryFile.name, 'rb') as f:
-                return str(f.read(), 'utf-8')
+        try:
+            with io.StringIO() as retstr:
+                with open(filename, 'rb') as filehandle:
+                    rsrcmgr = PDFResourceManager()
+                    device = TextConverter(rsrcmgr, retstr, laparams=LAParams())
+                    pagenos = set()
+                    process_pdf(rsrcmgr, device, filehandle, pagenos, maxpages=0, password="", caching=True, check_extractable=True)
+                    device.close()
+                    string = retstr.getvalue()
+                    return string
+        except PSException:
+            return None
 
     def touch(self, fname):
         open(fname, 'w').close()
