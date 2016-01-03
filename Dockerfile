@@ -1,7 +1,6 @@
 FROM ubuntu:14.04
 MAINTAINER Andrew Ferrier <andrew.ferrier@example.com>
 RUN apt-get update && apt-get install -y git build-essential \
-        calibre \
         checkinstall \
         fontconfig \
         gdebi-core \
