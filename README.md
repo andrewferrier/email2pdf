@@ -81,3 +81,10 @@ output to syslog.
 
 If your mailserver is unreliable, you might want to consider wrapping the getmail
 cron job with [cromer](https://github.com/andrewferrier/cromer).
+
+## Configuring procmail
+
+I don't have any direct experience using procmail with email2pdf, so don't have any
+specific setup steps, although I understand it can be made to work. You should be
+aware that currently there is an outstanding issue with I/O encodings with procmail
+that you may need to work around - see [issue #76](https://github.com/andrewferrier/email2pdf/issues/76) for more information.
