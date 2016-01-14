@@ -3,7 +3,7 @@ Version: <version_goes_here>
 Section: base
 Priority: optional
 Architecture: all
-Depends: python3, python3-bs4, python3-lxml, python3-pypdf2, python3-magic, python3-requests, wkhtmltox
+Depends: python3, python3-bs4, python3-html5lib, python3-pypdf2, python3-magic, python3-requests, wkhtmltox
 Recommends: getmail
 Maintainer: Andrew Ferrier <andrew.ferrier@example.com>
 Description: MDA which converts email to PDF
