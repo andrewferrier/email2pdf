@@ -5,3 +5,7 @@ language: python
 install:
     - "echo 'Skip'"
 script: make rundocker_testing
+notifications:
+    email:
+        recipients:
+            - secure: "Tmt2vtBW60X9digOMKdKM8NigEZX/X1wp8mbffbHaiSUkI32Y873b9ILmqF7roDhnMxJsiGQuQ/QMHsK6D5cTOs4pYwrshRySkU3TmbuHB6n5RlV5RDElFTFjs+uc0iHesQYgcIrUSqzinr6toAStAJ00Aa2RuN+137r6Et1QkY="
