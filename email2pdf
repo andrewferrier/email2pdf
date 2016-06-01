@@ -175,7 +175,7 @@ def handle_args(argv):
                         help="If --output-file is not specified, the value of this parameter is used as "
                         "the output directory for the body PDF, with a date-and-time based filename attached. "
                         "In either case, this parameter also specifies the directory in which attachments are "
-                        "stored.")
+                        "stored. Defaults to the current directory (i.e. " + os.getcwd() + ").")
 
     body_attachment_options = parser.add_mutually_exclusive_group()
 
