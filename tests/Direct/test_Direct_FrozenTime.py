@@ -45,7 +45,7 @@ class Direct_Complex(BaseTestClasses.Email2PDFTestCase):
         self.assertTrue(os.path.exists(filename1))
         self.assertFalse(os.path.exists(filename2))
         error = self.invokeDirectly()
-        self.assertEqual('', error)
+        self.assertRegex(error, filename1 + '.*already exists.*' + filename2)
         self.assertTrue(os.path.exists(filename1))
         self.assertTrue(os.path.exists(filename2))
         self.assertIsNone(self.getPDFText(filename1))

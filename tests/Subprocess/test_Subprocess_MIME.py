@@ -286,21 +286,22 @@ class TestMIME(Email2PDFTestCase):
 
         self.touch(os.path.join(self.workingDir, filename))
         (rc, output, error) = self.invokeAsSubprocess()
-        self.assertEqual(0, rc)
-        self.assertEqual('', error)
-        self.assertTrue(self.existsByTime())
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
+        self.assertEqual(1, rc)
 
         rootName, unused_extension = os.path.splitext(filename)
         uniqueName = rootName + "_1.pdf"
-
+        self.assertRegex(error, filename + '.*already exists.*' + uniqueName)
+        self.assertTrue(self.existsByTime())
+        self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, uniqueName)))
 
         self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
         self.assertIsNone(self.getPDFText(os.path.join(self.workingDir, filename)))
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir, uniqueName)), "Some PDF content")
-        self.assertFalse(self.existsByTimeWarning())
-        self.assertFalse(self.existsByTimeOriginal())
+        self.assertTrue(self.existsByTimeWarning())
+        self.assertRegex(self.getWarningFileContents(), filename + '.*already exists.*' + uniqueName)
+        self.assertTrue(self.existsByTimeOriginal())
+        self.assertValidOriginalFileContents()
 
     def test_2pdfs_oneexists(self):
         self.addHeaders()
@@ -312,13 +313,14 @@ class TestMIME(Email2PDFTestCase):
 
         self.touch(os.path.join(self.workingDir, filename))
         (rc, output, error) = self.invokeAsSubprocess()
-        self.assertEqual(0, rc)
-        self.assertEqual('', error)
+        self.assertEqual(1, rc)
+
+        rootName, unused_extension = os.path.splitext(filename)
+        uniqueName = rootName + "_1.pdf"
+        self.assertRegex(error, filename + '.*already exists.*' + uniqueName)
         self.assertTrue(self.existsByTime())
 
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename)))
-        rootName, unused_extension = os.path.splitext(filename)
-        uniqueName = rootName + "_1.pdf"
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, uniqueName)))
 
         self.assertTrue(os.path.exists(os.path.join(self.workingDir, filename2)))
@@ -330,5 +332,7 @@ class TestMIME(Email2PDFTestCase):
         self.assertIsNone(self.getPDFText(os.path.join(self.workingDir, filename)))
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir, uniqueName)), "Some PDF content")
         self.assertRegex(self.getPDFText(os.path.join(self.workingDir, filename2)), "Some More PDF content")
-        self.assertFalse(self.existsByTimeWarning())
-        self.assertFalse(self.existsByTimeOriginal())
+        self.assertTrue(self.existsByTimeWarning())
+        self.assertRegex(self.getWarningFileContents(), filename + '.*already exists.*' + uniqueName)
+        self.assertTrue(self.existsByTimeOriginal())
+        self.assertValidOriginalFileContents()

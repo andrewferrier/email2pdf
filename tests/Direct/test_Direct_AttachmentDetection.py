@@ -133,3 +133,18 @@ class AttachmentDetection(Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertFalse(self.existsByTimeWarning())
         self.assertFalse(self.existsByTimeOriginal())
+
+    def test_html_and_plain(self):
+        html = '<html><body>Hello!</body></html>'
+        self.addHeaders()
+        self.attachText("Some basic textual content")
+        self.attachHTML(html, filename="test.html")
+        error = self.invokeDirectly()
+        self.assertEqual('', error)
+        self.assertTrue(self.existsByTime())
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Some basic textual content")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
+        htmlFile = os.path.join(self.workingDir, "test.html")
+        self.assertTrue(os.path.exists(htmlFile))
+        self.assertEqual(self.getFileContents(htmlFile), html)
