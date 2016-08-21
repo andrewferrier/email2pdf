@@ -571,7 +571,7 @@ def get_unique_version(filename, warn_if_exists=True):
 
 def find_nonattachment_by_content_type(message, content_type):
     for part in message.walk():
-        content_disposition = part.get_content_disposition()
+        content_disposition = get_content_disposition(part)
         if part.get_content_type() == content_type:
             if content_disposition is None or re.match("attachment", content_disposition) is None:
                 return part
@@ -592,6 +592,16 @@ def get_content_id(part):
 
     return content_id
 
+# part.get_content_disposition() is only available in Python 3.5+, so this is effectively a backport so we can continue to support
+# earlier versions of Python 3. It uses an internal API so is a bit unstable and should be replaced with something stable when we
+# upgrade to a minimum of Python 3.5. See http://bit.ly/2bHzXtz.
+
+def get_content_disposition(part):
+    value = part.get('content-disposition')
+    if value is None:
+        return None
+    c_d = email.message._splitparam(value)[0].lower()
+    return c_d
 
 def get_type_extension(content_type):
     filetypes = set(mimetypes.guess_all_extensions(content_type)) - AUTOCALCULATED_FILENAME_EXTENSION_BLACKLIST
