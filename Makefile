@@ -28,11 +28,11 @@ builddeb_real:
 
 builddocker: determineversion
 	docker build -t $(DOCKERTAG) .
-	docker tag -f $(DOCKERTAG):latest $(DOCKERTAG):$(GITDESCRIBE)
+	docker tag $(DOCKERTAG):latest $(DOCKERTAG):$(GITDESCRIBE)
 
 builddocker_nocache: determineversion
 	docker build --no-cache -t $(DOCKERTAG) .
-	docker tag -f $(DOCKERTAG):latest $(DOCKERTAG):$(GITDESCRIBE)
+	docker tag $(DOCKERTAG):latest $(DOCKERTAG):$(GITDESCRIBE)
 
 rundocker_interactive: builddocker
 	docker run --rm -i -t $(DOCKERTAG) bash -l
