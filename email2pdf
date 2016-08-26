@@ -30,6 +30,8 @@ from requests.exceptions import RequestException
 import magic
 import requests
 
+assert sys.version_info >= (3,4)
+
 mimetypes.init()
 
 HEADER_MAPPING = {'Author': 'From',
