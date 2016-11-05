@@ -81,13 +81,10 @@ class Email2PDFTestCase(unittest.TestCase):
         else:
             return False
 
-    def getFileContents(self, filename):
-        with open(filename) as f:
-            return f.read()
-
     def getWarningFileContents(self):
         filename = self.getTimedFilename(postfix=self.WARNINGS_AND_ERRORS_POSTFIX)
-        return self.getFileContents(filename)
+        with open(filename) as f:
+            return f.read()
 
     def assertValidOriginalFileContents(self, filename=None):
         try:
@@ -246,23 +243,18 @@ class Email2PDFTestCase(unittest.TestCase):
             self.msg.set_payload(content)
             self.msg.set_charset(charset)
 
-    def attachHTML(self, content, charset=None, filename=None):
+    def attachHTML(self, content, charset=None):
         assert isinstance(self.msg, MIMEMultipart)
 
-        if filename:
-            assert charset is None, "Not currently supported to use charset and filename as not None"
-
-            self.attachAttachment("text", "html", content, filename)
+        # According to the docs
+        # (https://docs.python.org/3.3/library/email.mime.html), setting
+        # charset explicitly to None is different from not setting it. Not
+        # sure how that works. But for the moment, sticking with this
+        # style of invocation to be safe.
+        if charset:
+            self.msg.attach(MIMEText(content, 'html', charset))
         else:
-            # According to the docs
-            # (https://docs.python.org/3.3/library/email.mime.html), setting
-            # charset explicitly to None is different from not setting it. Not
-            # sure how that works. But for the moment, sticking with this
-            # style of invocation to be safe.
-            if charset:
-                self.msg.attach(MIMEText(content, 'html', charset))
-            else:
-                self.msg.attach(MIMEText(content, 'html'))
+            self.msg.attach(MIMEText(content, 'html'))
 
     def attachText(self, content, charset=None):
         assert isinstance(self.msg, MIMEMultipart)
