@@ -3,12 +3,14 @@
 [![Travis CI Status](https://travis-ci.org/andrewferrier/email2pdf.svg?branch=master)](https://travis-ci.org/andrewferrier/email2pdf)
 
 email2pdf is a Python script to convert emails to PDF from the command-line.
-email2pdf acts in place of a [mail delivery
+It is not interactive (it doesn't run from a browser or have a GUI), but is
+intended to be run as a [mail delivery
 agent](http://en.wikipedia.org/wiki/Mail_delivery_agent) - it won't retrieve
 emails for you, but it will take them from standard input as an MDA will and
 'deliver' them to PDF files. It is well-placed to use together with
-[getmail](http://pyropus.ca/software/getmail/). You can also just use it as a
-standalone utility to convert a raw email (normally an
+[getmail](http://pyropus.ca/software/getmail/), perhaps run on a schedule
+using [cron](https://en.wikipedia.org/wiki/Cron) or similar. You can also just
+use it as a standalone utility to convert a raw email (normally an
 [.eml](https://en.wikipedia.org/wiki/Email#Filename_extensions) file) to a
 PDF. Type `email2pdf --help` for more information on usage and options
 available.
