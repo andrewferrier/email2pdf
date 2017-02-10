@@ -652,7 +652,12 @@ def get_formatted_header_info(input_email):
 def get_mime_type(buffer_data):
     # pylint: disable=no-member
     if 'from_buffer' in dir(magic):
-        mime_type = str(magic.from_buffer(buffer_data, mime=True), 'utf-8')
+        mime_type = magic.from_buffer(buffer_data, mime=True)
+        if type(mime_type) is not str:
+            # Older versions of python-magic seem to output bytes for the
+            # mime_type name. As of Python 3.6+, it seems to be outputting
+            # strings directly.
+            mime_type = str(magic.from_buffer(buffer_data, mime=True), 'utf-8')
     else:
         m_handle = magic.open(magic.MAGIC_MIME_TYPE)
         m_handle.load()
