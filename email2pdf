@@ -357,8 +357,14 @@ def handle_html_message_body(input_email, part):
     logger.info("Determined email is HTML with charset " + str(charset))
 
     def cid_replace(cid_parts_used, matchobj):
-        logger.debug("Looking for image for cid " + matchobj.group(1))
-        image_part = find_part_by_content_id(input_email, matchobj.group(1))
+        cid = matchobj.group(1)
+
+        logger.debug("Looking for image for cid " + cid)
+        image_part = find_part_by_content_id(input_email, cid)
+
+        if image_part is None:
+            image_part = find_part_by_content_type_name(input_email, cid)
+
         if image_part is not None:
             assert image_part['Content-Transfer-Encoding'] == 'base64'
             image_base64 = image_part.get_payload(decode=False)
@@ -368,7 +374,7 @@ def handle_html_message_body(input_email, part):
             cid_parts_used.add(image_part)
             return "data:" + mime_type + ";base64," + image_base64
         else:
-            logger.warning("Could not find image cid " + matchobj.group(1) + " in email content.")
+            logger.warning("Could not find image cid " + cid + " in email content.")
             return "broken"
 
     payload = re.sub(r'cid:([\w_@.-]+)', functools.partial(cid_replace, cid_parts_used),
@@ -555,6 +561,13 @@ def get_unique_version(filename):
         filename = file_name_parts[0] + '_' + str(counter) + file_name_parts[1]
         counter += 1
     return filename
+
+
+def find_part_by_content_type_name(message, content_type_name):
+    for part in message.walk():
+        if part.get_param('name', header="Content-Type") == content_type_name:
+            return part
+    return None
 
 
 def find_part_by_content_type(message, content_type):
