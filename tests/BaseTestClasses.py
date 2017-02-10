@@ -283,23 +283,32 @@ class Email2PDFTestCase(unittest.TestCase):
         finally:
             os.unlink(file_name)
 
-    def attachImage(self, content_id=None, jpeg=True, content_type=None, inline=False, force_filename=False, extension=None):
+    def attachImage(self, content_id=None, jpeg=True, content_type=None, content_type_add_filename=False, inline=False, force_filename=False, extension=None):
         if jpeg:
             real_filename = self.JPG_FILENAME
-            file_suffix = 'jpg' if not extension else extension
+            file_suffix = 'jpg' if extension is None else extension
         else:
             real_filename = self.PNG_FILENAME
-            file_suffix = 'png' if not extension else extension
+            file_suffix = 'png' if extension is None else extension
 
-        with tempfile.NamedTemporaryFile(prefix="email2pdf_unittest_image", suffix="." + file_suffix) as temp_file:
+        if file_suffix != '':
+            suffix = "." + file_suffix
+        else:
+            suffix = file_suffix
+
+        with tempfile.NamedTemporaryFile(prefix="email2pdf_unittest_image", suffix=suffix) as temp_file:
             _, basic_file_name = os.path.split(temp_file.name)
 
         with open(real_filename, 'rb') as image_file:
             image = MIMEImage(image_file.read())
             if content_id:
                 image.add_header('Content-ID', content_id)
+
             if content_type:
                 self._replace_header(image, 'Content-Type', content_type)
+
+            if content_type_add_filename:
+                image.set_param('name', basic_file_name, header='Content-Type')
 
             if inline:
                 if force_filename:

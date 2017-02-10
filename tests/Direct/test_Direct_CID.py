@@ -60,6 +60,30 @@ class Direct_CID(Email2PDFTestCase):
         self.assertFalse(self.existsByTimeWarning())
         self.assertFalse(self.existsByTimeOriginal())
 
+    # This test is an attempt to recreate a real-world failing email where the image attachment looked like:
+    #
+    # Content-Type: image/png; name=map_8dff3523-1a2d-4fc8-926f-d18e93964f3d
+    # Content-Disposition: inline; filename=map_8dff3523-1a2d-4fc8-926f-d18e93964f3d
+    # Content-Transfer-Encoding: base64
+    # Content-ID: <>
+    #
+    # And the HTML looked like:
+    #
+    # <img src="cid:map_8dff3523-1a2d-4fc8-926f-d18e93964f3d">
+
+    def test_embedded_image_cid_empty(self):
+        path = os.path.join(self.examineDir, "embeddedImageCIDEmpty.pdf")
+        self.addHeaders()
+        image_filename = self.attachImage('<>', jpeg=False, inline=True, force_filename=True, content_type_add_filename=True, extension="")
+        self.attachHTML('<img src=cid:' + image_filename + '>')
+        error = self.invokeDirectly(outputFile=path)
+        self.assertEqual('', error)
+        self.assertTrue(os.path.exists(path))
+        self.assertLess(Email2PDFTestCase.PNG_SIZE, os.path.getsize(path))
+        self.assertFalse(os.path.exists(os.path.join(self.workingDir, image_filename)))
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
+
     def test_embedded_image_with_complex_name(self):
         path = os.path.join(self.examineDir, "embeddedImageWithComplexName.pdf")
         self.addHeaders()
