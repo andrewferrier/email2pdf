@@ -530,7 +530,10 @@ def add_update_pdf_metadata(filename, update_dictionary):
             assert full_update_dictionary[key] is not None
             info_dict.update({NameObject(key): createStringObject(full_update_dictionary[key])})
 
-        _, temp_file_name = tempfile.mkstemp(prefix="email2pdf_add_update_pdf_metadata", suffix=".pdf")
+        os_file_out, temp_file_name = tempfile.mkstemp(prefix="email2pdf_add_update_pdf_metadata", suffix=".pdf")
+        # Immediately close the file as created to work around issue on
+        # Windows where file cannot be opened twice.
+        os.close(os_file_out)
 
         with open(temp_file_name, 'wb') as file_out:
             pdf_output.write(file_out)
