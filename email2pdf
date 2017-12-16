@@ -406,7 +406,7 @@ def output_body_pdf(input_email, payload, output_file_name):
         raise FatalException("wkhtmltopdf failed with exit code " + str(wkh2p_process.returncode) + ", no error output.")
     elif wkh2p_process.returncode > 0 and stripped_error != '':
         raise FatalException("wkhtmltopdf failed with exit code " + str(wkh2p_process.returncode) + ", stripped error: " +
-                             str(stripped_error, 'utf-8'))
+                             stripped_error)
     elif stripped_error != '':
         raise FatalException("wkhtmltopdf exited with rc = 0 but produced unknown stripped error output " + stripped_error)
 
