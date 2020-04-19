@@ -3,3 +3,4 @@ freezegun
 nose
 pdfminer3k
 reportlab
+requests

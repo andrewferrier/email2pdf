@@ -5,4 +5,3 @@ pdfminer3k
 pypdf2
 python-magic
 reportlab
-requests

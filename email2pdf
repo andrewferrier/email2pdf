@@ -5,6 +5,8 @@ from email.header import decode_header
 from itertools import chain
 from subprocess import Popen, PIPE
 from sys import platform as _platform
+from urllib.error import URLError, HTTPError
+from urllib.request import Request, urlopen
 import argparse
 import email
 import functools
@@ -26,9 +28,7 @@ import traceback
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from PyPDF2.generic import NameObject, createStringObject
 from bs4 import BeautifulSoup
-from requests.exceptions import RequestException
 import magic
-import requests
 
 assert sys.version_info >= (3, 4)
 
@@ -459,13 +459,16 @@ def remove_invalid_urls(payload):
 
 def can_url_fetch(src):
     try:
-        request = requests.get(src, headers={'Connection': 'close'}, timeout=10)
-        # See https://github.com/kennethreitz/requests/issues/1882#issuecomment-44596534
-        request.connection.close()
-        request.raise_for_status()
-        return True
-    except RequestException:
+        req = Request(src)
+        urlopen(req)
+    except HTTPError:
         return False
+    except URLError:
+        return False
+    except ValueError:
+        return False
+    else:
+        return True
 
 
 def handle_attachments(input_email, output_directory, add_prefix_date, ignore_floating_attachments, parts_to_ignore):
