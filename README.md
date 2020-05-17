@@ -91,3 +91,10 @@ I don't have any direct experience using procmail with email2pdf, so don't have 
 specific setup steps, although I understand it can be made to work. You should be
 aware that currently there is an outstanding issue with I/O encodings with procmail
 that you may need to work around - see [issue #76](https://github.com/andrewferrier/email2pdf/issues/76) for more information.
+
+## Related Projects
+
+Harvinderpal Ghotra has refactored email2pdf into a
+[library](https://github.com/hghotra/eml2pdflib), which may be helpful if you
+need to embed email2pdf-like functionality in a Python program (although there
+is no specific effort to keep these two projects in sync).
