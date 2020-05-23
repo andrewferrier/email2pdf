@@ -6,6 +6,8 @@ DOCKERTAG = andrewferrier/email2pdf
 determineversion:
 	$(eval GITDESCRIBE := $(shell git describe --dirty))
 	sed 's/Version: .*/Version: $(GITDESCRIBE)/' debian/DEBIAN/control_template > debian/DEBIAN/control
+	$(eval GITDESCRIBE_ABBREV := $(shell git describe --abbrev=0))
+	sed 's/pkgver=X/pkgver=$(GITDESCRIBE_ABBREV)/' PKGBUILD_template > PKGBUILD
 
 ifeq ($(UNAME),Linux)
 builddeb: determineversion builddeb_real
@@ -25,6 +27,9 @@ builddeb_real:
 	fakeroot chmod -R u=rwX,go=rX $(TEMPDIR)
 	fakeroot chmod -R u+x $(TEMPDIR)/usr/bin
 	fakeroot dpkg-deb --build $(TEMPDIR) .
+
+buildarch: determineversion
+	makepkg --skipinteg
 
 builddocker: determineversion
 	docker build -t $(DOCKERTAG) .

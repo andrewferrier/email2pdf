@@ -1,0 +1,21 @@
+pkgbase='email2pdf'
+pkgname=(email2pdf)
+pkgver=X
+pkgrel=0
+pkgdesc="email2pdf"
+arch=(any)
+url=""
+license=(MIT)
+groups=(ajf)
+
+source=(
+        email2pdf
+       )
+
+package_email2pdf() {
+        depends=(
+                python-coloredlogs
+        )
+
+        install -Dm 755 email2pdf "$pkgdir"/usr/bin/email2pdf
+}
