@@ -14,7 +14,12 @@ source=(
 
 package_email2pdf() {
         depends=(
+                python-beautifulsoup4
                 python-coloredlogs
+                python-html5lib
+                python-magic
+                python-pypdf2
+                wkhtmltopdf
         )
 
         install -Dm 755 email2pdf "$pkgdir"/usr/bin/email2pdf
