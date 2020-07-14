@@ -1,3 +1,4 @@
+ROOTDIR :=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 TEMPDIR := $(shell mktemp -t tmp.XXXXXX -d)
 FLAKE8 := $(shell which flake8)
 UNAME := $(shell uname)
@@ -7,6 +8,7 @@ determineversion:
 	$(eval GITDESCRIBE := $(shell git describe --dirty))
 	sed 's/Version: .*/Version: $(GITDESCRIBE)/' debian/DEBIAN/control_template > debian/DEBIAN/control
 	$(eval GITDESCRIBE_ABBREV := $(shell git describe --abbrev=0))
+	sed 's/X\.Y/$(GITDESCRIBE_ABBREV)/' brew/email2pdf_template.rb > brew/email2pdf.rb
 	sed 's/pkgver=X/pkgver=$(GITDESCRIBE_ABBREV)/' PKGBUILD_template > PKGBUILD
 
 ifeq ($(UNAME),Linux)
@@ -53,6 +55,12 @@ unittest:
 
 unittest_verbose:
 	python3 -m unittest discover -f -v
+
+install_osx_brew: determineversion
+	brew install -f file://$(ROOTDIR)/brew/email2pdf.rb
+
+reinstall_osx_brew: determineversion
+	brew reinstall file://$(ROOTDIR)/brew/email2pdf.rb
 
 analysis:
 	# Debian version is badly packaged, make sure we are using Python 3.
