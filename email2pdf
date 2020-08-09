@@ -649,7 +649,8 @@ def get_formatted_header_info(input_email):
     for header in FORMATTED_HEADERS_TO_INCLUDE:
         if input_email[header]:
             decoded_string = get_utf8_header(input_email[header])
-            header_info = header_info + '<b>' + header + '</b>: ' + decoded_string + '<br/>'
+            header_info = header_info + '<b>' + header + '</b>: ' + \
+                          html.escape(decoded_string) + '<br/>'
 
     return header_info + '<br/>'
 
