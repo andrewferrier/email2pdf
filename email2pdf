@@ -38,7 +38,7 @@ HEADER_MAPPING = {'Author': 'From',
                   'Title': 'Subject',
                   'X-email2pdf-To': 'To'}
 
-FORMATTED_HEADERS_TO_INCLUDE = frozenset(['Subject', 'From', 'To', 'Date'])
+FORMATTED_HEADERS_TO_INCLUDE = ['Subject', 'From', 'To', 'Date']
 
 MIME_TYPES_BLACKLIST = frozenset(['text/html', 'text/plain'])
 
