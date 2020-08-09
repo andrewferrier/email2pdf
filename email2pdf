@@ -23,6 +23,7 @@ import re
 import shutil
 import sys
 import tempfile
+import textwrap
 import traceback
 
 from PyPDF2 import PdfFileReader, PdfFileWriter
@@ -342,6 +343,9 @@ def handle_plain_message_body(part):
         if isinstance(payload, bytes):
             payload = str(payload, charset)
 
+        payload = "\n".join(    # Wrap long lines, individually
+            [ textwrap.fill(line, width=80) for line in payload.splitlines() ]
+        )
         payload = html.escape(payload)
         payload = "<html><body><pre>\n" + payload + "\n</pre></body></html>"
 
