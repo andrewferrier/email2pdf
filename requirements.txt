@@ -1,7 +1,6 @@
 beautifulsoup4>=4.6.3
 html5lib
 lxml
-pdfminer3k
 pypdf2
 python-magic
 reportlab
