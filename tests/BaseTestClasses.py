@@ -8,10 +8,6 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate
-from pdfminer.converter import TextConverter
-from pdfminer.layout import LAParams
-from pdfminer.pdfinterp import PDFResourceManager, process_pdf
-from pdfminer.pdftypes import PSException
 from reportlab.pdfgen import canvas
 from requests.exceptions import RequestException
 from subprocess import Popen, PIPE
@@ -22,6 +18,7 @@ import logging
 import inspect
 import os
 import os.path
+import pdfminer.high_level
 import requests
 import shutil
 import sys
@@ -370,18 +367,9 @@ class Email2PDFTestCase(unittest.TestCase):
                 return None
 
     def getPDFText(self, filename):
-        try:
-            with io.StringIO() as retstr:
-                with open(filename, 'rb') as filehandle:
-                    rsrcmgr = PDFResourceManager()
-                    device = TextConverter(rsrcmgr, retstr, laparams=LAParams())
-                    pagenos = set()
-                    process_pdf(rsrcmgr, device, filehandle, pagenos, maxpages=0, password="", caching=True, check_extractable=True)
-                    device.close()
-                    string = retstr.getvalue()
-                    return string
-        except PSException:
-            return None
+        text = pdfminer.high_level.extract_text(filename)
+        text = text.replace("\t", " ")
+        return text
 
     def touch(self, fname):
         open(fname, 'w').close()

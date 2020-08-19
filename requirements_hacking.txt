@@ -1,6 +1,6 @@
 flake8
 freezegun
 nose
-pdfminer3k
+pdfminer.six
 reportlab
 requests
