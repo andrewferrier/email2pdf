@@ -342,7 +342,11 @@ def handle_plain_message_body(part):
             logger.info("Determined email is plain text with charset " + str(charset))
 
         if isinstance(payload, bytes):
-            payload = str(payload, charset)
+            try:
+                payload = str(payload, charset)
+            except UnicodeDecodeError:
+                logger.warning("UnicodeDecodeErrors in plain message body, using 'replace'")
+                payload = str(payload, charset, errors='replace')
 
         payload = "\n".join(    # Wrap long lines, individually
             [ textwrap.fill(line, width=80) for line in payload.splitlines() ]
