@@ -54,7 +54,7 @@ Just run `pip3 install -r requirements_hacking.txt`.
 ### Debian/Ubuntu
 
 * `python3-freezegun` - only available in Ubuntu 14.10 onwards - see
-  http://packages.ubuntu.com/search?keywords=python3-freezegun. If you are on
+  <http://packages.ubuntu.com/search?keywords=python3-freezegun>. If you are on
   an earlier version, you can download the `.deb` manually and install with
   `dpkg -i`.
 
