@@ -18,7 +18,7 @@ builddeb: rundocker_getdebs
 endif
 
 builddeb_real:
-	sudo apt-get install build-essential
+	dpkg -s build-essential || sudo apt-get install build-essential
 	cp -R debian/DEBIAN/ $(TEMPDIR)
 	mkdir -p $(TEMPDIR)/usr/bin
 	mkdir -p $(TEMPDIR)/usr/share/doc/email2pdf
