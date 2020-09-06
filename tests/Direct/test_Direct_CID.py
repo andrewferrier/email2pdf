@@ -1,6 +1,7 @@
 from email.mime.multipart import MIMEMultipart
 
 import os
+import glob
 
 from tests.BaseTestClasses import Email2PDFTestCase
 
@@ -261,11 +262,12 @@ class Direct_CID(Email2PDFTestCase):
         self.assertEqual('', error)
         self.assertTrue(self.existsByTime())
         self.assertLess(Email2PDFTestCase.JPG_SIZE, os.path.getsize(self.getTimedFilename()))
-        self.assertFalse(os.path.exists(os.path.join(self.workingDir, 'myid.jpg')))
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, 'myid2.jpg')))
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, 'myid3.jpg')))
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, 'floating_attachment.jpg')))
-        self.assertTrue(os.path.exists(os.path.join(self.workingDir, 'floating_attachment_1.jpg')))
+        # These use globs because they might generate .jpg or they might generate .jfif
+        self.assertFalse(glob.glob(os.path.join(self.workingDir, 'myid.*')))
+        self.assertTrue(glob.glob(os.path.join(self.workingDir, 'myid2.*')))
+        self.assertTrue(glob.glob(os.path.join(self.workingDir, 'myid3.*')))
+        self.assertTrue(glob.glob(os.path.join(self.workingDir, 'floating_attachment.*')))
+        self.assertTrue(glob.glob(os.path.join(self.workingDir, 'floating_attachment_1.*')))
         self.assertFalse(self.existsByTimeWarning())
         self.assertFalse(self.existsByTimeOriginal())
 
