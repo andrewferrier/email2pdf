@@ -367,9 +367,16 @@ class Email2PDFTestCase(unittest.TestCase):
                 return None
 
     def getPDFText(self, filename):
-        text = pdfminer.high_level.extract_text(filename)
-        text = text.replace("\t", " ")
-        return text
+        if os.path.exists(filename):
+            try:
+                text = pdfminer.high_level.extract_text(filename)
+            except pdfminer.pdfparser.PDFSyntaxError:
+                return None
+
+            text = text.replace("\t", " ")
+            return text
+        else:
+            return None
 
     def touch(self, fname):
         open(fname, 'w').close()
