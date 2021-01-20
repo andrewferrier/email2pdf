@@ -1,0 +1,4 @@
+include email2pdf
+include *.py
+include *.md
+include .travis.yml
