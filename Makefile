@@ -1,8 +1,6 @@
 ROOTDIR :=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 TEMPDIR := $(shell mktemp -t tmp.XXXXXX -d)
 FLAKE8 := $(shell which flake8)
-UNAME := $(shell uname)
-DOCKERTAG = andrewferrier/email2pdf
 
 .PHONY: all builddeb clean test
 
@@ -16,11 +14,7 @@ determineversion:
 	sed 's/X\.Y/$(GITDESCRIBE_ABBREV)/' brew/email2pdf_template.rb > brew/email2pdf.rb
 	sed 's/pkgver=X/pkgver=$(GITDESCRIBE_ABBREV)/' PKGBUILD_template > PKGBUILD
 
-ifeq ($(UNAME),Linux)
 builddeb: determineversion builddeb_real
-else
-builddeb: rundocker_getdebs
-endif
 
 builddeb_real:
 	dpkg -s build-essential || sudo apt-get install build-essential
@@ -37,23 +31,6 @@ builddeb_real:
 
 buildarch: determineversion
 	makepkg --skipinteg
-
-builddocker: determineversion
-	docker build -t $(DOCKERTAG) .
-	docker tag $(DOCKERTAG):latest $(DOCKERTAG):$(GITDESCRIBE)
-
-builddocker_nocache: determineversion
-	docker build --no-cache -t $(DOCKERTAG) .
-	docker tag $(DOCKERTAG):latest $(DOCKERTAG):$(GITDESCRIBE)
-
-rundocker_interactive: builddocker
-	docker run --rm -i -t $(DOCKERTAG) bash -l
-
-rundocker_testing: builddocker
-	docker run --rm -t $(DOCKERTAG) bash -c 'cd /tmp/email2pdf && make unittest && make stylecheck'
-
-rundocker_getdebs: builddocker
-	docker run --rm -v ${PWD}:/debs $(DOCKERTAG) sh -c 'cp /tmp/*.deb /debs'
 
 unittest:
 	python3 -m unittest discover
