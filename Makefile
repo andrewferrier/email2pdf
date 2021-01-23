@@ -4,6 +4,11 @@ FLAKE8 := $(shell which flake8)
 UNAME := $(shell uname)
 DOCKERTAG = andrewferrier/email2pdf
 
+.PHONY: all builddeb clean test
+
+clean:
+	git clean -x -f
+
 determineversion:
 	$(eval GITDESCRIBE := $(shell git describe --dirty))
 	sed 's/Version: .*/Version: $(GITDESCRIBE)/' debian/DEBIAN/control_template > debian/DEBIAN/control
@@ -78,4 +83,4 @@ coverage:
 profile: .email2pdf.profile
 	python3 performance/printstats.py | less
 
-alltests: unittest analysis coverage
+test: unittest analysis coverage
