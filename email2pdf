@@ -469,7 +469,8 @@ def remove_invalid_urls(payload):
 
 def can_url_fetch(src):
     try:
-        req = Request(src)
+        encoded_src = src.replace(" ", "%20")
+        req = Request(encoded_src)
         urlopen(req)
     except HTTPError:
         return False
