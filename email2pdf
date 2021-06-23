@@ -8,6 +8,7 @@ from sys import platform as _platform
 from urllib.error import URLError, HTTPError
 from urllib.request import Request, urlopen
 import argparse
+import chardet
 import email
 import functools
 import html
@@ -369,6 +370,14 @@ def handle_html_message_body(input_email, part):
         charset = 'utf-8'
     logger.info("Determined email is HTML with charset " + str(charset))
 
+    try:
+        payload_unicode = str(payload, charset)
+    except UnicodeDecodeError:
+        detection = chardet.detect(payload)
+        charset = detection["encoding"]
+        logger.info("Detected charset can't decode body; trying again with charset " + charset)
+        payload_unicode = str(payload, charset)
+
     def cid_replace(cid_parts_used, matchobj):
         cid = matchobj.group(1)
 
@@ -391,7 +400,7 @@ def handle_html_message_body(input_email, part):
             return "broken"
 
     payload = re.sub(r'cid:([\w_@.-]+)', functools.partial(cid_replace, cid_parts_used),
-                     str(payload, charset))
+                     payload_unicode)
 
     return (payload, cid_parts_used)
 
