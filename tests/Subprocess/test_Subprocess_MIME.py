@@ -141,6 +141,18 @@ class TestMIME(Email2PDFTestCase):
         self.assertFalse(self.existsByTimeWarning())
         self.assertFalse(self.existsByTimeOriginal())
 
+    def test_wrong_charset_html(self):
+        self.addHeaders()
+        broken_body = b"<p>Something with raw accents: \xe9</p>"
+        self.attachHTML(broken_body, charset="utf-8")
+        (rc, output, error) = self.invokeAsSubprocess()
+        self.assertEqual(0, rc)
+        self.assertEqual('', error)
+        self.assertTrue(self.existsByTime())
+        self.assertRegex(self.getPDFText(self.getTimedFilename()), "Something\swith\sraw\saccents:\s\é")
+        self.assertFalse(self.existsByTimeWarning())
+        self.assertFalse(self.existsByTimeOriginal())
+
     def test_pdf(self):
         self.addHeaders()
         self.attachText("Some basic textual content")

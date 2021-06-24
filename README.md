@@ -1,7 +1,6 @@
 # email2pdf
 
-[![Travis CI
-Status](https://travis-ci.org/andrewferrier/email2pdf.svg?branch=master)](https://travis-ci.org/andrewferrier/email2pdf)
+**⚠️ DEPRECATED: This repository is deprecated, as I don't use email2pdf any more or have the time to maintain it. For now, it will remain here in case anyone wishes to fork and maintain it.**
 
 email2pdf is a Python script to convert emails to PDF from the command-line.
 It is not interactive (it doesn't run from a browser or have a GUI), but is
