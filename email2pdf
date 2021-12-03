@@ -415,6 +415,11 @@ def output_body_pdf(input_email, payload, output_file_name):
     assert output == b''
 
     stripped_error = str(error, 'utf-8')
+    if os.environ['XDG_SESSION_TYPE'] == 'wayland':
+        w_err = r'Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on ' \
+                r'Wayland anyway.'
+        global WKHTMLTOPDF_ERRORS_IGNORE
+        WKHTMLTOPDF_ERRORS_IGNORE = WKHTMLTOPDF_ERRORS_IGNORE.union({w_err})
 
     for error_pattern in WKHTMLTOPDF_ERRORS_IGNORE:
         (stripped_error, number_of_subs_made) = re.subn(error_pattern, '', stripped_error)
