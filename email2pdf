@@ -8,6 +8,7 @@ from sys import platform as _platform
 from urllib.error import URLError, HTTPError
 from urllib.request import Request, urlopen
 import argparse
+import chardet
 import email
 import functools
 import html
@@ -369,6 +370,14 @@ def handle_html_message_body(input_email, part):
         charset = 'utf-8'
     logger.info("Determined email is HTML with charset " + str(charset))
 
+    try:
+        payload_unicode = str(payload, charset)
+    except UnicodeDecodeError:
+        detection = chardet.detect(payload)
+        charset = detection["encoding"]
+        logger.info("Detected charset can't decode body; trying again with charset " + charset)
+        payload_unicode = str(payload, charset)
+
     def cid_replace(cid_parts_used, matchobj):
         cid = matchobj.group(1)
 
@@ -391,7 +400,7 @@ def handle_html_message_body(input_email, part):
             return "broken"
 
     payload = re.sub(r'cid:([\w_@.-]+)', functools.partial(cid_replace, cid_parts_used),
-                     str(payload, charset))
+                     payload_unicode)
 
     return (payload, cid_parts_used)
 
@@ -406,6 +415,11 @@ def output_body_pdf(input_email, payload, output_file_name):
     assert output == b''
 
     stripped_error = str(error, 'utf-8')
+    if os.environ['XDG_SESSION_TYPE'] == 'wayland':
+        w_err = r'Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on ' \
+                r'Wayland anyway.'
+        global WKHTMLTOPDF_ERRORS_IGNORE
+        WKHTMLTOPDF_ERRORS_IGNORE = WKHTMLTOPDF_ERRORS_IGNORE.union({w_err})
 
     for error_pattern in WKHTMLTOPDF_ERRORS_IGNORE:
         (stripped_error, number_of_subs_made) = re.subn(error_pattern, '', stripped_error)
@@ -469,7 +483,8 @@ def remove_invalid_urls(payload):
 
 def can_url_fetch(src):
     try:
-        req = Request(src)
+        encoded_src = src.replace(" ", "%20")
+        req = Request(encoded_src)
         urlopen(req)
     except HTTPError:
         return False
